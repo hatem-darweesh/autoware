@@ -209,7 +209,7 @@ public:
 
 	//Mapping Section
 
-	op_utility_ns::MapRaw m_MapRaw;
+	UtilityHNS::MapRaw m_MapRaw;
 
 	ros::Subscriber sub_lanes;
 	ros::Subscriber sub_points;

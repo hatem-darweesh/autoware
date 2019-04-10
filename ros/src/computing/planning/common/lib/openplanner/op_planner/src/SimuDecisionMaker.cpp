@@ -21,7 +21,7 @@ SimuDecisionMaker::SimuDecisionMaker()
 	m_CurrentAccSteerAngle = m_CurrentAccVelocity = 0;
 
 	m_SimulationSteeringDelayFactor = 0.1;
-	op_utility_ns::UtilityH::GetTickCount(m_SteerDelayTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_SteerDelayTimer);
 }
 
 SimuDecisionMaker::~SimuDecisionMaker()
@@ -91,7 +91,7 @@ void SimuDecisionMaker::FirstLocalizeMe(const WayPoint& initCarPos)
 	}
 
 	m_OdometryState.pos.a = atan2(sin(m_OdometryState.pos.a), cos(m_OdometryState.pos.a));
-	m_OdometryState.pos.a = op_utility_ns::UtilityH::FixNegativeAngle(m_OdometryState.pos.a);
+	m_OdometryState.pos.a = UtilityHNS::UtilityH::FixNegativeAngle(m_OdometryState.pos.a);
 
 	state.pos.a = m_OdometryState.pos.a;
 	state.pos.x = m_OdometryState.pos.x	 - (m_CurrentVelocity*dt* (m_CarInfo.wheel_base) * cos (m_OdometryState.pos.a));
@@ -109,16 +109,16 @@ void SimuDecisionMaker::FirstLocalizeMe(const WayPoint& initCarPos)
 		 double currSteerDeg = RAD2DEG * m_CurrentSteering;
 		 double desiredSteerDeg = RAD2DEG * m_CurrentSteeringD;
 
-		 double mFact = op_utility_ns::UtilityH::GetMomentumScaleFactor(state.speed);
+		 double mFact = UtilityHNS::UtilityH::GetMomentumScaleFactor(state.speed);
 		 double diff = desiredSteerDeg - currSteerDeg;
-		 double diffSign = op_utility_ns::UtilityH::GetSign(diff);
+		 double diffSign = UtilityHNS::UtilityH::GetSign(diff);
 		 double inc = 1.0*diffSign;
 		 if(fabs(diff) < 1.0 )
 			 inc = diff;
 
-		 if(op_utility_ns::UtilityH::GetTimeDiffNow(m_SteerDelayTimer) > m_SimulationSteeringDelayFactor*mFact)
+		 if(UtilityHNS::UtilityH::GetTimeDiffNow(m_SteerDelayTimer) > m_SimulationSteeringDelayFactor*mFact)
 		 {
-			 op_utility_ns::UtilityH::GetTickCount(m_SteerDelayTimer);
+			 UtilityHNS::UtilityH::GetTickCount(m_SteerDelayTimer);
 			 currSteerDeg += inc;
 		 }
 

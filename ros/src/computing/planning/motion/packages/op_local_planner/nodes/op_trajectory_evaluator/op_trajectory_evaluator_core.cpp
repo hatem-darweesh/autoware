@@ -135,9 +135,9 @@ void TrajectoryEvalCore::UpdatePlanningParams(ros::NodeHandle& _nh)
 			m_ExperimentFolderName.push_back('/');
 	}
 
-	op_utility_ns::DataRW::CreateLoggingMainFolder();
+	UtilityHNS::DataRW::CreateLoggingMainFolder();
 	if(m_ExperimentFolderName.size() > 1)
-		op_utility_ns::DataRW::CreateExperimentFolder(m_ExperimentFolderName);
+		UtilityHNS::DataRW::CreateExperimentFolder(m_ExperimentFolderName);
 
 }
 
@@ -153,7 +153,7 @@ void TrajectoryEvalCore::callbackGetVehicleStatus(const geometry_msgs::TwistStam
 	m_CurrentPos.v = m_VehicleStatus.speed;
 	if(fabs(msg->twist.linear.x) > 0.25)
 		m_VehicleStatus.steer = atan(m_CarInfo.wheel_base * msg->twist.angular.z/msg->twist.linear.x);
-	op_utility_ns::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
+	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;
 }
 
@@ -162,7 +162,7 @@ void TrajectoryEvalCore::callbackGetCanInfo(const autoware_msgs::CanInfoConstPtr
 	m_VehicleStatus.speed = msg->speed/3.6;
 	m_CurrentPos.v = m_VehicleStatus.speed;
 	m_VehicleStatus.steer = msg->angle * m_CarInfo.max_steer_angle / m_CarInfo.max_steer_value;
-	op_utility_ns::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
+	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;
 }
 
@@ -172,7 +172,7 @@ void TrajectoryEvalCore::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& 
 	m_CurrentPos.v = m_VehicleStatus.speed;
 	if(fabs(msg->twist.twist.linear.x) > 0.25)
 		m_VehicleStatus.steer = atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
-	op_utility_ns::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
+	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;
 }
 

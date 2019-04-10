@@ -45,9 +45,9 @@ public:
 	void InitBehaviorStates();
 
 	//For Simulation
-	op_utility_ns::PIDController 	m_pidVelocity;
-	op_utility_ns::PIDController 	m_pidStopping;
-	op_utility_ns::PIDController 	m_pidFollowing;
+	UtilityHNS::PIDController 	m_pidVelocity;
+	UtilityHNS::PIDController 	m_pidStopping;
+	UtilityHNS::PIDController 	m_pidFollowing;
 
 public:
 

@@ -447,7 +447,7 @@ void RosHelpers::ConvertFromPlannerHToAutowarePathFormat(const std::vector<Plann
 		wp.pose.pose.position.x = path.at(i).pos.x;
 		wp.pose.pose.position.y = path.at(i).pos.y;
 		wp.pose.pose.position.z = path.at(i).pos.z;
-		wp.pose.pose.orientation = tf::createQuaternionMsgFromYaw(op_utility_ns::UtilityH::SplitPositiveAngle(path.at(i).pos.a));
+		wp.pose.pose.orientation = tf::createQuaternionMsgFromYaw(UtilityHNS::UtilityH::SplitPositiveAngle(path.at(i).pos.a));
 		wp.twist.twist.linear.x = path.at(i).v;
 		if(path.at(i).bDir == FORWARD_DIR)
 			wp.dtlane.dir = 0;
@@ -1068,7 +1068,7 @@ void RosHelpers::ConvertFromPlannerObstaclesToAutoware(const PlannerHNS::WayPoin
 	    direction_marker.id = i;
 	    direction_marker.pose.position = point;
 	    direction_marker.pose.position.z += 0.5;
-	    direction_marker.pose.orientation = tf::createQuaternionMsgFromYaw(op_utility_ns::UtilityH::SplitPositiveAngle(trackedObstacles.at(i).center.pos.a));
+	    direction_marker.pose.orientation = tf::createQuaternionMsgFromYaw(UtilityHNS::UtilityH::SplitPositiveAngle(trackedObstacles.at(i).center.pos.a));
 
 
 		for(unsigned int iq = 0; iq < 8; iq++)
@@ -1077,7 +1077,7 @@ void RosHelpers::ConvertFromPlannerObstaclesToAutoware(const PlannerHNS::WayPoin
 			quarters_marker.id = quartersIds;
 			quarters_marker.points.push_back(point);
 			geometry_msgs::Point point2 = point;
-			double a_q = op_utility_ns::UtilityH::SplitPositiveAngle(trackedObstacles.at(i).center.pos.a+(iq*M_PI_4));
+			double a_q = UtilityHNS::UtilityH::SplitPositiveAngle(trackedObstacles.at(i).center.pos.a+(iq*M_PI_4));
 			point2.x += 2.0*cos(a_q);
 			point2.y += 1.5*sin(a_q);
 			quarters_marker.points.push_back(point2);
@@ -1431,7 +1431,7 @@ void RosHelpers::ConvertFromLocalLaneToAutowareLane(const std::vector<PlannerHNS
 		wp.pose.pose.position.x = path.at(i).pos.x;
 		wp.pose.pose.position.y = path.at(i).pos.y;
 		wp.pose.pose.position.z = path.at(i).pos.z;
-		wp.pose.pose.orientation = tf::createQuaternionMsgFromYaw(op_utility_ns::UtilityH::SplitPositiveAngle(path.at(i).pos.a));
+		wp.pose.pose.orientation = tf::createQuaternionMsgFromYaw(UtilityHNS::UtilityH::SplitPositiveAngle(path.at(i).pos.a));
 
 		wp.twist.twist.linear.x = path.at(i).v;
 		wp.lane_id = path.at(i).laneId;
@@ -1465,7 +1465,7 @@ void RosHelpers::ConvertFromLocalLaneToAutowareLane(const std::vector<PlannerHNS
 		wp.pose.pose.position.x = path.at(i).x;
 		wp.pose.pose.position.y = path.at(i).y;
 		wp.pose.pose.position.z = path.at(i).z;
-		wp.pose.pose.orientation = tf::createQuaternionMsgFromYaw(op_utility_ns::UtilityH::SplitPositiveAngle(path.at(i).a));
+		wp.pose.pose.orientation = tf::createQuaternionMsgFromYaw(UtilityHNS::UtilityH::SplitPositiveAngle(path.at(i).a));
 
 		trajectory.waypoints.push_back(wp);
 	}
@@ -1753,7 +1753,7 @@ void RosHelpers::ConvertFromOpenPlannerDetectedObjectToAutowareDetectedObject(co
 	obj.pose.position.x = det_obj.center.pos.x;
 	obj.pose.position.y = det_obj.center.pos.y;
 	obj.pose.position.z = det_obj.center.pos.z;
-	obj.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, op_utility_ns::UtilityH::SplitPositiveAngle(det_obj.center.pos.a));
+	obj.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, UtilityHNS::UtilityH::SplitPositiveAngle(det_obj.center.pos.a));
 
 	obj.velocity.linear.x = det_obj.center.v;
 	obj.velocity.linear.y = det_obj.acceleration_raw;
@@ -1789,10 +1789,10 @@ void RosHelpers::ConvertFromOpenPlannerDetectedObjectToAutowareDetectedObject(co
 
 void RosHelpers::UpdateRoadMap(const AutowareRoadNetwork& src_map, PlannerHNS::RoadNetwork& out_map)
 {
-	std::vector<op_utility_ns::AisanLanesFileReader::AisanLane> lanes;
+	std::vector<UtilityHNS::AisanLanesFileReader::AisanLane> lanes;
 	for(unsigned int i=0; i < src_map.lanes.data.size();i++)
 	{
-		op_utility_ns::AisanLanesFileReader::AisanLane l;
+		UtilityHNS::AisanLanesFileReader::AisanLane l;
 		l.BLID 		=  src_map.lanes.data.at(i).blid;
 		l.BLID2 	=  src_map.lanes.data.at(i).blid2;
 		l.BLID3 	=  src_map.lanes.data.at(i).blid3;
@@ -1823,11 +1823,11 @@ void RosHelpers::UpdateRoadMap(const AutowareRoadNetwork& src_map, PlannerHNS::R
 		lanes.push_back(l);
 	}
 
-	std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints> points;
+	std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints> points;
 
 	for(unsigned int i=0; i < src_map.points.data.size();i++)
 	{
-		op_utility_ns::AisanPointsFileReader::AisanPoints p;
+		UtilityHNS::AisanPointsFileReader::AisanPoints p;
 		double integ_part = src_map.points.data.at(i).l;
 		double deg = trunc(src_map.points.data.at(i).l);
 		double min = trunc((src_map.points.data.at(i).l - deg) * 100.0) / 60.0;
@@ -1854,10 +1854,10 @@ void RosHelpers::UpdateRoadMap(const AutowareRoadNetwork& src_map, PlannerHNS::R
 	}
 
 
-	std::vector<op_utility_ns::AisanCenterLinesFileReader::AisanCenterLine> dts;
+	std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine> dts;
 	for(unsigned int i=0; i < src_map.dtlanes.data.size();i++)
 	{
-		op_utility_ns::AisanCenterLinesFileReader::AisanCenterLine dt;
+		UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine dt;
 
 		dt.Apara 	= src_map.dtlanes.data.at(i).apara;
 		dt.DID 		= src_map.dtlanes.data.at(i).did;
@@ -1873,18 +1873,18 @@ void RosHelpers::UpdateRoadMap(const AutowareRoadNetwork& src_map, PlannerHNS::R
 		dts.push_back(dt);
 	}
 
-	std::vector<op_utility_ns::AisanAreasFileReader::AisanArea> areas;
-	std::vector<op_utility_ns::AisanIntersectionFileReader::AisanIntersection> inters;
-	std::vector<op_utility_ns::AisanLinesFileReader::AisanLine> line_data;
-	std::vector<op_utility_ns::AisanStopLineFileReader::AisanStopLine> stop_line_data;
-	std::vector<op_utility_ns::AisanSignalFileReader::AisanSignal> signal_data;
-	std::vector<op_utility_ns::AisanVectorFileReader::AisanVector> vector_data;
-	std::vector<op_utility_ns::AisanCurbFileReader::AisanCurb> curb_data;
-	std::vector<op_utility_ns::AisanRoadEdgeFileReader::AisanRoadEdge> roadedge_data;
-	std::vector<op_utility_ns::AisanWayareaFileReader::AisanWayarea> way_area;
-	std::vector<op_utility_ns::AisanCrossWalkFileReader::AisanCrossWalk> crossing;
-	std::vector<op_utility_ns::AisanNodesFileReader::AisanNode > nodes_data;
-	std::vector<op_utility_ns::AisanDataConnFileReader::DataConn> conn_data;
+	std::vector<UtilityHNS::AisanAreasFileReader::AisanArea> areas;
+	std::vector<UtilityHNS::AisanIntersectionFileReader::AisanIntersection> inters;
+	std::vector<UtilityHNS::AisanLinesFileReader::AisanLine> line_data;
+	std::vector<UtilityHNS::AisanStopLineFileReader::AisanStopLine> stop_line_data;
+	std::vector<UtilityHNS::AisanSignalFileReader::AisanSignal> signal_data;
+	std::vector<UtilityHNS::AisanVectorFileReader::AisanVector> vector_data;
+	std::vector<UtilityHNS::AisanCurbFileReader::AisanCurb> curb_data;
+	std::vector<UtilityHNS::AisanRoadEdgeFileReader::AisanRoadEdge> roadedge_data;
+	std::vector<UtilityHNS::AisanWayareaFileReader::AisanWayarea> way_area;
+	std::vector<UtilityHNS::AisanCrossWalkFileReader::AisanCrossWalk> crossing;
+	std::vector<UtilityHNS::AisanNodesFileReader::AisanNode > nodes_data;
+	std::vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;
 
 	PlannerHNS::GPSPoint origin;//(m_OriginPos.position.x, m_OriginPos.position.y, m_OriginPos.position.z, 0);
 	PlannerHNS::MappingHelpers::ConstructRoadNetworkFromRosMessage(lanes, points, dts, inters, areas, line_data, stop_line_data, signal_data, vector_data, curb_data, roadedge_data,way_area, crossing, nodes_data,  conn_data, origin, out_map);

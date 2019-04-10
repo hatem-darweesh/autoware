@@ -31,7 +31,7 @@ TrajectoryCost TrajectoryEvaluator::doOneStep(const std::vector<std::vector<WayP
 {
 
   timespec _t;
-  op_utility_ns::UtilityH::GetTickCount(_t);
+  UtilityHNS::UtilityH::GetTickCount(_t);
 
   double critical_lateral_distance = car_info.width / 2.0 + params.horizontalSafetyDistancel;
   double critical_long_front_distance = car_info.wheel_base / 2.0 + car_info.length / 2.0
@@ -64,7 +64,7 @@ TrajectoryCost TrajectoryEvaluator::doOneStep(const std::vector<std::vector<WayP
   TrajectoryCost best_trajectory = findBestTrajectory(params, trajectory_costs_);
 //	cout << "------------------------------------------------------------- " << endl;
 
-//  double dt = op_utility_ns::UtilityH::GetTimeDiffNow(_t);
+//  double dt = UtilityHNS::UtilityH::GetTimeDiffNow(_t);
 //  std::cout << "Collision Points: " << collision_points_.size() <<  ", Contour points: " << all_contour_points_.size() << ", Trajectory Points: "
 //        << all_trajectories_points_.size() << ", dt: " << dt <<  std::endl;
   return best_trajectory;

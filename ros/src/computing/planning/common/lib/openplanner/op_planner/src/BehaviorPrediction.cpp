@@ -33,8 +33,8 @@ BehaviorPrediction::BehaviorPrediction()
 	m_bStepByStep = false;
 	//m_bCanDecide = true;
 	m_bParticleFilter = false;
-	op_utility_ns::UtilityH::GetTickCount(m_GenerationTimer);
-	op_utility_ns::UtilityH::GetTickCount(m_ResamplingTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_GenerationTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_ResamplingTimer);
 	m_bFirstMove = true;
 	m_bDebugOut = false;
 	m_bDebugOutWeights = false;
@@ -231,7 +231,7 @@ void BehaviorPrediction::ParticleFilterSteps(std::vector<ObjParticles*>& part_in
 void BehaviorPrediction::SamplesFreshParticles(ObjParticles* pParts)
 {
 	timespec _time;
-	op_utility_ns::UtilityH::GetTickCount(_time);
+	UtilityHNS::UtilityH::GetTickCount(_time);
 	srand(_time.tv_nsec);
 
 	ENG eng(_time.tv_nsec);
@@ -252,9 +252,9 @@ void BehaviorPrediction::SamplesFreshParticles(ObjParticles* pParts)
 	bool bRegenerate = true;
 	WayPoint left_p;
 
-	if(op_utility_ns::UtilityH::GetTimeDiffNow(m_GenerationTimer) > 2)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_GenerationTimer) > 2)
 	{
-		op_utility_ns::UtilityH::GetTickCount(m_GenerationTimer);
+		UtilityHNS::UtilityH::GetTickCount(m_GenerationTimer);
 		bRegenerate = true;
 	}
 
@@ -467,8 +467,8 @@ void BehaviorPrediction::MoveParticles(ObjParticles* pParts)
 	}
 	else
 	{
-		dt = op_utility_ns::UtilityH::GetTimeDiffNow(m_ResamplingTimer);
-		op_utility_ns::UtilityH::GetTickCount(m_ResamplingTimer);
+		dt = UtilityHNS::UtilityH::GetTimeDiffNow(m_ResamplingTimer);
+		UtilityHNS::UtilityH::GetTickCount(m_ResamplingTimer);
 		if(m_bFirstMove)
 		{
 			m_bFirstMove  = false;
@@ -728,7 +728,7 @@ void BehaviorPrediction::RemoveWeakParticles(ObjParticles* pParts)
 					<< ", AccelW:" << THREE_PERC_POINTS(pParts->m_AllParticles.at(i)->acl_w)
 					<< ", Indi_W:" << THREE_PERC_POINTS(pParts->m_AllParticles.at(i)->ind_w)
 					<< ", Angles:(" << THREE_PERC_POINTS(pParts->m_AllParticles.at(i)->pose.pos.a) << "," <<  THREE_PERC_POINTS(pParts->obj.center.pos.a) << ")"
-					<< ", Angle_Diff: " << THREE_PERC_POINTS(fabs(op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(pParts->m_AllParticles.at(i)->pose.pos.a,  pParts->obj.center.pos.a)))
+					<< ", Angle_Diff: " << THREE_PERC_POINTS(fabs(UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(pParts->m_AllParticles.at(i)->pose.pos.a,  pParts->obj.center.pos.a)))
 					<< std::endl;
 		}
 
@@ -1007,14 +1007,14 @@ void BehaviorPrediction::CalOnePartWeight(ObjParticles* pParts,Particle& p)
 	double vel_diff = fabs(p.vel - pParts->obj.center.v);
 	if(vel_diff < MEASURE_VEL_ERROR) vel_diff = MEASURE_VEL_ERROR;
 
-	double a_diff = fabs(op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(p.pose.pos.a,  p.car_curr_pose.pos.a));
+	double a_diff = fabs(UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(p.pose.pos.a,  p.car_curr_pose.pos.a));
 	if(a_diff < MEASURE_ANGLE_ERROR) a_diff = MEASURE_ANGLE_ERROR;
 
-	double a_diff_real = fabs(op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(p.pose.pos.a,  pParts->obj.center.pos.a));
+	double a_diff_real = fabs(UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(p.pose.pos.a,  pParts->obj.center.pos.a));
 	if(a_diff_real < MEASURE_ANGLE_ERROR) a_diff_real = MEASURE_ANGLE_ERROR;
 
 	//p.pose_w = exp(-(0.5*pow((p.pose.pos.x - pParts->obj.center.pos.x),2)/(2*MEASURE_POSE_ERROR*MEASURE_POSE_ERROR)+ pow((p.pose.pos.y - pParts->obj.center.pos.y),2)/(2*MEASURE_POSE_ERROR*MEASURE_POSE_ERROR)));
-	//p.dir_w  = exp(-(pow(fabs(op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(p.pose.pos.a,  pParts->obj.center.pos.a)),2)/(2*MEASURE_ANGLE_ERROR*MEASURE_ANGLE_ERROR)));
+	//p.dir_w  = exp(-(pow(fabs(UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(p.pose.pos.a,  pParts->obj.center.pos.a)),2)/(2*MEASURE_ANGLE_ERROR*MEASURE_ANGLE_ERROR)));
 	//p.vel_w  = exp(-(pow((p.vel - pParts->obj.center.v),2)/(2*MEASURE_VEL_ERROR*MEASURE_VEL_ERROR)));
 
 	p.pose_w = 1.0/distance;

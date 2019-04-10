@@ -57,9 +57,9 @@ PassiveDecisionMaker::~PassiveDecisionMaker()
      unsigned int point_index = 0;
 
      PlannerHNS::WayPoint pursuite_point = PlanningHelpers::GetFollowPointOnTrajectory(path, info, 2, point_index);
-     double current_a = op_utility_ns::UtilityH::SplitPositiveAngle(currPose.pos.a);
+     double current_a = UtilityHNS::UtilityH::SplitPositiveAngle(currPose.pos.a);
      double target_a = atan2(pursuite_point.pos.y - currPose.pos.y, pursuite_point.pos.x - currPose.pos.x);
-     double a_positive =  op_utility_ns::UtilityH::SplitPositiveAngle(target_a - current_a);
+     double a_positive =  UtilityHNS::UtilityH::SplitPositiveAngle(target_a - current_a);
 
      return a_positive;
 

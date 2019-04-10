@@ -93,21 +93,21 @@ int MappingHelpers::ReplaceMyID(int& id,const std::vector<std::pair<int,int> >& 
 	return -1;
 }
 
-void MappingHelpers::ConstructRoadNetworkFromRosMessage(const std::vector<op_utility_ns::AisanLanesFileReader::AisanLane>& lanes_data,
-		const std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints>& points_data,
-		const std::vector<op_utility_ns::AisanCenterLinesFileReader::AisanCenterLine>& dt_data,
-		const std::vector<op_utility_ns::AisanIntersectionFileReader::AisanIntersection>& intersection_data,
-		const std::vector<op_utility_ns::AisanAreasFileReader::AisanArea>& area_data,
-		const std::vector<op_utility_ns::AisanLinesFileReader::AisanLine>& line_data,
-		const std::vector<op_utility_ns::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
-		const std::vector<op_utility_ns::AisanSignalFileReader::AisanSignal>& signal_data,
-		const std::vector<op_utility_ns::AisanVectorFileReader::AisanVector>& vector_data,
-		const std::vector<op_utility_ns::AisanCurbFileReader::AisanCurb>& curb_data,
-		const std::vector<op_utility_ns::AisanRoadEdgeFileReader::AisanRoadEdge>& roadedge_data,
-		const std::vector<op_utility_ns::AisanWayareaFileReader::AisanWayarea>& wayarea_data,
-		const std::vector<op_utility_ns::AisanCrossWalkFileReader::AisanCrossWalk>& crosswalk_data,
-		const std::vector<op_utility_ns::AisanNodesFileReader::AisanNode>& nodes_data,
-		const std::vector<op_utility_ns::AisanDataConnFileReader::DataConn>& conn_data,
+void MappingHelpers::ConstructRoadNetworkFromRosMessage(const std::vector<UtilityHNS::AisanLanesFileReader::AisanLane>& lanes_data,
+		const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
+		const std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dt_data,
+		const std::vector<UtilityHNS::AisanIntersectionFileReader::AisanIntersection>& intersection_data,
+		const std::vector<UtilityHNS::AisanAreasFileReader::AisanArea>& area_data,
+		const std::vector<UtilityHNS::AisanLinesFileReader::AisanLine>& line_data,
+		const std::vector<UtilityHNS::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
+		const std::vector<UtilityHNS::AisanSignalFileReader::AisanSignal>& signal_data,
+		const std::vector<UtilityHNS::AisanVectorFileReader::AisanVector>& vector_data,
+		const std::vector<UtilityHNS::AisanCurbFileReader::AisanCurb>& curb_data,
+		const std::vector<UtilityHNS::AisanRoadEdgeFileReader::AisanRoadEdge>& roadedge_data,
+		const std::vector<UtilityHNS::AisanWayareaFileReader::AisanWayarea>& wayarea_data,
+		const std::vector<UtilityHNS::AisanCrossWalkFileReader::AisanCrossWalk>& crosswalk_data,
+		const std::vector<UtilityHNS::AisanNodesFileReader::AisanNode>& nodes_data,
+		const std::vector<UtilityHNS::AisanDataConnFileReader::DataConn>& conn_data,
 		const GPSPoint& origin, RoadNetwork& map, const bool& bSpecialFlag,
 		const bool& bFindLaneChangeLanes, const bool& bFindCurbsAndWayArea)
 {
@@ -115,9 +115,9 @@ void MappingHelpers::ConstructRoadNetworkFromRosMessage(const std::vector<op_uti
 	Lane lane_obj;
 	int laneIDSeq = 0;
 	WayPoint prevWayPoint;
-	op_utility_ns::AisanLanesFileReader::AisanLane prev_lane_point;
-	op_utility_ns::AisanLanesFileReader::AisanLane curr_lane_point;
-	op_utility_ns::AisanLanesFileReader::AisanLane next_lane_point;
+	UtilityHNS::AisanLanesFileReader::AisanLane prev_lane_point;
+	UtilityHNS::AisanLanesFileReader::AisanLane curr_lane_point;
+	UtilityHNS::AisanLanesFileReader::AisanLane next_lane_point;
 	vector<pair<int,int> > id_replace_list;
 
 	for(unsigned int l= 0; l < lanes_data.size(); l++)
@@ -541,37 +541,37 @@ void MappingHelpers::ConstructRoadNetworkFromDataFiles(const std::string vectoMa
 	string intersection_info = vectoMapPath + "intersection.csv";
 
 	cout << " >> Loading vector map data files ... " << endl;
-	op_utility_ns::AisanCenterLinesFileReader  center_lanes(center_lines_info);
-	op_utility_ns::AisanLanesFileReader lanes(lane_info);
-	op_utility_ns::AisanPointsFileReader points(laneLinesDetails);
-	op_utility_ns::AisanNodesFileReader nodes(node_info);
-	op_utility_ns::AisanLinesFileReader lines(line_info);
-	op_utility_ns::AisanStopLineFileReader stop_line(stop_line_info);
-	op_utility_ns::AisanSignalFileReader signal(signal_info);
-	op_utility_ns::AisanVectorFileReader vec(vector_info);
-	op_utility_ns::AisanCurbFileReader curb(curb_info);
-	op_utility_ns::AisanRoadEdgeFileReader roadedge(roadedge_info);
-	op_utility_ns::AisanDataConnFileReader conn(conn_info);
-	op_utility_ns::AisanAreasFileReader areas(area_info);
-	op_utility_ns::AisanWayareaFileReader way_area(wayarea_info);
-	op_utility_ns::AisanCrossWalkFileReader cross_walk(crosswalk_info);
+	UtilityHNS::AisanCenterLinesFileReader  center_lanes(center_lines_info);
+	UtilityHNS::AisanLanesFileReader lanes(lane_info);
+	UtilityHNS::AisanPointsFileReader points(laneLinesDetails);
+	UtilityHNS::AisanNodesFileReader nodes(node_info);
+	UtilityHNS::AisanLinesFileReader lines(line_info);
+	UtilityHNS::AisanStopLineFileReader stop_line(stop_line_info);
+	UtilityHNS::AisanSignalFileReader signal(signal_info);
+	UtilityHNS::AisanVectorFileReader vec(vector_info);
+	UtilityHNS::AisanCurbFileReader curb(curb_info);
+	UtilityHNS::AisanRoadEdgeFileReader roadedge(roadedge_info);
+	UtilityHNS::AisanDataConnFileReader conn(conn_info);
+	UtilityHNS::AisanAreasFileReader areas(area_info);
+	UtilityHNS::AisanWayareaFileReader way_area(wayarea_info);
+	UtilityHNS::AisanCrossWalkFileReader cross_walk(crosswalk_info);
 
 
-	vector<op_utility_ns::AisanIntersectionFileReader::AisanIntersection> intersection_data;
-	vector<op_utility_ns::AisanNodesFileReader::AisanNode> nodes_data;
-	vector<op_utility_ns::AisanLanesFileReader::AisanLane> lanes_data;
-	vector<op_utility_ns::AisanPointsFileReader::AisanPoints> points_data;
-	vector<op_utility_ns::AisanCenterLinesFileReader::AisanCenterLine> dt_data;
-	vector<op_utility_ns::AisanLinesFileReader::AisanLine> line_data;
-	vector<op_utility_ns::AisanStopLineFileReader::AisanStopLine> stop_line_data;
-	vector<op_utility_ns::AisanSignalFileReader::AisanSignal> signal_data;
-	vector<op_utility_ns::AisanVectorFileReader::AisanVector> vector_data;
-	vector<op_utility_ns::AisanCurbFileReader::AisanCurb> curb_data;
-	vector<op_utility_ns::AisanRoadEdgeFileReader::AisanRoadEdge> roadedge_data;
-	vector<op_utility_ns::AisanAreasFileReader::AisanArea> area_data;
-	vector<op_utility_ns::AisanWayareaFileReader::AisanWayarea> way_area_data;
-	vector<op_utility_ns::AisanCrossWalkFileReader::AisanCrossWalk> crosswalk_data;
-	vector<op_utility_ns::AisanDataConnFileReader::DataConn> conn_data;
+	vector<UtilityHNS::AisanIntersectionFileReader::AisanIntersection> intersection_data;
+	vector<UtilityHNS::AisanNodesFileReader::AisanNode> nodes_data;
+	vector<UtilityHNS::AisanLanesFileReader::AisanLane> lanes_data;
+	vector<UtilityHNS::AisanPointsFileReader::AisanPoints> points_data;
+	vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine> dt_data;
+	vector<UtilityHNS::AisanLinesFileReader::AisanLine> line_data;
+	vector<UtilityHNS::AisanStopLineFileReader::AisanStopLine> stop_line_data;
+	vector<UtilityHNS::AisanSignalFileReader::AisanSignal> signal_data;
+	vector<UtilityHNS::AisanVectorFileReader::AisanVector> vector_data;
+	vector<UtilityHNS::AisanCurbFileReader::AisanCurb> curb_data;
+	vector<UtilityHNS::AisanRoadEdgeFileReader::AisanRoadEdge> roadedge_data;
+	vector<UtilityHNS::AisanAreasFileReader::AisanArea> area_data;
+	vector<UtilityHNS::AisanWayareaFileReader::AisanWayarea> way_area_data;
+	vector<UtilityHNS::AisanCrossWalkFileReader::AisanCrossWalk> crosswalk_data;
+	vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;
 
 
 	nodes.ReadAllData(nodes_data);
@@ -619,8 +619,8 @@ void MappingHelpers::ConstructRoadNetworkFromDataFiles(const std::string vectoMa
 }
 
 bool MappingHelpers::GetWayPoint(const int& id, const int& laneID,const double& refVel, const int& did,
-		const std::vector<op_utility_ns::AisanCenterLinesFileReader::AisanCenterLine>& dtpoints,
-		const std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints>& points,
+		const std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtpoints,
+		const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points,
 		const GPSPoint& origin, WayPoint& way_point)
 {
 
@@ -1261,7 +1261,7 @@ Lane* MappingHelpers::GetClosestLaneFromMap(const WayPoint& pos, RoadNetwork& ma
 //		if(info.perp_distance == 0 && laneLinksList.at(i).first != 0)
 //			continue;
 //
-//		a_diff = op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(laneLinksList.at(i).second->pos.a, pos.pos.a);
+//		a_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(laneLinksList.at(i).second->pos.a, pos.pos.a);
 //
 //		if(fabs(info.perp_distance)<min_d && a_diff <= M_PI_4)
 //		{
@@ -1286,7 +1286,7 @@ Lane* MappingHelpers::GetClosestLaneFromMap(const WayPoint& pos, RoadNetwork& ma
 //			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
 //			{
 //				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
-//				a_diff = op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos.a, pos.pos.a);
+//				a_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos.a, pos.pos.a);
 //
 //				if(d <= distance && a_diff <= M_PI_4)
 //				{
@@ -2003,7 +2003,7 @@ void MappingHelpers::FindAdjacentLanes(RoadNetwork& map)
 					WayPoint closest_p = map.roadSegments.at(rs_2).Lanes.at(i2).points.at(iCenter2);
 					double mid_a1 = wp_1.pos.a;
 					double mid_a2 = closest_p.pos.a;
-					double angle_diff = op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(mid_a1, mid_a2);
+					double angle_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(mid_a1, mid_a2);
 					double distance = distance2points(wp_1.pos, closest_p.pos);
 
 					if(pL->id != map.roadSegments.at(rs_2).Lanes.at(i2).id && angle_diff < 0.05 && distance < 3.5 && distance > 2.5)
@@ -2050,9 +2050,9 @@ void MappingHelpers::FindAdjacentLanes(RoadNetwork& map)
 	}
 }
 
-void MappingHelpers::ExtractSignalData(const std::vector<op_utility_ns::AisanSignalFileReader::AisanSignal>& signal_data,
-			const std::vector<op_utility_ns::AisanVectorFileReader::AisanVector>& vector_data,
-			const std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints>& points_data,
+void MappingHelpers::ExtractSignalData(const std::vector<UtilityHNS::AisanSignalFileReader::AisanSignal>& signal_data,
+			const std::vector<UtilityHNS::AisanVectorFileReader::AisanVector>& vector_data,
+			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 			const GPSPoint& origin, RoadNetwork& map)
 {
 	for(unsigned int is=0; is< signal_data.size(); is++)
@@ -2085,9 +2085,9 @@ void MappingHelpers::ExtractSignalData(const std::vector<op_utility_ns::AisanSig
 	}
 }
 
-void MappingHelpers::ExtractStopLinesData(const std::vector<op_utility_ns::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
-			const std::vector<op_utility_ns::AisanLinesFileReader::AisanLine>& line_data,
-			const std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints>& points_data,
+void MappingHelpers::ExtractStopLinesData(const std::vector<UtilityHNS::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
+			const std::vector<UtilityHNS::AisanLinesFileReader::AisanLine>& line_data,
+			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 			const GPSPoint& origin, RoadNetwork& map)
 {
 	for(unsigned int ist=0; ist < stop_line_data.size(); ist++)
@@ -2121,9 +2121,9 @@ void MappingHelpers::ExtractStopLinesData(const std::vector<op_utility_ns::Aisan
 	}
 }
 
-void MappingHelpers::ExtractCurbData(const std::vector<op_utility_ns::AisanCurbFileReader::AisanCurb>& curb_data,
-				const std::vector<op_utility_ns::AisanLinesFileReader::AisanLine>& line_data,
-				const std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints>& points_data,
+void MappingHelpers::ExtractCurbData(const std::vector<UtilityHNS::AisanCurbFileReader::AisanCurb>& curb_data,
+				const std::vector<UtilityHNS::AisanLinesFileReader::AisanLine>& line_data,
+				const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 				const GPSPoint& origin, RoadNetwork& map)
 {
 	for(unsigned int ic=0; ic < curb_data.size(); ic++)
@@ -2158,10 +2158,10 @@ void MappingHelpers::ExtractCurbData(const std::vector<op_utility_ns::AisanCurbF
 		}
 }
 
-void MappingHelpers::ExtractWayArea(const std::vector<op_utility_ns::AisanAreasFileReader::AisanArea>& area_data,
-		const std::vector<op_utility_ns::AisanWayareaFileReader::AisanWayarea>& wayarea_data,
-			const std::vector<op_utility_ns::AisanLinesFileReader::AisanLine>& line_data,
-			const std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints>& points_data,
+void MappingHelpers::ExtractWayArea(const std::vector<UtilityHNS::AisanAreasFileReader::AisanArea>& area_data,
+		const std::vector<UtilityHNS::AisanWayareaFileReader::AisanWayarea>& wayarea_data,
+			const std::vector<UtilityHNS::AisanLinesFileReader::AisanLine>& line_data,
+			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 			const GPSPoint& origin, RoadNetwork& map)
 {
 	for(unsigned int iw=0; iw < wayarea_data.size(); iw ++)
@@ -2307,7 +2307,7 @@ void MappingHelpers::LinkTrafficLightsAndStopLines(RoadNetwork& map)
 	}
 }
 
-void MappingHelpers::LinkTrafficLightsAndStopLinesConData(const std::vector<op_utility_ns::AisanDataConnFileReader::DataConn>& conn_data,
+void MappingHelpers::LinkTrafficLightsAndStopLinesConData(const std::vector<UtilityHNS::AisanDataConnFileReader::DataConn>& conn_data,
 		const std::vector<std::pair<int,int> >& id_replace_list, RoadNetwork& map)
 {
 	for(unsigned int rs = 0; rs < map.roadSegments.size(); rs++)
@@ -2317,7 +2317,7 @@ void MappingHelpers::LinkTrafficLightsAndStopLinesConData(const std::vector<op_u
 
 			for(unsigned int ic = 0; ic < conn_data.size(); ic++)
 			{
-				op_utility_ns::AisanDataConnFileReader::DataConn data_conn = conn_data.at(ic);
+				UtilityHNS::AisanDataConnFileReader::DataConn data_conn = conn_data.at(ic);
 				ReplaceMyID(data_conn.LID , id_replace_list);
 
 				if(map.roadSegments.at(rs).Lanes.at(i).id == data_conn.LID)
@@ -2396,25 +2396,25 @@ void MappingHelpers::UpdateMapWithOccupancyGrid(OccupancyToGridMap& map_info, co
 	}
 }
 
-void MappingHelpers::ConstructRoadNetworkFromRosMessageV2(const std::vector<op_utility_ns::AisanLanesFileReader::AisanLane>& lanes_data,
-		const std::vector<op_utility_ns::AisanPointsFileReader::AisanPoints>& points_data,
-		const std::vector<op_utility_ns::AisanCenterLinesFileReader::AisanCenterLine>& dt_data,
-		const std::vector<op_utility_ns::AisanIntersectionFileReader::AisanIntersection>& intersection_data,
-		const std::vector<op_utility_ns::AisanAreasFileReader::AisanArea>& area_data,
-		const std::vector<op_utility_ns::AisanLinesFileReader::AisanLine>& line_data,
-		const std::vector<op_utility_ns::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
-		const std::vector<op_utility_ns::AisanSignalFileReader::AisanSignal>& signal_data,
-		const std::vector<op_utility_ns::AisanVectorFileReader::AisanVector>& vector_data,
-		const std::vector<op_utility_ns::AisanCurbFileReader::AisanCurb>& curb_data,
-		const std::vector<op_utility_ns::AisanRoadEdgeFileReader::AisanRoadEdge>& roadedge_data,
-		const std::vector<op_utility_ns::AisanWayareaFileReader::AisanWayarea>& wayarea_data,
-		const std::vector<op_utility_ns::AisanCrossWalkFileReader::AisanCrossWalk>& crosswalk_data,
-		const std::vector<op_utility_ns::AisanNodesFileReader::AisanNode>& nodes_data,
-		const std::vector<op_utility_ns::AisanDataConnFileReader::DataConn>& conn_data,
-		op_utility_ns::AisanLanesFileReader* pLaneData,
-		op_utility_ns::AisanPointsFileReader* pPointsData,
-		op_utility_ns::AisanNodesFileReader* pNodesData,
-		op_utility_ns::AisanLinesFileReader* pLinedata,
+void MappingHelpers::ConstructRoadNetworkFromRosMessageV2(const std::vector<UtilityHNS::AisanLanesFileReader::AisanLane>& lanes_data,
+		const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
+		const std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dt_data,
+		const std::vector<UtilityHNS::AisanIntersectionFileReader::AisanIntersection>& intersection_data,
+		const std::vector<UtilityHNS::AisanAreasFileReader::AisanArea>& area_data,
+		const std::vector<UtilityHNS::AisanLinesFileReader::AisanLine>& line_data,
+		const std::vector<UtilityHNS::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
+		const std::vector<UtilityHNS::AisanSignalFileReader::AisanSignal>& signal_data,
+		const std::vector<UtilityHNS::AisanVectorFileReader::AisanVector>& vector_data,
+		const std::vector<UtilityHNS::AisanCurbFileReader::AisanCurb>& curb_data,
+		const std::vector<UtilityHNS::AisanRoadEdgeFileReader::AisanRoadEdge>& roadedge_data,
+		const std::vector<UtilityHNS::AisanWayareaFileReader::AisanWayarea>& wayarea_data,
+		const std::vector<UtilityHNS::AisanCrossWalkFileReader::AisanCrossWalk>& crosswalk_data,
+		const std::vector<UtilityHNS::AisanNodesFileReader::AisanNode>& nodes_data,
+		const std::vector<UtilityHNS::AisanDataConnFileReader::DataConn>& conn_data,
+		UtilityHNS::AisanLanesFileReader* pLaneData,
+		UtilityHNS::AisanPointsFileReader* pPointsData,
+		UtilityHNS::AisanNodesFileReader* pNodesData,
+		UtilityHNS::AisanLinesFileReader* pLinedata,
 		const GPSPoint& origin, RoadNetwork& map, const bool& bSpecialFlag,
 		const bool& bFindLaneChangeLanes, const bool& bFindCurbsAndWayArea)
 {
@@ -2521,11 +2521,11 @@ void MappingHelpers::ConstructRoadNetworkFromRosMessageV2(const std::vector<op_u
 	cout << " >> Map loaded from data with " << roadLanes.size()  << " lanes" << endl;
 }
 
-bool MappingHelpers::GetPointFromDataList(op_utility_ns::AisanPointsFileReader* pPointsData,const int& pid, WayPoint& out_wp)
+bool MappingHelpers::GetPointFromDataList(UtilityHNS::AisanPointsFileReader* pPointsData,const int& pid, WayPoint& out_wp)
 {
 	if(pPointsData == nullptr) return false;
 
-	op_utility_ns::AisanPointsFileReader::AisanPoints* pP =  pPointsData->GetDataRowById(pid);
+	UtilityHNS::AisanPointsFileReader::AisanPoints* pP =  pPointsData->GetDataRowById(pid);
 
 	if(pP!=nullptr)
 	{
@@ -2539,14 +2539,14 @@ bool MappingHelpers::GetPointFromDataList(op_utility_ns::AisanPointsFileReader* 
 	return false;
 }
 
-int MappingHelpers::GetBeginPointIdFromLaneNo(op_utility_ns::AisanLanesFileReader* pLaneData,
-		op_utility_ns::AisanPointsFileReader* pPointsData,
-		op_utility_ns::AisanNodesFileReader* pNodesData,const int& LnID)
+int MappingHelpers::GetBeginPointIdFromLaneNo(UtilityHNS::AisanLanesFileReader* pLaneData,
+		UtilityHNS::AisanPointsFileReader* pPointsData,
+		UtilityHNS::AisanNodesFileReader* pNodesData,const int& LnID)
 {
 	if(pLaneData == nullptr) return false;
-	op_utility_ns::AisanLanesFileReader::AisanLane* pL = nullptr;
-	op_utility_ns::AisanPointsFileReader::AisanPoints* pP = nullptr;
-	op_utility_ns::AisanNodesFileReader::AisanNode* pN = nullptr;
+	UtilityHNS::AisanLanesFileReader::AisanLane* pL = nullptr;
+	UtilityHNS::AisanPointsFileReader::AisanPoints* pP = nullptr;
+	UtilityHNS::AisanNodesFileReader::AisanNode* pN = nullptr;
 
 	pL = pLaneData->GetDataRowById(LnID);
 	if(pL!=nullptr)
@@ -2557,13 +2557,13 @@ int MappingHelpers::GetBeginPointIdFromLaneNo(op_utility_ns::AisanLanesFileReade
 	return 0;
 }
 
-int MappingHelpers::GetEndPointIdFromLaneNo(op_utility_ns::AisanLanesFileReader* pLaneData,
-		op_utility_ns::AisanPointsFileReader* pPointsData,
-		op_utility_ns::AisanNodesFileReader* pNodesData,const int& LnID)
+int MappingHelpers::GetEndPointIdFromLaneNo(UtilityHNS::AisanLanesFileReader* pLaneData,
+		UtilityHNS::AisanPointsFileReader* pPointsData,
+		UtilityHNS::AisanNodesFileReader* pNodesData,const int& LnID)
 {
-	op_utility_ns::AisanLanesFileReader::AisanLane* pL = nullptr;
-	op_utility_ns::AisanPointsFileReader::AisanPoints* pP = nullptr;
-	op_utility_ns::AisanNodesFileReader::AisanNode* pN = nullptr;
+	UtilityHNS::AisanLanesFileReader::AisanLane* pL = nullptr;
+	UtilityHNS::AisanPointsFileReader::AisanPoints* pP = nullptr;
+	UtilityHNS::AisanNodesFileReader::AisanNode* pN = nullptr;
 
 	pL = pLaneData->GetDataRowById(LnID);
 	if(pL!=nullptr)
@@ -2574,7 +2574,7 @@ int MappingHelpers::GetEndPointIdFromLaneNo(op_utility_ns::AisanLanesFileReader*
 	return 0;
 }
 
-bool MappingHelpers::IsStartLanePoint(op_utility_ns::AisanLanesFileReader* pLaneData, op_utility_ns::AisanLanesFileReader::AisanLane* pL)
+bool MappingHelpers::IsStartLanePoint(UtilityHNS::AisanLanesFileReader* pLaneData, UtilityHNS::AisanLanesFileReader::AisanLane* pL)
 {
 	if(pL->JCT > 0 || pL->BLID == 0)
 		return true;
@@ -2582,29 +2582,29 @@ bool MappingHelpers::IsStartLanePoint(op_utility_ns::AisanLanesFileReader* pLane
 	if(pL->BLID2 != 0 || pL->BLID3 != 0 || pL->BLID4 != 0)
 		return true;
 
-	op_utility_ns::AisanLanesFileReader::AisanLane* pPrevL = pLaneData->GetDataRowById(pL->BLID);
+	UtilityHNS::AisanLanesFileReader::AisanLane* pPrevL = pLaneData->GetDataRowById(pL->BLID);
 	if(pPrevL == nullptr || pPrevL->FLID2 > 0 || pPrevL->FLID3 > 0 || pPrevL->FLID4 > 0 || pPrevL->JCT > 0)
 		return true;
 
 	return false;
 }
 
-bool MappingHelpers::IsEndLanePoint(op_utility_ns::AisanLanesFileReader* pLaneData, op_utility_ns::AisanLanesFileReader::AisanLane* pL)
+bool MappingHelpers::IsEndLanePoint(UtilityHNS::AisanLanesFileReader* pLaneData, UtilityHNS::AisanLanesFileReader::AisanLane* pL)
 {
 	if(pL->FLID2 > 0 || pL->FLID3 > 0 || pL->FLID4 > 0)
 		return true;
 
-	op_utility_ns::AisanLanesFileReader::AisanLane* pNextL = pLaneData->GetDataRowById(pL->FLID);
+	UtilityHNS::AisanLanesFileReader::AisanLane* pNextL = pLaneData->GetDataRowById(pL->FLID);
 
 	return IsStartLanePoint(pLaneData, pNextL);
 }
 
-void MappingHelpers::GetLanesStartPoints(op_utility_ns::AisanLanesFileReader* pLaneData,
+void MappingHelpers::GetLanesStartPoints(UtilityHNS::AisanLanesFileReader* pLaneData,
 				std::vector<int>& m_LanesStartIds)
 {
 	m_LanesStartIds.clear();
-	op_utility_ns::AisanLanesFileReader::AisanLane* pL = nullptr;
-	op_utility_ns::AisanLanesFileReader::AisanLane* pPrevL = nullptr;
+	UtilityHNS::AisanLanesFileReader::AisanLane* pL = nullptr;
+	UtilityHNS::AisanLanesFileReader::AisanLane* pPrevL = nullptr;
 	for(unsigned int il=0; il < pLaneData->m_data_list.size(); il++)
 	{
 		pL = &pLaneData->m_data_list.at(il);
@@ -2622,12 +2622,12 @@ void MappingHelpers::GetLanesStartPoints(op_utility_ns::AisanLanesFileReader* pL
 	}
 }
 
-void MappingHelpers::ConnectLanes(op_utility_ns::AisanLanesFileReader* pLaneData, std::vector<PlannerHNS::Lane>& lanes)
+void MappingHelpers::ConnectLanes(UtilityHNS::AisanLanesFileReader* pLaneData, std::vector<PlannerHNS::Lane>& lanes)
 {
 	for(unsigned int il = 0; il < lanes.size(); il++)
 	{
 		WayPoint fp = lanes.at(il).points.at(0);
-		op_utility_ns::AisanLanesFileReader::AisanLane* pFirstL = pLaneData->GetDataRowById(fp.originalMapID);
+		UtilityHNS::AisanLanesFileReader::AisanLane* pFirstL = pLaneData->GetDataRowById(fp.originalMapID);
 		if(pFirstL!=nullptr)
 		{
 			if(pFirstL->BLID > 0)
@@ -2641,7 +2641,7 @@ void MappingHelpers::ConnectLanes(op_utility_ns::AisanLanesFileReader* pLaneData
 		}
 
 		WayPoint ep = lanes.at(il).points.at(lanes.at(il).points.size()-1);
-		op_utility_ns::AisanLanesFileReader::AisanLane* pEndL = pLaneData->GetDataRowById(ep.originalMapID);
+		UtilityHNS::AisanLanesFileReader::AisanLane* pEndL = pLaneData->GetDataRowById(ep.originalMapID);
 		if(pEndL!=nullptr)
 		{
 			if(pEndL->FLID > 0)
@@ -2656,9 +2656,9 @@ void MappingHelpers::ConnectLanes(op_utility_ns::AisanLanesFileReader* pLaneData
 	}
 }
 
-void MappingHelpers::CreateLanes(op_utility_ns::AisanLanesFileReader* pLaneData,
-				op_utility_ns::AisanPointsFileReader* pPointsData,
-				op_utility_ns::AisanNodesFileReader* pNodesData,
+void MappingHelpers::CreateLanes(UtilityHNS::AisanLanesFileReader* pLaneData,
+				UtilityHNS::AisanPointsFileReader* pPointsData,
+				UtilityHNS::AisanNodesFileReader* pNodesData,
 				std::vector<PlannerHNS::Lane>& out_lanes)
 {
 
@@ -2673,9 +2673,9 @@ void MappingHelpers::CreateLanes(op_utility_ns::AisanLanesFileReader* pLaneData,
 	}
 }
 
-void MappingHelpers::GetLanePoints(op_utility_ns::AisanLanesFileReader* pLaneData,
-			op_utility_ns::AisanPointsFileReader* pPointsData,
-			op_utility_ns::AisanNodesFileReader* pNodesData, int lnID,
+void MappingHelpers::GetLanePoints(UtilityHNS::AisanLanesFileReader* pLaneData,
+			UtilityHNS::AisanPointsFileReader* pPointsData,
+			UtilityHNS::AisanNodesFileReader* pNodesData, int lnID,
 			PlannerHNS::Lane& out_lane)
 {
 	int next_lnid = lnID;
@@ -2683,7 +2683,7 @@ void MappingHelpers::GetLanePoints(op_utility_ns::AisanLanesFileReader* pLaneDat
 	bool bLast = false;
 	int _rID = 0;
 	out_lane.points.clear();
-	op_utility_ns::AisanLanesFileReader::AisanLane* pL = nullptr;
+	UtilityHNS::AisanLanesFileReader::AisanLane* pL = nullptr;
 	out_lane.id = lnID;
 	out_lane.speed = 0;
 
@@ -3305,9 +3305,9 @@ void MappingHelpers::LinkLanesPointers(PlannerHNS::RoadNetwork& map)
 	}
 }
 
-void MappingHelpers::ExtractCurbDataV2(const std::vector<op_utility_ns::AisanCurbFileReader::AisanCurb>& curb_data,
-				op_utility_ns::AisanLinesFileReader* pLinedata,
-				op_utility_ns::AisanPointsFileReader* pPointsData,
+void MappingHelpers::ExtractCurbDataV2(const std::vector<UtilityHNS::AisanCurbFileReader::AisanCurb>& curb_data,
+				UtilityHNS::AisanLinesFileReader* pLinedata,
+				UtilityHNS::AisanPointsFileReader* pPointsData,
 				const GPSPoint& origin, RoadNetwork& map)
 {
 	for(unsigned int ic=0; ic < curb_data.size(); ic++)
@@ -3323,7 +3323,7 @@ void MappingHelpers::ExtractCurbDataV2(const std::vector<op_utility_ns::AisanCur
 				if(s_id == 0)
 					s_id = pLinedata->m_data_list.at(il).FPID;
 
-				op_utility_ns::AisanPointsFileReader::AisanPoints* pP = pPointsData->GetDataRowById(s_id);
+				UtilityHNS::AisanPointsFileReader::AisanPoints* pP = pPointsData->GetDataRowById(s_id);
 				if(pP != nullptr)
 				{
 					c.points.push_back(GPSPoint(pP->Ly + origin.x, pP->Bx + origin.y, pP->H + origin.z, 0));
@@ -3342,9 +3342,9 @@ void MappingHelpers::ExtractCurbDataV2(const std::vector<op_utility_ns::AisanCur
 	}
 }
 
-void MappingHelpers::ExtractSignalDataV2(const std::vector<op_utility_ns::AisanSignalFileReader::AisanSignal>& signal_data,
-			const std::vector<op_utility_ns::AisanVectorFileReader::AisanVector>& vector_data,
-			op_utility_ns::AisanPointsFileReader* pPointData,
+void MappingHelpers::ExtractSignalDataV2(const std::vector<UtilityHNS::AisanSignalFileReader::AisanSignal>& signal_data,
+			const std::vector<UtilityHNS::AisanVectorFileReader::AisanVector>& vector_data,
+			UtilityHNS::AisanPointsFileReader* pPointData,
 			const GPSPoint& origin, RoadNetwork& map)
 {
 	for(unsigned int is=0; is< signal_data.size(); is++)
@@ -3360,7 +3360,7 @@ void MappingHelpers::ExtractSignalDataV2(const std::vector<op_utility_ns::AisanS
 			{
 				if(signal_data.at(is).VID == vector_data.at(iv).VID)
 				{
-					op_utility_ns::AisanPointsFileReader::AisanPoints* pP =  pPointData->GetDataRowById(vector_data.at(iv).PID);
+					UtilityHNS::AisanPointsFileReader::AisanPoints* pP =  pPointData->GetDataRowById(vector_data.at(iv).PID);
 					if(pP != nullptr)
 					{
 						tl.pos = GPSPoint(pP->Ly + origin.x, pP->Bx + origin.y, pP->H + origin.z, vector_data.at(iv).Hang*DEG2RAD);
@@ -3374,9 +3374,9 @@ void MappingHelpers::ExtractSignalDataV2(const std::vector<op_utility_ns::AisanS
 	}
 }
 
-void MappingHelpers::ExtractStopLinesDataV2(const std::vector<op_utility_ns::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
-			op_utility_ns::AisanLinesFileReader* pLineData,
-			op_utility_ns::AisanPointsFileReader* pPointData,
+void MappingHelpers::ExtractStopLinesDataV2(const std::vector<UtilityHNS::AisanStopLineFileReader::AisanStopLine>& stop_line_data,
+			UtilityHNS::AisanLinesFileReader* pLineData,
+			UtilityHNS::AisanPointsFileReader* pPointData,
 			const GPSPoint& origin, RoadNetwork& map)
 {
 	for(unsigned int ist=0; ist < stop_line_data.size(); ist++)
@@ -3389,11 +3389,11 @@ void MappingHelpers::ExtractStopLinesDataV2(const std::vector<op_utility_ns::Ais
 		else
 			sl.stopSignID = 100+ist;
 
-		op_utility_ns::AisanLinesFileReader::AisanLine* pLine = pLineData->GetDataRowById(stop_line_data.at(ist).LID);
+		UtilityHNS::AisanLinesFileReader::AisanLine* pLine = pLineData->GetDataRowById(stop_line_data.at(ist).LID);
 		if(pLine != nullptr)
 		{
-			op_utility_ns::AisanPointsFileReader::AisanPoints* pStart = pPointData->GetDataRowById(pLine->BPID);
-			op_utility_ns::AisanPointsFileReader::AisanPoints* pEnd = pPointData->GetDataRowById(pLine->FPID);
+			UtilityHNS::AisanPointsFileReader::AisanPoints* pStart = pPointData->GetDataRowById(pLine->BPID);
+			UtilityHNS::AisanPointsFileReader::AisanPoints* pEnd = pPointData->GetDataRowById(pLine->FPID);
 			if(pStart != nullptr)
 				sl.points.push_back(GPSPoint(pStart->Ly + origin.x, pStart->Bx + origin.y, pStart->H + origin.z, 0));
 
@@ -3486,7 +3486,7 @@ void MappingHelpers::FindAdjacentLanesV2(RoadNetwork& map)
 					RelativeInfo info;
 					PlanningHelpers::GetRelativeInfoLimited(pL2->points, *pWP, info);
 
-					if(!info.bAfter && !info.bBefore && fabs(info.perp_distance) > 1.2 && fabs(info.perp_distance) < 3.5 && op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(info.perp_point.pos.a, pWP->pos.a) < 0.06)
+					if(!info.bAfter && !info.bBefore && fabs(info.perp_distance) > 1.2 && fabs(info.perp_distance) < 3.5 && UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(info.perp_point.pos.a, pWP->pos.a) < 0.06)
 					{
 						WayPoint* pWP2 = &pL2->points.at(info.iFront);
 						if(info.perp_distance < 0)

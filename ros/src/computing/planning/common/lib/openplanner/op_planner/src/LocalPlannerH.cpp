@@ -35,7 +35,7 @@ LocalPlannerH::LocalPlannerH()
 	m_pStopSignWaitState = 0;
 	m_pFollowState = 0;
 	m_SimulationSteeringDelayFactor = 0.1;
-	op_utility_ns::UtilityH::GetTickCount(m_SteerDelayTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_SteerDelayTimer);
 	m_PredictionTime = 0;
 
 	InitBehaviorStates();
@@ -189,7 +189,7 @@ void LocalPlannerH::ReInitializePlanner(const WayPoint& start_pose)
 	}
 
 	m_OdometryState.pos.a = atan2(sin(m_OdometryState.pos.a), cos(m_OdometryState.pos.a));
-	m_OdometryState.pos.a = op_utility_ns::UtilityH::FixNegativeAngle(m_OdometryState.pos.a);
+	m_OdometryState.pos.a = UtilityHNS::UtilityH::FixNegativeAngle(m_OdometryState.pos.a);
 
 	state.pos.a = m_OdometryState.pos.a;
 	state.pos.x = m_OdometryState.pos.x	 - (m_CurrentVelocity*dt* (m_CarInfo.wheel_base) * cos (m_OdometryState.pos.a));
@@ -208,9 +208,9 @@ void LocalPlannerH::ReInitializePlanner(const WayPoint& start_pose)
 		 double currSteerDeg = RAD2DEG * m_CurrentSteering;
 		 double desiredSteerDeg = RAD2DEG * m_CurrentSteeringD;
 
-		 double mFact = op_utility_ns::UtilityH::GetMomentumScaleFactor(state.speed);
+		 double mFact = UtilityHNS::UtilityH::GetMomentumScaleFactor(state.speed);
 		 double diff = desiredSteerDeg - currSteerDeg;
-		 double diffSign = op_utility_ns::UtilityH::GetSign(diff);
+		 double diffSign = UtilityHNS::UtilityH::GetSign(diff);
 		 double inc = 1.0*diffSign;
 		 if(fabs(diff) < 1.0 )
 			 inc = diff;
@@ -219,9 +219,9 @@ void LocalPlannerH::ReInitializePlanner(const WayPoint& start_pose)
 //				 << ", Fact: " << mFact
 //				 << ", Diff: " << diff
 //				 << ", inc: " << inc << std::endl;
-		 if(op_utility_ns::UtilityH::GetTimeDiffNow(m_SteerDelayTimer) > m_SimulationSteeringDelayFactor*mFact)
+		 if(UtilityHNS::UtilityH::GetTimeDiffNow(m_SteerDelayTimer) > m_SimulationSteeringDelayFactor*mFact)
 		 {
-			 op_utility_ns::UtilityH::GetTickCount(m_SteerDelayTimer);
+			 UtilityHNS::UtilityH::GetTickCount(m_SteerDelayTimer);
 			 currSteerDeg += inc;
 		 }
 
@@ -262,7 +262,7 @@ void LocalPlannerH::ReInitializePlanner(const WayPoint& start_pose)
 		 double d = hypot(trafficLights.at(i).pos.y - state.pos.y, trafficLights.at(i).pos.x - state.pos.x);
 		 if(d <= trafficLights.at(i).stoppingDistance)
 		 {
-			 double a_diff = op_utility_ns::UtilityH::AngleBetweenTwoAnglesPositive(op_utility_ns::UtilityH::FixNegativeAngle(trafficLights.at(i).pos.a) , op_utility_ns::UtilityH::FixNegativeAngle(state.pos.a));
+			 double a_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(UtilityHNS::UtilityH::FixNegativeAngle(trafficLights.at(i).pos.a) , UtilityHNS::UtilityH::FixNegativeAngle(state.pos.a));
 
 			 if(a_diff < M_PI_2 && trafficLights.at(i).id != prevTrafficLightId)
 			 {
@@ -768,23 +768,23 @@ void LocalPlannerH::ReInitializePlanner(const WayPoint& start_pose)
 	m_PredictedTrajectoryObstacles = obj_list;
 
 	timespec t;
-	op_utility_ns::UtilityH::GetTickCount(t);
+	UtilityHNS::UtilityH::GetTickCount(t);
 	TrajectoryCost tc = m_TrajectoryCostsCalculatotor.DoOneStep(m_RollOuts, m_TotalPath, state,
 			m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeTrajectory, m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeLane, *m_pCurrentBehaviorState->m_pParams,
 			m_CarInfo,vehicleState, m_PredictedTrajectoryObstacles);
-	m_CostCalculationTime = op_utility_ns::UtilityH::GetTimeDiffNow(t);
+	m_CostCalculationTime = UtilityHNS::UtilityH::GetTimeDiffNow(t);
 
 
-	op_utility_ns::UtilityH::GetTickCount(t);
+	UtilityHNS::UtilityH::GetTickCount(t);
 	CalculateImportantParameterForDecisionMaking(vehicleState, goalID, bEmergencyStop, trafficLight, tc);
 
 	beh = GenerateBehaviorState(vehicleState);
-	m_BehaviorGenTime = op_utility_ns::UtilityH::GetTimeDiffNow(t);
+	m_BehaviorGenTime = UtilityHNS::UtilityH::GetTimeDiffNow(t);
 
-	op_utility_ns::UtilityH::GetTickCount(t);
+	UtilityHNS::UtilityH::GetTickCount(t);
 	beh.bNewPlan = SelectSafeTrajectoryAndSpeedProfile(vehicleState);
 
-	m_RollOutsGenerationTime = op_utility_ns::UtilityH::GetTimeDiffNow(t);
+	m_RollOutsGenerationTime = UtilityHNS::UtilityH::GetTimeDiffNow(t);
 
 	beh.maxVelocity = UpdateVelocityDirectlyToTrajectory(beh, vehicleState, dt);
 

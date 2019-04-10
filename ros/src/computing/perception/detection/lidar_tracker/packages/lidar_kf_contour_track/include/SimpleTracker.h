@@ -39,7 +39,7 @@
 
 #include "op_planner/RoadNetwork.h"
 #include "op_planner/PlanningHelpers.h"
-#include "op_utility/utility.h"
+#include "op_utility/UtilityH.h"
 #include "opencv2/video/tracking.hpp"
 #include <vector>
 #include <math.h>
@@ -274,7 +274,7 @@ public:
 			else
 				predObj.acceleration_desc = 0;
 
-			//predObj.acceleration_desc = op_utility_ns::UtilityH::GetSign(predObj.acceleration_raw - prev_big_a);
+			//predObj.acceleration_desc = UtilityHNS::UtilityH::GetSign(predObj.acceleration_raw - prev_big_a);
 			//std::cout << "Acceleraaaaaaaaaaaaaaate : " << predObj.acceleration << ", BigV:" << prev_big_v << std::endl;
 //			std::cout << "Motion Status------ " << std::endl;
 //			if(predObj.acceleration_desc == 1)

@@ -63,7 +63,7 @@
 
 #include "op_planner/PlannerCommonDef.h"
 #include "op_planner/DecisionMaker.h"
-#include "op_utility/data_rw.h"
+#include "op_utility/DataRW.h"
 
 
 namespace BehaviorGeneratorNS
@@ -174,7 +174,7 @@ public:
 
 	//Mapping Section
 
-	op_utility_ns::MapRaw m_MapRaw;
+	UtilityHNS::MapRaw m_MapRaw;
 
 	ros::Subscriber sub_lanes;
 	ros::Subscriber sub_points;

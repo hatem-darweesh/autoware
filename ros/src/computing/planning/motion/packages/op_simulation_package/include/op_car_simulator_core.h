@@ -70,7 +70,7 @@
 
 #include "op_simu/SimpleTracker.h"
 #include "op_planner/SimuDecisionMaker.h"
-#include "op_utility/data_rw.h"
+#include "op_utility/DataRW.h"
 
 
 namespace CarSimulatorNS
@@ -210,7 +210,7 @@ public:
 
 	//Mapping Section
 
-	op_utility_ns::MapRaw m_MapRaw;
+	UtilityHNS::MapRaw m_MapRaw;
 
 	ros::Subscriber sub_lanes;
 	ros::Subscriber sub_points;
