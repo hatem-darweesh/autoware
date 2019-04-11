@@ -262,6 +262,27 @@ private:
 	std::vector<AisanLine*> m_data_map;
 };
 
+class AisanCLinesFileReader : public SimpleReaderBase
+{
+public:
+
+	struct AisanCLine
+	{
+		int ID;
+		int LID;
+		double width;
+		char color;
+		int type;
+		int LinkID;
+	};
+
+	AisanCLinesFileReader(const std::string& fileName) : SimpleReaderBase(fileName, 1){}
+	~AisanCLinesFileReader(){}
+
+	bool ReadNextLine(AisanCLine& data);
+	int ReadAllData(std::vector<AisanCLine>& data_list);
+};
+
 class AisanCenterLinesFileReader : public SimpleReaderBase
 {
 public:

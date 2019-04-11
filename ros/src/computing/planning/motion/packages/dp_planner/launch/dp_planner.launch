@@ -42,7 +42,6 @@
 	
 	<arg name="mapSource" 					default="2" /> <!-- Autoware=0, Vector Map Folder=1, kml=2 -->
 	<arg name="mapFileName" 				default="/media/hatem/SamsungKURI/for_hatem/nu_garden_map.kml" />
-	<arg name="enablePlannerDynamicSwitch" 	default="false" />
 
 	<node pkg="dp_planner" type="dp_planner" name="dp_planner" output="screen">
 		<param name="maxVelocity" 					value="$(arg maxVelocity)" />
