@@ -8,7 +8,7 @@
 	
 	<arg name="pose_topic_bag" 					default="/ndt_pose" />
 	<arg name="lidar_topic_bag" 				default="/points_raw" />
-	<arg name="image_topic_bag" 				default="/image_raw" />
+	<arg name="image_topic_bag" 				default="/camera2/image_color" />
 	
 	<arg name="pose_topic_pub" 					default="/ndt_pose" />
 	<arg name="lidar_topic_pub" 				default="/points_raw" />

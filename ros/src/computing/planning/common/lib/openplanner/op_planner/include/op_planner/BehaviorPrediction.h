@@ -1343,17 +1343,11 @@ public:
 	double m_MaxLaneDetectionDistance;
 	double m_MaxPredictionDistance;
 	bool m_bGenerateBranches;
-	//bool m_bUseFixedPrediction;
 	bool m_bStepByStep;
 	bool m_bParticleFilter;
-	//std::vector<DetectedObject> m_PredictedObjects;
-	//std::vector<DetectedObject*> m_PredictedObjectsII;
 
-	std::vector<ObjParticles> m_temp_list;
-	std::vector<ObjParticles> m_ParticleInfo;
-
-	std::vector<ObjParticles*> m_temp_list_ii;
-	std::vector<ObjParticles*> m_ParticleInfo_II;
+	std::vector<ObjParticles*> m_temp_list;
+	std::vector<ObjParticles*> m_ParticleInfo;
 
 	struct timespec m_GenerationTimer;
 	timespec m_ResamplingTimer;
@@ -1365,6 +1359,9 @@ public:
 	bool m_bDebugOutWeights;
 
 
+	std::vector<std::vector<std::string> >  m_LogData;
+
+
 protected:
 	//int GetTrajectoryPredictedDirection(const std::vector<WayPoint>& path, const PlannerHNS::WayPoint& pose, const double& pred_distance);
 	int FromIndicatorToNumber(const PlannerHNS::LIGHT_INDICATOR& ind);
@@ -1374,7 +1371,6 @@ protected:
 
 	void CalPredictionTimeForObject(ObjParticles* pCarPart, const double& max_pre_distance);
 	void PredictCurrentTrajectory(RoadNetwork& map, ObjParticles* pCarPart);
-	void FilterObservations(const std::vector<DetectedObject>& obj_list, RoadNetwork& map, std::vector<DetectedObject>& filtered_list);
 	void ExtractTrajectoriesFromMap(const std::vector<DetectedObject>& obj_list, RoadNetwork& map, std::vector<ObjParticles*>& old_list);
 	void CalculateCollisionTimes(const double& minSpeed);
 

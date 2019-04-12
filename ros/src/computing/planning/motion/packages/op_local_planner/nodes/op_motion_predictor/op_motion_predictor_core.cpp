@@ -370,11 +370,11 @@ void MotionPrediction::callbackGetTrackedObjects(const autoware_msgs::DetectedOb
 
 		m_PredictedResultsResults.objects.clear();
 		autoware_msgs::DetectedObject pred_obj;
-		for(unsigned int i = 0 ; i <m_PredictBeh.m_ParticleInfo_II.size(); i++)
+		for(unsigned int i = 0 ; i <m_PredictBeh.m_ParticleInfo.size(); i++)
 		{
-			PlannerHNS::RosHelpers::ConvertFromOpenPlannerDetectedObjectToAutowareDetectedObject(m_PredictBeh.m_ParticleInfo_II.at(i)->obj, false, pred_obj);
-			if(m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track)
-				pred_obj.behavior_state = m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->best_beh_by_p;
+			PlannerHNS::RosHelpers::ConvertFromOpenPlannerDetectedObjectToAutowareDetectedObject(m_PredictBeh.m_ParticleInfo.at(i)->obj, false, pred_obj);
+			if(m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track)
+				pred_obj.behavior_state = m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->best_beh_by_p;
 			m_PredictedResultsResults.objects.push_back(pred_obj);
 		}
 
@@ -474,20 +474,20 @@ std::string MotionPrediction::GetPredictionLogDataRealWeightItem(std::vector<Pla
 
 void MotionPrediction::LogDataRaw()
 {
-	for(unsigned int i=0; i < m_PredictBeh.m_ParticleInfo_II.size(); i++)
+	for(unsigned int i=0; i < m_PredictBeh.m_ParticleInfo.size(); i++)
 	{
           std::ostringstream dataLine;
-          PlannerHNS::DetectedObject* pObj = &m_PredictBeh.m_ParticleInfo_II.at(i)->obj;
+          PlannerHNS::DetectedObject* pObj = &m_PredictBeh.m_ParticleInfo.at(i)->obj;
           dataLine << m_t << "," << pObj->center.pos.x << "," <<  pObj->center.pos.y << "," << pObj->center.pos.a << "," << pObj->center.v << "," << pObj->acceleration_desc
                           << "," << pObj->indicator_state << ",";
 
-          if(m_PredictBeh.m_ParticleInfo_II.at(i)->best_forward_track != nullptr)
+          if(m_PredictBeh.m_ParticleInfo.at(i)->best_forward_track != nullptr)
           {
-            if(m_PredictBeh.m_ParticleInfo_II.at(i)->best_forward_track->id_.compare("F")==0)
+            if(m_PredictBeh.m_ParticleInfo.at(i)->best_forward_track->id_.compare("F")==0)
               dataLine << "1" << ",";
-            else if(m_PredictBeh.m_ParticleInfo_II.at(i)->best_forward_track->id_.compare("L")==0)
+            else if(m_PredictBeh.m_ParticleInfo.at(i)->best_forward_track->id_.compare("L")==0)
               dataLine << "2" << ",";
-            else if(m_PredictBeh.m_ParticleInfo_II.at(i)->best_forward_track->id_.compare("R")==0)
+            else if(m_PredictBeh.m_ParticleInfo.at(i)->best_forward_track->id_.compare("R")==0)
               dataLine << "3" << ",";
             else
               dataLine << "0" << ",";
@@ -496,26 +496,26 @@ void MotionPrediction::LogDataRaw()
             dataLine << "0" << ",";
 
 
-          dataLine << GetPredictionLogDataRealWeightItem(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker, "F");
-          dataLine << GetPredictionLogDataRealWeightItem(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker, "L");
-          dataLine << GetPredictionLogDataRealWeightItem(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker, "R");
+          dataLine << GetPredictionLogDataRealWeightItem(m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker, "F");
+          dataLine << GetPredictionLogDataRealWeightItem(m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker, "L");
+          dataLine << GetPredictionLogDataRealWeightItem(m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker, "R");
 
-          if(m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track != nullptr)
+          if(m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track != nullptr)
           {
-              dataLine << m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->best_beh_by_p << ",";
-              dataLine << m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->best_beh_by_w << ",";
-              dataLine << m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->w_avg_forward << ",";
-              dataLine << m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->w_avg_stop << ",";
-              dataLine << m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->w_avg_yield << ",";
-              dataLine << m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->w_avg_park << ",";
+              dataLine << m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->best_beh_by_p << ",";
+              dataLine << m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->best_beh_by_w << ",";
+              dataLine << m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->w_avg_forward << ",";
+              dataLine << m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->w_avg_stop << ",";
+              dataLine << m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->w_avg_yield << ",";
+              dataLine << m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->w_avg_park << ",";
           }
           else
             dataLine << "-1,-1,0,0,0,0,";
 
-          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker, "F");
-          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker, "L");
-          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker, "R");
-          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker, "U");
+          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker, "F");
+          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker, "L");
+          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker, "R");
+          dataLine << GetPredictionLogDataLine(m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker, "U");
 
           if(i==0)
             m_LogDataCar0.push_back(dataLine.str());
@@ -556,20 +556,20 @@ void MotionPrediction::VisualizePrediction()
 
 	m_TargetPointsOnTrajectories.markers.clear();
 
-	for(unsigned int i=0; i< m_PredictBeh.m_ParticleInfo_II.size(); i++)
+	for(unsigned int i=0; i< m_PredictBeh.m_ParticleInfo.size(); i++)
 	{
-		m_all_pred_paths.insert(m_all_pred_paths.begin(), m_PredictBeh.m_ParticleInfo_II.at(i)->obj.predTrajectories.begin(), m_PredictBeh.m_ParticleInfo_II.at(i)->obj.predTrajectories.end());
+		m_all_pred_paths.insert(m_all_pred_paths.begin(), m_PredictBeh.m_ParticleInfo.at(i)->obj.predTrajectories.begin(), m_PredictBeh.m_ParticleInfo.at(i)->obj.predTrajectories.end());
 
-		for(unsigned int t=0; t < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.size(); t++)
+		for(unsigned int t=0; t < m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.size(); t++)
 		{
-			PlannerHNS::WayPoint tt_wp = m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->followPoint;
+			PlannerHNS::WayPoint tt_wp = m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.at(t)->followPoint;
 			visualization_msgs::Marker targetPoint = PlannerHNS::RosHelpers::CreateGenMarker(tt_wp.pos.x,tt_wp.pos.y,tt_wp.pos.z,0,0,0.0,1,0.5,t,"target_trajectory_point", visualization_msgs::Marker::SPHERE);
 			m_TargetPointsOnTrajectories.markers.push_back(targetPoint);
 
 			PlannerHNS::WayPoint p_wp;
-			for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_CurrParts.size(); j++)
+			for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.at(t)->m_CurrParts.size(); j++)
 			{
-				PlannerHNS::Particle* pPart = &m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_CurrParts.at(j);
+				PlannerHNS::Particle* pPart = &m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.at(t)->m_CurrParts.at(j);
 				p_wp = pPart->pose;
 				if(pPart->beh == PlannerHNS::BEH_STOPPING_STATE)
 					p_wp.bDir = PlannerHNS::STANDSTILL_DIR;
@@ -588,12 +588,12 @@ void MotionPrediction::VisualizePrediction()
 			}
 		}
 
-		if(m_PredictBeh.m_ParticleInfo_II.at(i) != nullptr && m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track != nullptr)
+		if(m_PredictBeh.m_ParticleInfo.at(i) != nullptr && m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track != nullptr)
 		{
 			visualization_msgs::Marker behavior_rviz;
 			std::ostringstream ns_beh;
 			ns_beh << "pred_beh_state_" << i;
-			PlannerHNS::RosHelpers::VisualizeIntentionState(m_PredictBeh.m_ParticleInfo_II.at(i)->obj.center, m_PredictBeh.m_ParticleInfo_II.at(i)->best_behavior_track->best_beh_by_p, behavior_rviz, ns_beh.str(), 3);
+			PlannerHNS::RosHelpers::VisualizeIntentionState(m_PredictBeh.m_ParticleInfo.at(i)->obj.center, m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->best_beh_by_p, behavior_rviz, ns_beh.str(), 3);
 			behavior_rviz_arr.markers.push_back(behavior_rviz);
 		}
 	}
@@ -608,21 +608,21 @@ void MotionPrediction::VisualizePrediction()
 	pub_PredictedTrajectoriesRviz.publish(m_PredictedTrajectoriesActual);
 
 	m_generated_particles_points.clear();
-	for(unsigned int i=0; i< m_PredictBeh.m_ParticleInfo_II.size(); i++)
+	for(unsigned int i=0; i< m_PredictBeh.m_ParticleInfo.size(); i++)
 	{
 		PlannerHNS::WayPoint p_wp;
-		for(unsigned int t=0; t < m_PredictBeh.m_ParticleInfo_II.at(i)->m_AllGeneratedParticles.size(); t++)
+		for(unsigned int t=0; t < m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.size(); t++)
 		{
-			p_wp = m_PredictBeh.m_ParticleInfo_II.at(i)->m_AllGeneratedParticles.at(t).pose;
-			if(m_PredictBeh.m_ParticleInfo_II.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_STOPPING_STATE)
+			p_wp = m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).pose;
+			if(m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_STOPPING_STATE)
 			{
 				p_wp.bDir = PlannerHNS::STANDSTILL_DIR;
 			}
-			else if(m_PredictBeh.m_ParticleInfo_II.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_FORWARD_STATE)
+			else if(m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_FORWARD_STATE)
 			{
 				p_wp.bDir = PlannerHNS::FORWARD_DIR;
 			}
-			else if(m_PredictBeh.m_ParticleInfo_II.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_YIELDING_STATE)
+			else if(m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_YIELDING_STATE)
 			{
 				p_wp.bDir = PlannerHNS::BACKWARD_DIR;
 			}

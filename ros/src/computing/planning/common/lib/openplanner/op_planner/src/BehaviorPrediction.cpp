@@ -9,6 +9,7 @@
 #include "op_planner/BehaviorPrediction.h"
 #include "op_planner/MappingHelpers.h"
 #include "op_planner/MatrixOperations.h"
+#include <float.h>
 
 
 namespace PlannerHNS
@@ -45,70 +46,24 @@ BehaviorPrediction::~BehaviorPrediction()
 {
 }
 
-void BehaviorPrediction::FilterObservations(const std::vector<DetectedObject>& obj_list, RoadNetwork& map, std::vector<DetectedObject>& filtered_list)
-{
-	for(unsigned int i=0; i < obj_list.size(); i++)
-	{
-		if(obj_list.at(i).t == SIDEWALK || obj_list.at(i).center.v < 1.0)
-			continue;
-
-		bool bFound = false;
-		int found_index = 0;
-		for(unsigned int ip=0; ip < filtered_list.size(); ip++)
-		{
-			if(filtered_list.at(ip).id == obj_list.at(i).id)
-			{
-				found_index = ip;
-				bFound = true;
-				break;
-			}
-		}
-
-		if(bFound)
-			filtered_list.at(found_index) = obj_list.at(i);
-		else
-			filtered_list.push_back(obj_list.at(i));
-	}
-
-	for(int ip=0; ip < (int)filtered_list.size(); ip++)
-	{
-		//check for cleaning
-		bool bRevFound = false;
-		for(unsigned int ic=0; ic < obj_list.size(); ic++)
-		{
-			if(filtered_list.at(ip).id == obj_list.at(ic).id)
-			{
-				bRevFound = true;
-				break;
-			}
-		}
-
-		if(!bRevFound)
-		{
-			filtered_list.erase(filtered_list.begin()+ip);
-			ip--;
-		}
-	}
-}
-
 void BehaviorPrediction::DoOneStep(const std::vector<DetectedObject>& obj_list, const WayPoint& currPose, const double& minSpeed, const double& maxDeceleration, RoadNetwork& map)
 {
 //	if(!m_bUseFixedPrediction && maxDeceleration !=0)
 //		m_MaxPredictionDistance = -pow(currPose.v, 2)/(maxDeceleration);
 
-	ExtractTrajectoriesFromMap(obj_list, map, m_ParticleInfo_II);
+	ExtractTrajectoriesFromMap(obj_list, map, m_ParticleInfo);
 	CalculateCollisionTimes(minSpeed);
 
 	if(m_bParticleFilter)
 	{
-		ParticleFilterSteps(m_ParticleInfo_II);
+		ParticleFilterSteps(m_ParticleInfo);
 	}
 }
 
 void BehaviorPrediction::ExtractTrajectoriesFromMap(const std::vector<DetectedObject>& curr_obj_list,RoadNetwork& map, std::vector<ObjParticles*>& old_obj_list)
 {
 	PlannerH planner;
-	m_temp_list_ii.clear();
+	m_temp_list.clear();
 
 	std::vector<ObjParticles*> delete_me_list = old_obj_list;
 
@@ -120,9 +75,9 @@ void BehaviorPrediction::ExtractTrajectoriesFromMap(const std::vector<DetectedOb
 			if(old_obj_list.at(ip)->obj.id == curr_obj_list.at(i).id)
 			{
 				bool bFound = false;
-				for(unsigned int k=0; k < m_temp_list_ii.size(); k++)
+				for(unsigned int k=0; k < m_temp_list.size(); k++)
 				{
-					if(m_temp_list_ii.at(k) == old_obj_list.at(ip))
+					if(m_temp_list.at(k) == old_obj_list.at(ip))
 					{
 						bFound = true;
 						break;
@@ -132,7 +87,7 @@ void BehaviorPrediction::ExtractTrajectoriesFromMap(const std::vector<DetectedOb
 				if(!bFound)
 				{
 					old_obj_list.at(ip)->obj = curr_obj_list.at(i);
-					m_temp_list_ii.push_back(old_obj_list.at(ip));
+					m_temp_list.push_back(old_obj_list.at(ip));
 				}
 
 				DeleteFromList(delete_me_list, old_obj_list.at(ip));
@@ -147,13 +102,13 @@ void BehaviorPrediction::ExtractTrajectoriesFromMap(const std::vector<DetectedOb
 		{
 			ObjParticles* pNewObj = new  ObjParticles(g_PredParams);
 			pNewObj->obj = curr_obj_list.at(i);
-			m_temp_list_ii.push_back(pNewObj);
+			m_temp_list.push_back(pNewObj);
 		}
 	}
 
 	DeleteTheRest(delete_me_list);
 	old_obj_list.clear();
-	old_obj_list = m_temp_list_ii;
+	old_obj_list = m_temp_list;
 
 	//m_PredictedObjects.clear();
 	for(unsigned int ip=0; ip < old_obj_list.size(); ip++)
@@ -204,11 +159,11 @@ void BehaviorPrediction::PredictCurrentTrajectory(RoadNetwork& map, ObjParticles
 
 void BehaviorPrediction::CalculateCollisionTimes(const double& minSpeed)
 {
-	for(unsigned int i=0; i < m_ParticleInfo_II.size(); i++)
+	for(unsigned int i=0; i < m_ParticleInfo.size(); i++)
 	{
-		for(unsigned int j=0; j < m_ParticleInfo_II.at(i)->obj.predTrajectories.size(); j++)
+		for(unsigned int j=0; j < m_ParticleInfo.at(i)->obj.predTrajectories.size(); j++)
 		{
-			PlannerHNS::PlanningHelpers::PredictConstantTimeCostForTrajectory(m_ParticleInfo_II.at(i)->obj.predTrajectories.at(j), m_ParticleInfo_II.at(i)->obj.center, minSpeed, m_ParticleInfo_II.at(i)->m_PredictionDistance);
+			PlannerHNS::PlanningHelpers::PredictConstantTimeCostForTrajectory(m_ParticleInfo.at(i)->obj.predTrajectories.at(j), m_ParticleInfo.at(i)->obj.center, minSpeed, m_ParticleInfo.at(i)->m_PredictionDistance);
 //			PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_PredictedObjects.at(i).predTrajectories.at(j));
 		}
 	}

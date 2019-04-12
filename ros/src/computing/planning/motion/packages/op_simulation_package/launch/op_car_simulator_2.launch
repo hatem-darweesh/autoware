@@ -56,7 +56,7 @@
 	<arg name="enableSimulatedVelodyne" 	default="false" />
 	
 	<arg name="mapSource" 					default="2" /> <!-- Autoware=0, Vector Map Folder=1, kml=2 -->
-	<arg name="mapFileName" 				default="/media/hatem/8ac0c5d5-8793-4b98-8728-55f8d67ec0f4/data/NagoyaUniversityMap_COI/kml_map/assure_around_nu_complete_with_dir_actions_2018.kml" />
+	<arg name="mapFileName" 				default="/media/hatem/8ac0c5d5-8793-4b98-8728-55f8d67ec0f4/data/NagoyaUniversityMap_COI/kml_map/2019_prediction_test_map.kml" />
 	
 	<arg name="enableUsingJoyStick" 	default="false" /> 
 	

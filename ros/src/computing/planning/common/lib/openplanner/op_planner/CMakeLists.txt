@@ -27,6 +27,9 @@ catkin_package(
 ## Build ##
 ###########
 
+
+set(CMAKE_CXX_FLAGS " -g -DROS -O2 -Wall ${CMAKE_CXX_FLAGS}")
+
 include_directories(${catkin_INCLUDE_DIRS}
 		include
 		${TinyXML_INCLUDE_DIRS}
