@@ -247,7 +247,7 @@ void DecisionMaker::InitBehaviorStates()
 	pPathLane = MappingHelpers::GetLaneFromPath(state, m_TotalPath.at(m_iCurrentTotalPathId));
 	if(!pPathLane)
 	{
-		std::cout << "Performance Alert: Can't Find Lane Information in Global Path, Searching the Map :( " << std::endl;
+		//std::cout << "Performance Alert: Can't Find Lane Information in Global Path, Searching the Map :( " << std::endl;
 		pMapLane  = MappingHelpers::GetClosestLaneFromMap(state, m_Map, search_distance);
 	}
 
@@ -309,6 +309,10 @@ void DecisionMaker::InitBehaviorStates()
 		preCalcPrams->bRePlan = false;
 		bNewTrajectory = true;
 	}
+//	else
+//	{
+//		std::cout << "Can't Find Path: " << currIndex <<", " << index_limit << ", " << preCalcPrams->bRePlan << ", " << preCalcPrams->bNewGlobalPath << std::endl;
+//	}
 
 	return bNewTrajectory;
  }

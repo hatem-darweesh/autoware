@@ -38,6 +38,7 @@
 #include <nav_msgs/Odometry.h>
 #include <autoware_msgs/LaneArray.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <autoware_can_msgs/CANInfo.h>
 #include <autoware_msgs/DetectedObjectArray.h>
@@ -111,6 +112,7 @@ protected: //Planning Related variables
 	ros::Publisher pub_BehaviorState;
 	ros::Publisher pub_SimuBoxPose;
 	ros::Publisher pub_SelectedPathRviz;
+	ros::Publisher pub_TargetSpeedRviz;
 
 	// define subscribers.
 	ros::Subscriber sub_current_pose;

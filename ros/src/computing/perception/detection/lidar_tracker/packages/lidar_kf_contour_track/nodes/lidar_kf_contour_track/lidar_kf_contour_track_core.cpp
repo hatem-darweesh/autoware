@@ -45,7 +45,7 @@ ContourTracker::ContourTracker()
 	m_ObstacleTracking.m_bEnableStepByStep = m_Params.bEnableStepByStep;
 	m_ObstacleTracking.InitSimpleTracker();
 
-	sub_cloud_clusters 		= nh.subscribe("/cloud_clusters", 1, &ContourTracker::callbackGetCloudClusters, this);
+	sub_cloud_clusters 		= nh.subscribe("/detection/lidar_detector/cloud_clusters", 1, &ContourTracker::callbackGetCloudClusters, this);
 	sub_current_pose 		= nh.subscribe("/current_pose",   1, &ContourTracker::callbackGetCurrentPose, 	this);
 
 	pub_AllTrackedObjects 	= nh.advertise<autoware_msgs::DetectedObjectArray>("tracked_objects", 1);
@@ -149,7 +149,7 @@ void ContourTracker::ReadCommonParams()
 }
 
 void ContourTracker::callbackGetCloudClusters(const autoware_msgs::CloudClusterArrayConstPtr &msg)
-{
+{	
 	if(bNewCurrentPos || m_Params.bEnableSimulation)
 	{
 		ImportCloudClusters(msg, m_OriginalClusters);
@@ -157,7 +157,7 @@ void ContourTracker::callbackGetCloudClusters(const autoware_msgs::CloudClusterA
 		struct timespec  tracking_timer;
 		UtilityHNS::UtilityH::GetTickCount(tracking_timer);
 
-		//std::cout << "Filter the detected Obstacles: " << msg->clusters.size() << ", " << m_OriginalClusters.size() << std::endl;
+		//std::cout << "Filter the detected Obstacles: " << msg->clusters.size() << ", " << m_OriginalClusters.size() << std::endl;		
 
 		m_ObstacleTracking.DoOneStep(m_CurrentPos, m_OriginalClusters, m_Params.trackingType);
 
@@ -303,7 +303,7 @@ bool ContourTracker::IsCar(const PlannerHNS::DetectedObject& obj, const PlannerH
 }
 
 void ContourTracker::callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr &msg)
-{
+{	
   m_CurrentPos = PlannerHNS::WayPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z,
       tf::getYaw(msg->pose.orientation));
 

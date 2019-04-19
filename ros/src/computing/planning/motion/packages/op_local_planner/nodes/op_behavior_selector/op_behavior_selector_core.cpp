@@ -49,6 +49,7 @@ BehaviorGen::BehaviorGen()
 	pub_SimuBoxPose	  = nh.advertise<geometry_msgs::PoseArray>("sim_box_pose_ego", 1);
 	pub_BehaviorStateRviz = nh.advertise<visualization_msgs::MarkerArray>("behavior_state", 1);
 	pub_SelectedPathRviz = nh.advertise<visualization_msgs::MarkerArray>("local_selected_trajectory_rviz", 1);
+	pub_TargetSpeedRviz = nh.advertise<std_msgs::Float32>("op_target_velocity_rviz", 1);
 
 	sub_current_pose = nh.subscribe("/current_pose", 10,	&BehaviorGen::callbackGetCurrentPose, this);
 
@@ -220,7 +221,8 @@ void BehaviorGen::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg)
 
 void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayConstPtr& msg)
 {
-	if(msg->lanes.size() > 0 && bMap)
+	//if(msg->lanes.size() > 0 && bMap)
+	if(msg->lanes.size() > 0)
 	{
 
 		bool bOldGlobalPath = m_GlobalPaths.size() == msg->lanes.size();
@@ -230,36 +232,39 @@ void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayCon
 		for(unsigned int i = 0 ; i < msg->lanes.size(); i++)
 		{
 			PlannerHNS::ROSHelpers::ConvertFromAutowareLaneToLocalLane(msg->lanes.at(i), m_temp_path);
-			PlannerHNS::Lane* pPrevValid = 0;
-			for(unsigned int j = 0 ; j < m_temp_path.size(); j++)
+			if(bMap)
 			{
-				PlannerHNS::Lane* pLane = 0;
-				pLane = PlannerHNS::MappingHelpers::GetLaneById(m_temp_path.at(j).laneId, m_Map);
-				if(!pLane)
+				PlannerHNS::Lane* pPrevValid = 0;
+				for(unsigned int j = 0 ; j < m_temp_path.size(); j++)
 				{
-					pLane = PlannerHNS::MappingHelpers::GetClosestLaneFromMapDirectionBased(m_temp_path.at(j), m_Map, 1);
-
-					if(!pLane && !pPrevValid)
-					{
-						ROS_ERROR("Map inconsistency between Global Path and Local Planer Map, Can't identify current lane.");
-						return;
-					}
-
+					PlannerHNS::Lane* pLane = 0;
+					pLane = PlannerHNS::MappingHelpers::GetLaneById(m_temp_path.at(j).laneId, m_Map);
 					if(!pLane)
-						m_temp_path.at(j).pLane = pPrevValid;
-					else
 					{
-						m_temp_path.at(j).pLane = pLane;
-						pPrevValid = pLane ;
+						pLane = PlannerHNS::MappingHelpers::GetClosestLaneFromMapDirectionBased(m_temp_path.at(j), m_Map, 1);
+
+						if(!pLane && !pPrevValid)
+						{
+							ROS_ERROR("Map inconsistency between Global Path and Local Planer Map, Can't identify current lane.");
+							return;
+						}
+
+						if(!pLane)
+							m_temp_path.at(j).pLane = pPrevValid;
+						else
+						{
+							m_temp_path.at(j).pLane = pLane;
+							pPrevValid = pLane ;
+						}
+
+						m_temp_path.at(j).laneId = m_temp_path.at(j).pLane->id;
 					}
+					else
+						m_temp_path.at(j).pLane = pLane;
 
-					m_temp_path.at(j).laneId = m_temp_path.at(j).pLane->id;
+
+					//std::cout << "StopLineInGlobalPath: " << m_temp_path.at(j).stopLineID << std::endl;
 				}
-				else
-					m_temp_path.at(j).pLane = pLane;
-
-
-				//std::cout << "StopLineInGlobalPath: " << m_temp_path.at(j).stopLineID << std::endl;
 			}
 
 			PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_temp_path);
@@ -279,8 +284,8 @@ void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayCon
 			{
 				PlannerHNS::PlanningHelpers::FixPathDensity(m_GlobalPaths.at(i), m_PlanningParams.pathDensity);
 				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.35, 0.4, 0.05);
-
 				PlannerHNS::PlanningHelpers::GenerateRecommendedSpeed(m_GlobalPaths.at(i), m_CarInfo.max_speed_forward, m_PlanningParams.speedProfileFactor);
+
 				m_GlobalPaths.at(i).at(m_GlobalPaths.at(i).size()-1).v = 0;
 			}
 
@@ -417,8 +422,17 @@ void BehaviorGen::VisualizeLocalPlanner()
 	//PlannerHNS::ROSHelpers::GetIndicatorArrows(m_CurrentPos, m_CarInfo.width, m_CarInfo.length, m_CurrentBehavior.indicator, 0, markerArray);
 
 	markerArray.markers.push_back(behavior_rviz);
-
 	pub_BehaviorStateRviz.publish(markerArray);
+
+	std_msgs::Float32 target_speed;
+	target_speed.data = m_CurrentBehavior.maxVelocity * 3.6;
+	pub_TargetSpeedRviz.publish(target_speed);
+
+	visualization_msgs::MarkerArray selected_path;
+	std::vector<PlannerHNS::WayPoint> path = m_BehaviorGenerator.m_Path;
+	PlannerHNS::PlanningHelpers::FixPathDensity(path, 1.5);
+	PlannerHNS::ROSHelpers::TrajectoryToMarkersWithCircles(path, 1,0,1, 1,0,1, m_CarInfo.width/2.0+m_PlanningParams.horizontalSafetyDistancel, selected_path);
+	pub_SelectedPathRviz.publish(selected_path);
 
 	//To Test Synchronization Problem
 //	visualization_msgs::MarkerArray selected_path;
@@ -473,7 +487,7 @@ void BehaviorGen::SendLocalPlanningTopics()
 	PlannerHNS::RelativeInfo info;
 	PlannerHNS::PlanningHelpers::GetRelativeInfo(m_BehaviorGenerator.m_Path, m_BehaviorGenerator.state, info);
 	PlannerHNS::ROSHelpers::ConvertFromLocalLaneToAutowareLane(m_BehaviorGenerator.m_Path, m_CurrentTrajectoryToSend, info.iBack);
-	//std::cout << "Path Size: " << m_BehaviorGenerator.m_Path.size() << ", Send Size: " << m_CurrentTrajectoryToSend << std::endl;
+	std::cout << "Path Size: " << m_BehaviorGenerator.m_Path.size() << ", Send Size: " << m_CurrentTrajectoryToSend << std::endl;
 
 	closest_waypoint.data = 1;
 	pub_ClosestIndex.publish(closest_waypoint);

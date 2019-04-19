@@ -207,7 +207,9 @@ public:
 			visualization_msgs::MarkerArray& polygons,
 			visualization_msgs::MarkerArray& tracked_traj);
 
-	static void CreateCircleMarker(const PlannerHNS::WayPoint& _center, const double& radius, const int& start_id, visualization_msgs::Marker& circle_points);
+	static void CreateCircleMarker(const PlannerHNS::WayPoint& _center, const double& radius, const double& r, const double& g, const double& b, const int& start_id, const std::string& name_space,visualization_msgs::Marker& circle_points);
+
+	static void TrajectoryToMarkersWithCircles(const std::vector<PlannerHNS::WayPoint>& path, const double& r_path, const double& g_path, const double& b_path, const double& r_circle, const double& g_circle, const double& b_circle, const double& radius, visualization_msgs::MarkerArray& markerArray);
 
 	static void InitPredMarkers(const int& nMarkers, visualization_msgs::MarkerArray& paths);
 

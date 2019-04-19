@@ -219,7 +219,7 @@ void MotionPrediction::callbackGetTrackedObjects(const autoware_msgs::DetectedOb
 
 	}
 
-	if(bMap)
+	//if(bMap)
 	{
 		if(m_PredictBeh.m_bStepByStep && m_bGoNextStep)
 		{

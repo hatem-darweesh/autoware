@@ -285,10 +285,11 @@ int ROSHelpers::ConvertTrackedObjectsMarkers(const PlannerHNS::WayPoint& currSta
 	return i_next_id +1;
 }
 
-void ROSHelpers::CreateCircleMarker(const PlannerHNS::WayPoint& _center, const double& radius, const int& start_id, visualization_msgs::Marker& circle_points)
+void ROSHelpers::CreateCircleMarker(const PlannerHNS::WayPoint& _center, const double& radius, const double& r, const double& g, const double& b, const int& start_id, const std::string& name_space, visualization_msgs::Marker& circle_points)
 {
-	circle_points = CreateGenMarker(0,0,0,0,1,1,1,0.2,start_id,"Detection_Circles", visualization_msgs::Marker::LINE_STRIP);
-	for (float i = 0; i < M_PI*2.0+0.05; i+=0.05)
+	//"Detection_Circles"
+	circle_points = CreateGenMarker(0,0,0,0,r,g,b,0.05,start_id,name_space, visualization_msgs::Marker::LINE_STRIP);
+	for (float i = 0; i < M_PI*2.0+0.1; i+=0.1)
 	{
 		geometry_msgs::Point point;
 		point.x = _center.pos.x + (radius * cos(i));
@@ -652,6 +653,28 @@ void ROSHelpers::TrajectoriesToMarkers(const std::vector<std::vector<std::vector
 			count++;
 		}
 	}
+}
+
+void ROSHelpers::TrajectoryToMarkersWithCircles(const std::vector<PlannerHNS::WayPoint>& path, const double& r_path, const double& g_path, const double& b_path, const double& r_circle, const double& g_circle, const double& b_circle, const double& radius, visualization_msgs::MarkerArray& markerArray)
+{
+	visualization_msgs::Marker path_part, circle_part;
+
+	int count = 0;
+	path_part = CreateGenMarker(0,0,0,0,r_path,g_path,b_path,0.1,count,"Path_Part", visualization_msgs::Marker::LINE_STRIP);
+	for (unsigned int i = 0; i < path.size(); i++)
+	{
+		  geometry_msgs::Point point;
+		  point.x = path.at(i).pos.x;
+		  point.y = path.at(i).pos.y;
+		  point.z = path.at(i).pos.z;
+		  path_part.points.push_back(point);
+
+		  count++;
+		  CreateCircleMarker(path.at(i), radius, r_circle, g_circle, b_circle, count, "circle_part", circle_part);
+		  markerArray.markers.push_back(circle_part);
+	}
+
+	markerArray.markers.push_back(path_part);
 }
 
 void ROSHelpers::TrajectoriesToColoredMarkers(const std::vector<std::vector<PlannerHNS::WayPoint> >& paths, const std::vector<PlannerHNS::TrajectoryCost>& traj_costs,const int& iClosest, visualization_msgs::MarkerArray& markerArray)
