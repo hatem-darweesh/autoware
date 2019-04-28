@@ -9,7 +9,6 @@
 #include <iostream>
 
 using namespace std;
-using namespace UtilityHNS;
 
 namespace PlannerHNS
 {
@@ -330,7 +329,7 @@ double PlannerH::PredictPlanUsingDP(PlannerHNS::Lane* l, const WayPoint& start, 
 	return totalPlanDistance;
 }
 
-double PlannerH::PredictTrajectoriesUsingDP(const WayPoint& startPose, std::vector<WayPoint*> closestWPs, const double& maxPlanningDistance, std::vector<std::vector<WayPoint> >& paths, const bool& bFindBranches , const bool bDirectionBased, const bool pathDensity)
+double PlannerH::PredictTrajectoriesUsingDP(const WayPoint& startPose, std::vector<WayPoint*> closestWPs, const double& maxPlanningDistance, std::vector<std::vector<WayPoint> >& paths, const bool& bFindBranches , const bool& bDirectionBased, const double& pathDensity)
 {
 	vector<vector<WayPoint> > tempCurrentForwardPathss;
 	vector<WayPoint*> all_cell_to_delete;
@@ -341,6 +340,11 @@ double PlannerH::PredictTrajectoriesUsingDP(const WayPoint& startPose, std::vect
 	std::vector<WayPoint> path;
 	for(unsigned int j = 0 ; j < closestWPs.size(); j++)
 	{
+		RelativeInfo info;
+		PlanningHelpers::CalcAngleAndCost(closestWPs.at(j)->pLane->points);
+		int prev_index =0;
+		PlanningHelpers::GetRelativeInfoLimited(closestWPs.at(j)->pLane->points, *closestWPs.at(j), info, prev_index);
+
 		pLaneCells.clear();
 		int nPaths =  PlanningHelpers::PredictiveIgnorIdsDP(closestWPs.at(j), maxPlanningDistance, all_cell_to_delete, pLaneCells, unique_lanes);
 		for(unsigned int i = 0; i< pLaneCells.size(); i++)
@@ -366,7 +370,9 @@ double PlannerH::PredictTrajectoriesUsingDP(const WayPoint& startPose, std::vect
 
 			if(path.size()>0)
 			{
-				path.insert(path.begin(), startPose);
+				WayPoint first_wp_from_map = path.at(0);
+				first_wp_from_map.pos = info.perp_point.pos; // only update pose , some infor comes from map and affect the planning
+				path.insert(path.begin(), first_wp_from_map);
 				if(!bDirectionBased)
 					path.at(0).pos.a = path.at(1).pos.a;
 

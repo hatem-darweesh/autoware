@@ -30,8 +30,11 @@
 	<arg name="signal" 						default="0" /> <!-- 0 : simulation or 1 : vehicle or 2 : robot -->
 	<arg name="steerMode" 					default="angle" /> <!-- angle or torque -->
 	<arg name="driveMode" 					default="velocity" /> <!-- velocity or stroke -->
-	<arg name="bEnableLogs" 				default="true" /> 
+	<arg name="bEnableLogs" 				default="false" /> 
 	<arg name="bCalibrationMode" 			default="false" /> 
+
+	<arg name="velocitySource"			default="1" /> <!-- read velocities from (0- Odometry, 1- autoware current_velocities, 2- car_info) "" -->
+
 
 	<arg name="mapRecorder" 				default="0" /><!-- 0 or 1  -->
 	<arg name="mapDistance" 				default="100.0" /> <!-- meters -->
@@ -70,6 +73,8 @@
 		<param name="driveMode" 					value="$(arg driveMode)" />
 		<param name="bEnableLogs" 					value="$(arg bEnableLogs)" />
 		<param name="bCalibrationMode" 				value="$(arg bCalibrationMode)" />
+		
+		<param name="velocitySource"				value="$(arg velocitySource)" />
 		
 		<param name="mapRecorder" 					value="$(arg mapRecorder)" />
 		<param name="mapDistance" 					value="$(arg mapDistance)" />

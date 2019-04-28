@@ -81,6 +81,7 @@ protected:
 	timespec m_VisualizationTimer;
 	std::vector<std::vector<PlannerHNS::WayPoint> > m_all_pred_paths;
 	std::vector<PlannerHNS::WayPoint> m_particles_points;
+	std::vector<PlannerHNS::WayPoint> m_generated_particles_points;
 
 	visualization_msgs::MarkerArray m_PredictedTrajectoriesDummy;
 	visualization_msgs::MarkerArray m_PredictedTrajectoriesActual;
@@ -88,13 +89,19 @@ protected:
 	visualization_msgs::MarkerArray m_PredictedParticlesDummy;
 	visualization_msgs::MarkerArray m_PredictedParticlesActual;
 
+	visualization_msgs::MarkerArray m_GeneratedParticlesDummy;
+	visualization_msgs::MarkerArray m_GeneratedParticlesActual;
+
 	visualization_msgs::MarkerArray m_CurbsDummy;
 	visualization_msgs::MarkerArray m_CurbsActual;
 
+	visualization_msgs::MarkerArray m_TargetPointsOnTrajectories;
+
 	double m_DistanceBetweenCurbs;
 	double m_VisualizationTime;
-
 	timespec m_SensingTimer;
+
+	std::string m_ExperimentFolderName;
 
 
 	ros::NodeHandle nh;
@@ -102,13 +109,16 @@ protected:
 	ros::Publisher pub_PredictedTrajectoriesRviz ;
 	ros::Publisher pub_CurbsRviz ;
 	ros::Publisher pub_ParticlesRviz;
+	ros::Publisher pub_GeneratedParticlesRviz;
+	ros::Publisher pub_BehaviorStateRviz;
+	ros::Publisher pub_TargetPointsRviz;
 
 	// define subscribers.
-	ros::Subscriber sub_tracked_objects		;
-	ros::Subscriber sub_current_pose 		;
-	ros::Subscriber sub_current_velocity	;
-	ros::Subscriber sub_robot_odom			;
-	ros::Subscriber sub_can_info			;
+	ros::Subscriber sub_tracked_objects;
+	ros::Subscriber sub_current_pose ;
+	ros::Subscriber sub_current_velocity;
+	ros::Subscriber sub_robot_odom;
+	ros::Subscriber sub_can_info;
 	ros::Subscriber sub_StepSignal;
 
 	// Callback function for subscriber.

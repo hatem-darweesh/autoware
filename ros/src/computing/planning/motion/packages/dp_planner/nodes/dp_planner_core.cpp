@@ -555,7 +555,7 @@ void PlannerX::callbackGetWayPlannerPath(const autoware_msgs::LaneArrayConstPtr&
 				pLane = PlannerHNS::MappingHelpers::GetLaneById(wp.laneId, m_Map);
 				if(!pLane)
 				{
-					pLane = PlannerHNS::MappingHelpers::GetClosestLaneFromMapDirectionBased(wp, m_Map, 1);
+					pLane = PlannerHNS::MappingHelpers::GetClosestLaneFromMap(wp, m_Map, 1, true);
 
 					if(!pLane && !pPrevValid)
 					{

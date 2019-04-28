@@ -32,7 +32,7 @@ PolygonGenerator::~PolygonGenerator()
 std::vector<PlannerHNS::GPSPoint> PolygonGenerator::EstimateClusterPolygon(const pcl::PointCloud<pcl::PointXYZ>& cluster, const PlannerHNS::GPSPoint& original_centroid, PlannerHNS::GPSPoint& new_centroid, const double& polygon_resolution)
 {
 	for(unsigned int i=0; i < m_Quarters.size(); i++)
-			m_Quarters.at(i).ResetQuarterView();
+	  m_Quarters.at(i).ResetQuarterView();
 
 	PlannerHNS::WayPoint p;
 	for(unsigned int i=0; i< cluster.points.size(); i++)
@@ -55,34 +55,39 @@ std::vector<PlannerHNS::GPSPoint> PolygonGenerator::EstimateClusterPolygon(const
 	m_Polygon.clear();
 	PlannerHNS::WayPoint wp;
 	for(unsigned int j = 0 ; j < m_Quarters.size(); j++)
-	{
-		if(m_Quarters.at(j).GetMaxPoint(wp))
-			m_Polygon.push_back(wp.pos);
+        {
+                if(m_Quarters.at(j).GetMaxPoint(wp))
+                        m_Polygon.push_back(wp.pos);
 	}
 
-//	//Fix Resolution:
+
+	//Fix Resolution:
 	bool bChange = true;
 	while (bChange && m_Polygon.size()>1)
 	{
 		bChange = false;
+		m_PolygonRes.clear();
 		PlannerHNS::GPSPoint p1 =  m_Polygon.at(m_Polygon.size()-1);
 		for(unsigned int i=0; i< m_Polygon.size(); i++)
 		{
-			PlannerHNS::GPSPoint p2 = m_Polygon.at(i);
-			double d = hypot(p2.y- p1.y, p2.x - p1.x);
-			if(d > polygon_resolution)
-			{
-				PlannerHNS::GPSPoint center_p = p1;
-				center_p.x = (p2.x + p1.x)/2.0;
-				center_p.y = (p2.y + p1.y)/2.0;
-				m_Polygon.insert(m_Polygon.begin()+i, center_p);
-				bChange = true;
-				break;
-			}
+		    m_PolygonRes.push_back(p1);
+                    PlannerHNS::GPSPoint p2 = m_Polygon.at(i);
+                    double d = hypot(p2.y- p1.y, p2.x - p1.x);
+                    if(d > polygon_resolution)
+                    {
+                        PlannerHNS::GPSPoint center_p = p1;
+                        center_p.x = (p2.x + p1.x)/2.0;
+                        center_p.y = (p2.y + p1.y)/2.0;
+                        m_PolygonRes.push_back(center_p);
+                        bChange = true;
+                    }
 
-			p1 = p2;
+                    p1 = p2;
 		}
+
+		m_Polygon = m_PolygonRes;
 	}
+
 	PlannerHNS::GPSPoint sum_p;
 	for(unsigned int i = 0 ; i< m_Polygon.size(); i++)
 	{

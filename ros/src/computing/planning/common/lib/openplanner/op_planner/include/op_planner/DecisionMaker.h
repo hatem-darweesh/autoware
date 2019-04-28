@@ -23,14 +23,11 @@ public:
 	ControllerParams m_ControlParams;
 	std::vector<WayPoint> m_Path;
 	PlannerHNS::RoadNetwork m_Map;
-
-	double m_MaxLaneSearchDistance;
 	int m_iCurrentTotalPathId;
 	std::vector<std::vector<WayPoint> > m_RollOuts;
 	Lane* pLane;
 
 	BehaviorStateMachine* 		m_pCurrentBehaviorState;
-	StopState* 					m_pStopState;
 	WaitState* 					m_pWaitState;
 	SwerveStateII*				m_pAvoidObstacleState;
 	TrafficLightStopStateII*	m_pTrafficLightStopState;
@@ -41,8 +38,9 @@ public:
 	MissionAccomplishedStateII*	m_pMissionCompleteState;
 	GoalStateII*				m_pGoalState;
 	FollowStateII*				m_pFollowState;
-	StopSignStopStateII* 			m_pStopSignStopState;
-	StopSignWaitStateII* 			m_pStopSignWaitState;
+	StopSignStopStateII* 		m_pStopSignStopState;
+	StopSignWaitStateII* 		m_pStopSignWaitState;
+	StopStateII*				m_pStopState;
 
 	void InitBehaviorStates();
 
@@ -78,13 +76,10 @@ protected:
 	double UpdateVelocityDirectlyToTrajectory(const BehaviorState& beh, const VehicleState& CurrStatus, const double& dt);
 	bool ReachEndOfGlobalPath(const double& min_distance, const int& iGlobalPathIndex);
 
-
-
 	std::vector<PlannerHNS::WayPoint> t_centerTrajectorySmoothed;
 	std::vector<std::vector<WayPoint> > m_TotalOriginalPath;
 	std::vector<std::vector<WayPoint> > m_TotalPath;
 	PlannerHNS::PlanningParams m_params;
-
 };
 
 } /* namespace PlannerHNS */

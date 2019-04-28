@@ -34,7 +34,7 @@ using namespace PlannerHNS;
 SimpleTracker::SimpleTracker()
 {
 	iTracksNumber = 1;
-	m_dt = 0.1;
+	m_dt = 0.05;
 	m_MAX_ASSOCIATION_DISTANCE = 2.0;
 	m_MAX_ASSOCIATION_SIZE_DIFF = 5.0;
 	m_MAX_ASSOCIATION_ANGLE_DIFF = 0.6;
@@ -494,7 +494,7 @@ void SimpleTracker::AssociateSimply()
 	MatchWithDistanceOnly();
 
 	for(unsigned int i =0; i< m_TrackSimply.size(); i++)
-		m_TrackSimply.at(i).UpdateTracking(m_dt, m_TrackSimply.at(i).obj, m_TrackSimply.at(i).obj);
+		m_TrackSimply.at(i).UpdateTracking(m_dt, m_TrackSimply.at(i).obj, m_TrackSimply.at(i).obj, m_bEnableStepByStep);
 
 	m_DetectedObjects.clear();
 	for(unsigned int i = 0; i< m_TrackSimply.size(); i++)
@@ -586,7 +586,7 @@ void SimpleTracker::AssociateDistanceOnlyAndTrack()
 
 	for(unsigned int i =0; i< m_TrackSimply.size(); i++)
 	{
-		m_TrackSimply.at(i).UpdateTracking(m_dt, m_TrackSimply.at(i).obj, m_TrackSimply.at(i).obj);
+		m_TrackSimply.at(i).UpdateTracking(m_dt, m_TrackSimply.at(i).obj, m_TrackSimply.at(i).obj, m_bEnableStepByStep);
 	}
 }
 
@@ -675,7 +675,7 @@ void SimpleTracker::AssociateAndTrack()
 	for(unsigned int i =0; i< m_TrackSimply.size(); i++)
 	{
 		//if(m_TrackSimply.at(i).m_bUpdated)
-			m_TrackSimply.at(i).UpdateTracking(m_dt, m_TrackSimply.at(i).obj, m_TrackSimply.at(i).obj);
+			m_TrackSimply.at(i).UpdateTracking(m_dt, m_TrackSimply.at(i).obj, m_TrackSimply.at(i).obj, m_bEnableStepByStep);
 //		else
 //		{
 ////			double dx = 0;

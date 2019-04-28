@@ -36,6 +36,7 @@ public:
 	int max_ang;
 	PlannerHNS::WayPoint max_from_center;
 	bool bFirst;
+	int nPoints;
 
 	QuarterView(const int& min_a, const int& max_a, const int& index)
 	{
@@ -43,6 +44,7 @@ public:
 		max_ang = max_a;
 		id = index;
 		bFirst = true;
+		nPoints = 0;
 	}
 
 	void InitQuarterView(const int& min_a, const int& max_a, const int& index)
@@ -51,17 +53,19 @@ public:
 		max_ang = max_a;
 		id = index;
 		bFirst = true;
+		nPoints = 0;
 	}
 
 	void ResetQuarterView()
 	{
 		bFirst = true;
+		nPoints = 0;
 	}
 
 	bool UpdateQuarterView(const PlannerHNS::WayPoint& v)
 	{
 		if(v.pos.a <= min_ang || v.pos.a > max_ang)
-			return false;
+		  return false;
 
 		if(bFirst)
 		{
@@ -69,17 +73,25 @@ public:
 			bFirst = false;
 		}
 		else if(v.cost > max_from_center.cost)
+		{
 			max_from_center = v;
+		}
+
+		nPoints++;
 
 		return true;
 	}
 
 	bool GetMaxPoint(PlannerHNS::WayPoint& maxPoint)
 	{
-		if(bFirst)
+		if(bFirst) //empty quarter
+		{
 			return false;
+		}
 		else
+		{
 			maxPoint = max_from_center;
+		}
 
 		return true;
 	}
@@ -93,6 +105,7 @@ public:
 	PlannerHNS::GPSPoint m_Centroid;
 	std::vector<QuarterView> m_Quarters;
 	std::vector<PlannerHNS::GPSPoint> m_Polygon;
+	std::vector<PlannerHNS::GPSPoint> m_PolygonRes;
 
 	PolygonGenerator(int nQuarters);
 	virtual ~PolygonGenerator();

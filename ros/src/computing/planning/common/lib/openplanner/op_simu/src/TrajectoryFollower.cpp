@@ -10,7 +10,6 @@
 #include <iostream>
 
 using namespace PlannerHNS;
-using namespace UtilityHNS;
 using namespace std;
 
 
@@ -32,8 +31,8 @@ TrajectoryFollower::TrajectoryFollower()
 	m_StartFollowDistance = 0;
 	m_FollowAcc = 0.5;
 	m_iCalculatedIndex = 0;
-	UtilityH::GetTickCount(m_SteerDelayTimer);
-	UtilityH::GetTickCount(m_VelocityDelayTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_SteerDelayTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_VelocityDelayTimer);
 }
 
 void TrajectoryFollower::Init(const ControllerParams& params, const CAR_BASIC_INFO& vehicleInfo, bool bEnableLogs, bool bCalibration)
@@ -61,18 +60,18 @@ TrajectoryFollower::~TrajectoryFollower()
 {
 	if(m_bEnableLog)
 	{
-		DataRW::WriteLogData(UtilityH::GetHomeDirectory()+DataRW::LoggingMainfolderName+DataRW::ControlLogFolderName, "ControlLog",
+		UtilityHNS::DataRW::WriteLogData(UtilityHNS::UtilityH::GetHomeDirectory()+UtilityHNS::DataRW::LoggingMainfolderName+UtilityHNS::DataRW::ControlLogFolderName, "ControlLog",
 				"time,X,Y,heading, Target, error,LateralError,SteerBeforLowPass,Steer,iIndex, pathSize",
 				m_LogData);
 
-		DataRW::WriteLogData(UtilityH::GetHomeDirectory()+DataRW::LoggingMainfolderName+DataRW::ControlLogFolderName, "SteeringCalibrationLog",
+		UtilityHNS::DataRW::WriteLogData(UtilityHNS::UtilityH::GetHomeDirectory()+UtilityHNS::DataRW::LoggingMainfolderName+UtilityHNS::DataRW::ControlLogFolderName, "SteeringCalibrationLog",
 				"time, reset, start A, end A, desired A, dt, vel", m_SteerCalibrationData);
 
-		DataRW::WriteLogData(UtilityH::GetHomeDirectory()+DataRW::LoggingMainfolderName+DataRW::ControlLogFolderName, "VelocityCalibrationLog",
+		UtilityHNS::DataRW::WriteLogData(UtilityHNS::UtilityH::GetHomeDirectory()+UtilityHNS::DataRW::LoggingMainfolderName+UtilityHNS::DataRW::ControlLogFolderName, "VelocityCalibrationLog",
 				"time, reset, start V, end V, desired V, dt, steering", m_VelocityCalibrationData);
 
-		DataRW::WriteLogData(UtilityH::GetHomeDirectory()+DataRW::LoggingMainfolderName+DataRW::ControlLogFolderName, "SteeringPIDLog",m_pidSteer.ToStringHeader(), m_LogSteerPIDData );
-		DataRW::WriteLogData(UtilityH::GetHomeDirectory()+DataRW::LoggingMainfolderName+DataRW::ControlLogFolderName, "VelocityPIDLog",m_pidVelocity.ToStringHeader(), m_LogVelocityPIDData );
+		UtilityHNS::DataRW::WriteLogData(UtilityHNS::UtilityH::GetHomeDirectory()+UtilityHNS::DataRW::LoggingMainfolderName+UtilityHNS::DataRW::ControlLogFolderName, "SteeringPIDLog",m_pidSteer.ToStringHeader(), m_LogSteerPIDData );
+		UtilityHNS::DataRW::WriteLogData(UtilityHNS::UtilityH::GetHomeDirectory()+UtilityHNS::DataRW::LoggingMainfolderName+UtilityHNS::DataRW::ControlLogFolderName, "VelocityPIDLog",m_pidVelocity.ToStringHeader(), m_LogVelocityPIDData );
 	}
 }
 
@@ -146,7 +145,7 @@ int TrajectoryFollower::SteerControllerUpdate(const PlannerHNS::VehicleState& Cu
 	if(m_Path.size()==0) return -1;
 	int ret = -1;
 	//AdjustPID(CurrStatus.velocity, 18.0, m_Params.Gain);
-	if(CurrBehavior.state == FORWARD_STATE || CurrBehavior.state == TRAFFIC_LIGHT_STOP_STATE || CurrBehavior.state == STOP_SIGN_STOP_STATE || CurrBehavior.state  == FOLLOW_STATE)
+	if(CurrBehavior.state == FORWARD_STATE || CurrBehavior.state == TRAFFIC_LIGHT_STOP_STATE || CurrBehavior.state == STOP_SIGN_STOP_STATE || CurrBehavior.state  == FOLLOW_STATE || CurrBehavior.state  == STOPPING_STATE)
 		ret = SteerControllerPart(m_CurrPos, m_DesPos, m_LateralError, desiredSteerAngle);
 
 	if(ret < 0)
@@ -160,10 +159,10 @@ int TrajectoryFollower::SteerControllerUpdate(const PlannerHNS::VehicleState& Cu
 int TrajectoryFollower::SteerControllerPart(const PlannerHNS::WayPoint& state, const PlannerHNS::WayPoint& way_point,
 		const double& lateral_error, double& steerd)
 {
-	double current_a = UtilityH::SplitPositiveAngle(state.pos.a);
+	double current_a = UtilityHNS::UtilityH::SplitPositiveAngle(state.pos.a);
 	double target_a = atan2(way_point.pos.y - state.pos.y, way_point.pos.x - state.pos.x);
 
-	double e =  UtilityH::SplitPositiveAngle(target_a - current_a);
+	double e =  UtilityHNS::UtilityH::SplitPositiveAngle(target_a - current_a);
 
 //	if(e > M_PI_2 || e < -M_PI_2)
 //		return -1;
@@ -194,9 +193,9 @@ int TrajectoryFollower::SteerControllerPart(const PlannerHNS::WayPoint& state, c
 		steerd = before_lowpass;
 
 //	timespec t;
-//	UtilityH::GetTickCount(t);
+//	UtilityHNS::UtilityH::GetTickCount(t);
 //	std::ostringstream dataLine;
-//	dataLine << UtilityH::GetLongTime(t) << "," << state.pos.x << "," << state.pos.y << "," <<  current_a << "," <<
+//	dataLine << UtilityHNS::UtilityH::GetLongTime(t) << "," << state.pos.x << "," << state.pos.y << "," <<  current_a << "," <<
 //			target_a << "," <<  e << "," <<m_LateralError << "," <<  before_lowpass << "," <<  steerd <<  "," <<
 //			m_iPrevWayPoint << "," << m_Path.size() << ",";
 //	m_LogData.push_back(dataLine.str());
@@ -377,12 +376,12 @@ void TrajectoryFollower::LogCalibrationData(const PlannerHNS::VehicleState& curr
 		startAngle = m_prevCurrState_steer.steer*RAD2DEG;
 		finishAngle = currState.steer*RAD2DEG;
 		originalTargetAngle = m_prevDesiredState_steer.steer*RAD2DEG;
-		t_FromStartToFinish_a = UtilityH::GetTimeDiffNow(m_SteerDelayTimer);
+		t_FromStartToFinish_a = UtilityHNS::UtilityH::GetTimeDiffNow(m_SteerDelayTimer);
 		currVelocity = currState.speed*3.6;
-		UtilityH::GetTickCount(m_SteerDelayTimer);
+		UtilityHNS::UtilityH::GetTickCount(m_SteerDelayTimer);
 
 		std::ostringstream dataLine;
-		dataLine << UtilityH::GetLongTime(m_SteerDelayTimer) << ","
+		dataLine << UtilityHNS::UtilityH::GetLongTime(m_SteerDelayTimer) << ","
 				<< bAngleReset << ","
 				<< startAngle << ","
 				<< finishAngle << ","
@@ -405,12 +404,12 @@ void TrajectoryFollower::LogCalibrationData(const PlannerHNS::VehicleState& curr
 		startV = m_prevCurrState_vel.speed*3.6;
 		finishV = currState.speed*3.6;
 		originalTargetV = m_prevDesiredState_vel.speed*3.6;
-		t_FromStartToFinish_v = UtilityH::GetTimeDiffNow(m_VelocityDelayTimer);
+		t_FromStartToFinish_v = UtilityHNS::UtilityH::GetTimeDiffNow(m_VelocityDelayTimer);
 		currSteering = currState.steer*RAD2DEG;
-		UtilityH::GetTickCount(m_VelocityDelayTimer);
+		UtilityHNS::UtilityH::GetTickCount(m_VelocityDelayTimer);
 
 		std::ostringstream dataLine;
-		dataLine << UtilityH::GetLongTime(m_VelocityDelayTimer) << ","
+		dataLine << UtilityHNS::UtilityH::GetLongTime(m_VelocityDelayTimer) << ","
 				<< bVelocityReset << ","
 				<< startV << ","
 				<< finishV << ","

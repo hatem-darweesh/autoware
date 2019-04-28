@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "op_common_params");
 
-	UtilityHNS::DataRW::CreateLoggingFolder();
+	UtilityHNS::DataRW::CreateLoggingMainFolder();
 
 	ros::NodeHandle nh;
 	ros::Rate loop_rate(1);

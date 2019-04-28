@@ -29,6 +29,7 @@ namespace FFSteerControlNS
 
 FFSteerControl::FFSteerControl()
 {
+	bStopNow = false;
 	clock_gettime(0, &m_Timer);
 
 	int iSignal = 0;
@@ -110,40 +111,36 @@ FFSteerControl::FFSteerControl()
 	m_OriginPos.position.z  = transform.getOrigin().z();
 
 
-	pub_VelocityAutoware 		= nh.advertise<geometry_msgs::TwistStamped>("twist_raw", 100);
-	pub_StatusAutoware 			= nh.advertise<std_msgs::Bool>("wf_stat", 100);
+	pub_VelocityAutoware 		= nh.advertise<geometry_msgs::TwistStamped>("twist_raw", 1);
+	pub_StatusAutoware 			= nh.advertise<std_msgs::Bool>("wf_stat", 1);
 
 	//For rviz visualization
-	pub_CurrPoseRviz			= nh.advertise<visualization_msgs::Marker>("curr_simu_pose", 100);
-	pub_FollowPointRviz			= nh.advertise<visualization_msgs::Marker>("follow_pose", 100);
+	pub_CurrPoseRviz			= nh.advertise<visualization_msgs::Marker>("curr_simu_pose", 1);
+	pub_FollowPointRviz			= nh.advertise<visualization_msgs::Marker>("follow_pose", 1);
 
-	pub_SimuPose				= nh.advertise<geometry_msgs::PoseStamped>("sim_pose", 100);
-	pub_SimuVelocity			= nh.advertise<geometry_msgs::TwistStamped>("sim_velocity", 100);
+	pub_SimuPose				= nh.advertise<geometry_msgs::PoseStamped>("sim_pose", 1);
+	pub_SimuVelocity			= nh.advertise<geometry_msgs::TwistStamped>("sim_velocity", 1);
 
-	pub_VehicleCommand			= nh.advertise<geometry_msgs::TwistStamped>("twist_cmd", 100);
-	pub_ControlBoxOdom			= nh.advertise<nav_msgs::Odometry>("ControlBoxOdom", 100);
-	pub_VelocityRviz 			= nh.advertise<std_msgs::Float32>("linear_velocity_viz", 10);
-
-	// define subscribers.
-	sub_initialpose 		= nh.subscribe("/initialpose", 		100, &FFSteerControl::callbackGetInitPose, 			this);
-
-  	if(m_CmdParams.statusSource != SIMULATION_STATUS)
-  		sub_current_pose 	= nh.subscribe("/current_pose", 		100, &FFSteerControl::callbackGetCurrentPose, 		this);
-
-  	if(m_CmdParams.statusSource == ROBOT_STATUS)
-		sub_robot_odom			= nh.subscribe("/odom",				100, &FFSteerControl::callbackGetRobotOdom, 		this);
-  	else
-  		sub_current_velocity= nh.subscribe("/current_velocity", 	100, &FFSteerControl::callbackGetCurrentVelocity, 		this);
-
-  	sub_behavior_state 		= nh.subscribe("/current_behavior",	10,  &FFSteerControl::callbackGetBehaviorState, 	this);
-  	sub_current_trajectory 	= nh.subscribe("/final_waypoints", 	10,	&FFSteerControl::callbackGetCurrentTrajectory, this);
+	pub_VehicleCommand			= nh.advertise<geometry_msgs::TwistStamped>("twist_cmd", 1);
+	pub_ControlBoxOdom			= nh.advertise<nav_msgs::Odometry>("ControlBoxOdom", 1);
+	pub_VelocityRviz 			= nh.advertise<std_msgs::Float32>("linear_velocity_viz", 1);
 
 
+  	sub_current_pose 	= nh.subscribe("/current_pose", 1, &FFSteerControl::callbackGetCurrentPose, 		this);
 
-  	sub_OutsideControl 	= nh.subscribe("/usb_controller_r_signal", 	10,		&FFSteerControl::callbackGetOutsideControl, 	this);
+	int bVelSource = 1;
+	nh.getParam("/ff_waypoint_follower/velocitySource", bVelSource);
+//	if(bVelSource == 0)
+//		sub_robot_odom = nh.subscribe("/odom", 10, &FFSteerControl::callbackGetRobotOdom, this);
+//	else if(bVelSource == 1)
+		sub_current_velocity = nh.subscribe("/current_velocity", 1, &FFSteerControl::callbackGetCurrentVelocity, this);
+//	else if(bVelSource == 2)
+//		sub_can_info = nh.subscribe("/can_info", 10, &BehaviorGen::callbackGetCANInfo, this);
 
-  	//sub_autoware_odom 		= nh.subscribe("/twist_odom", 		10,	&FFSteerControl::callbackGetAutowareOdom, this);
+  	sub_behavior_state 		= nh.subscribe("/current_behavior",	1, &FFSteerControl::callbackGetBehaviorState, 	this);
+  	sub_current_trajectory 	= nh.subscribe("/final_waypoints", 	1,	&FFSteerControl::callbackGetCurrentTrajectory, this);
 
+  	sub_OutsideControl 	= nh.subscribe("/usb_controller_r_signal", 	1, &FFSteerControl::callbackGetOutsideControl, 	this);
 
 	UtilityHNS::UtilityH::GetTickCount(m_PlanningTimer);
 
@@ -198,25 +195,7 @@ FFSteerControl::~FFSteerControl()
 
 void FFSteerControl::callbackGetOutsideControl(const std_msgs::Int8& msg)
 {
-	//std::cout << "Received Outside Control : " << msg.data << std::endl;
-
 	m_bOutsideControl  = msg.data;
-}
-
-void FFSteerControl::callbackGetInitPose(const geometry_msgs::PoseWithCovarianceStampedConstPtr &msg)
-{
-	ROS_INFO("init Simulation Rviz Pose Data: x=%f, y=%f, z=%f, freq=%d", msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z, m_frequency);
-
-	geometry_msgs::Pose p;
-	p.position.x  = msg->pose.pose.position.x + m_OriginPos.position.x;
-	p.position.y  = msg->pose.pose.position.y + m_OriginPos.position.y;
-	p.position.z  = msg->pose.pose.position.z + m_OriginPos.position.z;
-	p.orientation = msg->pose.pose.orientation;
-
-	m_InitPos =  PlannerHNS::WayPoint(p.position.x, p.position.y, p.position.z , tf::getYaw(p.orientation));
-	m_State.FirstLocalizeMe(m_InitPos);
-	m_CurrentPos = m_InitPos;
-	bInitPos = true;
 }
 
 void FFSteerControl::callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr& msg)
@@ -230,15 +209,14 @@ void FFSteerControl::callbackGetCurrentPose(const geometry_msgs::PoseStampedCons
 		clock_gettime(0, &m_Timer);
 	}
 
-	m_CurrentPos = PlannerHNS::WayPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z, tf::getYaw(msg->pose.orientation));
-
+	m_CurrentPos.pos = PlannerHNS::GPSPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z, tf::getYaw(msg->pose.orientation));
 	bNewCurrentPos = true;
 }
 
 void FFSteerControl::callbackGetCurrentVelocity(const geometry_msgs::TwistStampedConstPtr& msg)
 {
-	m_CurrVehicleStatus.shift = PlannerHNS::SHIFT_POS_DD;
 	m_CurrVehicleStatus.speed = msg->twist.linear.x;
+	m_CurrentPos.v = m_CurrVehicleStatus.speed;
 	if(msg->twist.linear.x != 0)
 		m_CurrVehicleStatus.steer = atan(m_CarInfo.wheel_base * msg->twist.angular.z/msg->twist.linear.x);
 
@@ -284,27 +262,6 @@ void FFSteerControl::callbackGetCurrentTrajectory(const autoware_msgs::LaneConst
 //	cout << "### Current Trajectory CallBaclk -> " << m_State.m_Path.size() << endl;
 
 	bNewTrajectory = true;
-}
-
-//void FFSteerControl::callbackGetAutowareOdom(const geometry_msgs::TwistStampedConstPtr &msg)
-//{
-//}
-
-void FFSteerControl::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg)
-{
-	if(m_CmdParams.statusSource == ROBOT_STATUS)
-	{
-//		PlannerHNS::WayPoint odoPose = PlannerHNS::WayPoint(msg->pose.pose.position.x,
-//				msg->pose.pose.position.y,msg->pose.pose.position.z , tf::getYaw(msg->pose.pose.orientation));
-
-		m_CurrVehicleStatus.shift = PlannerHNS::SHIFT_POS_DD;
-		m_CurrVehicleStatus.speed = msg->twist.twist.linear.x;
-		if(msg->twist.twist.linear.x!=0)
-			m_CurrVehicleStatus.steer = atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
-		UtilityHNS::UtilityH::GetTickCount(m_CurrVehicleStatus.tStamp);
-
-//		std::cout << "###### Current Status From Robot Odometry -> (" <<  m_CurrVehicleStatus.speed << ", " << m_CurrVehicleStatus.steer << ")"  << std::endl;
-	}
 }
 
 void FFSteerControl::GetTransformFromTF(const std::string parent_frame, const std::string child_frame, tf::StampedTransform &transform)
@@ -423,7 +380,7 @@ PlannerHNS::BehaviorState FFSteerControl::ConvertBehaviorStateFromAutowareToPlan
 void FFSteerControl::PlannerMainLoop()
 {
 
-	ros::Rate loop_rate(100);
+	ros::Rate loop_rate(10);
 #ifdef ENABLE_ZMP_LIBRARY_LINK
 	if(m_pComm)
 		m_pComm->GoLive(true);
@@ -436,6 +393,34 @@ void FFSteerControl::PlannerMainLoop()
 	while (ros::ok())
 	{
 		ros::spinOnce();
+
+		if(m_CurrVehicleStatus.speed > 8)
+		{
+			bStopNow = true;
+			UtilityHNS::UtilityH::GetTickCount(m_PlanningTimer);
+		}
+
+		if(bStopNow)
+			m_PrevStepTargetStatus.speed = 2;
+		else
+			m_PrevStepTargetStatus.speed = 10.0;
+
+		geometry_msgs::Twist t;
+		geometry_msgs::TwistStamped twist;
+
+		t.linear.x = m_PrevStepTargetStatus.speed;
+		t.angular.z = 0.0;
+		twist.twist = t;
+		twist.header.stamp = ros::Time::now();
+
+		pub_VehicleCommand.publish(twist);
+
+		if(m_CurrVehicleStatus.speed > 0)
+			cout << "Feed Back: " << m_CurrVehicleStatus.speed << ", Target: " <<  m_PrevStepTargetStatus.speed << ", Time Diff:" << UtilityHNS::UtilityH::GetTimeDiffNow(m_PlanningTimer)  << endl;
+
+		loop_rate.sleep();
+
+		continue;
 
 		PlannerHNS::BehaviorState currMessage = m_CurrentBehavior;
 		double dt  = UtilityHNS::UtilityH::GetTimeDiffNow(m_PlanningTimer);

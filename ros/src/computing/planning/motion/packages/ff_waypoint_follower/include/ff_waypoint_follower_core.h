@@ -113,7 +113,7 @@ protected:
 
 	PlannerHNS::VehicleState m_PrevStepTargetStatus;
 	PlannerHNS::VehicleState m_CurrVehicleStatus;
-
+	bool bStopNow;
 
 	//geometry_msgs::Vector3Stamped m_segway_status;
 	bool bVehicleStatus;
@@ -147,7 +147,7 @@ protected:
 	ros::Subscriber sub_OutsideControl		;
 
 	// Callback function for subscriber.
-	void callbackGetInitPose(const geometry_msgs::PoseWithCovarianceStampedConstPtr &msg);
+	//void callbackGetInitPose(const geometry_msgs::PoseWithCovarianceStampedConstPtr &msg);
 	void callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr& msg);
 	void callbackGetCurrentVelocity(const geometry_msgs::TwistStampedConstPtr& msg);
 	void callbackGetBehaviorState(const geometry_msgs::TwistStampedConstPtr& msg );

@@ -272,6 +272,15 @@ public:
 	virtual BehaviorStateMachine* GetNextState();
 };
 
+class StopStateII : public BehaviorStateMachine
+{
+public:
+	StopStateII(PlanningParams* pParams, PreCalculatedConditions* pPreCalcVal, BehaviorStateMachine* pNextState)
+	: BehaviorStateMachine(pParams, pPreCalcVal, pNextState){m_Behavior = STOPPING_STATE;}
+	virtual BehaviorStateMachine* GetNextState();
+
+};
+
 } /* namespace PlannerHNS */
 
 #endif /* BEHAVIORSTATEMACHINE_H_ */

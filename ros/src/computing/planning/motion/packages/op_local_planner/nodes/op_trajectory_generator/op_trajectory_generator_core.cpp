@@ -44,7 +44,7 @@ TrajectoryGen::TrajectoryGen()
 	sub_current_pose = nh.subscribe("/current_pose", 10, &TrajectoryGen::callbackGetCurrentPose, this);
 
 	int bVelSource = 1;
-	_nh.getParam("/op_trajectory_generator/velocitySource", bVelSource);
+	_nh.getParam("/op_common_params/velocitySource", bVelSource);
 	if(bVelSource == 0)
 		sub_robot_odom = nh.subscribe("/odom", 10,	&TrajectoryGen::callbackGetRobotOdom, this);
 	else if(bVelSource == 1)
@@ -128,7 +128,7 @@ void TrajectoryGen::callbackGetInitPose(const geometry_msgs::PoseWithCovarianceS
 
 void TrajectoryGen::callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr& msg)
 {
-	m_CurrentPos = PlannerHNS::WayPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z, tf::getYaw(msg->pose.orientation));
+	m_CurrentPos.pos = PlannerHNS::GPSPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z, tf::getYaw(msg->pose.orientation));
 	m_InitPos = m_CurrentPos;
 	bNewCurrentPos = true;
 	bInitPos = true;
@@ -200,7 +200,7 @@ void TrajectoryGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayC
 
 void TrajectoryGen::MainLoop()
 {
-	ros::Rate loop_rate(100);
+	ros::Rate loop_rate(50);
 
 	PlannerHNS::WayPoint prevState, state_change;
 

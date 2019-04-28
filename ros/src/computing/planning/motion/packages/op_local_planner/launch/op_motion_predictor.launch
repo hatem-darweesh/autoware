@@ -5,9 +5,20 @@
 	<arg name="enableGenrateBranches" 	default="false"/>
 	<arg name="enableCurbObstacles" 	default="false" />
 	<arg name="distanceBetweenCurbs" 	default="1.5" />
-	<arg name="visualizationTime" 		default="0.25" />
+	<arg name="visualizationTime" 		default="0.01" />
 	<arg name="enableStepByStepSignal" 	default="false" />
 	<arg name="enableParticleFilterPrediction" 	default="false" />
+	
+	
+	<arg name="pose_weight_factor" 	default="0.2" />
+	<arg name="dir_weight_factor" 	default="0.2" />
+	<arg name="vel_weight_factor" 	default="0.2" />
+	<arg name="acc_weight_factor" 	default="0.2" />
+	<arg name="ind_weight_factor" 	default="0.2" />
+	
+	<arg name="particles_number" 	default="50" />	
+	<arg name="min_particles_num" 	default="2" />
+	<arg name="keep_percentage" 	default="0.5" />
 	
 	
 	<node pkg="op_local_planner" type="op_motion_predictor" name="op_motion_predictor" output="screen">		
@@ -20,6 +31,16 @@
 		<param name="visualizationTime" 		value="$(arg visualizationTime)" />
 		<param name="enableStepByStepSignal" 	value="$(arg enableStepByStepSignal)" />
 		<param name="enableParticleFilterPrediction" 	value="$(arg enableParticleFilterPrediction)" />
+		
+		<param name="pose_weight_factor" 	value="$(arg pose_weight_factor)" />
+		<param name="dir_weight_factor" 	value="$(arg dir_weight_factor)" />
+		<param name="vel_weight_factor" 	value="$(arg vel_weight_factor)" />
+		<param name="acc_weight_factor" 	value="$(arg acc_weight_factor)" />
+		<param name="ind_weight_factor" 	value="$(arg ind_weight_factor)" />
+		
+		<param name="particles_number" 		value="$(arg particles_number)" />
+		<param name="min_particles_num" 	value="$(arg min_particles_num)" />
+		<param name="keep_percentage" 		value="$(arg keep_percentage)" />
 				
 	</node>
 

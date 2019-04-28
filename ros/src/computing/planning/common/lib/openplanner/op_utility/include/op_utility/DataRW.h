@@ -50,12 +50,14 @@ public:
 	static std::string KmlMapsFolderName;
 	static std::string PredictionFolderName;
 	static std::string TrackingFolderName;
-
+	static std::string ExperimentsFolderName;
 
 	static void WriteKMLFile(const std::string& fileName, const std::vector<std::string>& gps_list);
 	static void WriteKMLFile(const std::string& fileName, const std::vector<std::vector<std::string> >& gps_list);
 	static void WriteLogData(const std::string& logFolder, const std::string& logTitle, const std::string& header, const std::vector<std::string>& logData);
-	static void CreateLoggingFolder();
+	static void CreateLoggingMainFolder();
+	static void CreateLoggingFolders(const std::string& mainFolderName);
+	static void CreateExperimentFolder(const std::string& folderName);
 };
 
 class SimpleReaderBase
@@ -258,6 +260,27 @@ public:
 private:
 	int m_min_id;
 	std::vector<AisanLine*> m_data_map;
+};
+
+class AisanCLinesFileReader : public SimpleReaderBase
+{
+public:
+
+	struct AisanCLine
+	{
+		int ID;
+		int LID;
+		double width;
+		char color;
+		int type;
+		int LinkID;
+	};
+
+	AisanCLinesFileReader(const std::string& fileName) : SimpleReaderBase(fileName, 1){}
+	~AisanCLinesFileReader(){}
+
+	bool ReadNextLine(AisanCLine& data);
+	int ReadAllData(std::vector<AisanCLine>& data_list);
 };
 
 class AisanCenterLinesFileReader : public SimpleReaderBase

@@ -9,7 +9,6 @@
 #define PLANNINGHELPERS_H_
 
 #include "RoadNetwork.h"
-#include "op_utility/UtilityH.h"
 #include "op_utility/DataRW.h"
 #include "tinyxml.h"
 
@@ -37,9 +36,11 @@ public:
 
 	static bool GetRelativeInfo(const std::vector<WayPoint>& trajectory, const WayPoint& p, RelativeInfo& info, const int& prevIndex = 0);
 
-	static bool GetRelativeInfoRange(const std::vector<std::vector<WayPoint> >& trajectories, const WayPoint& p, const double& searchDistance, RelativeInfo& info);
-
 	static bool GetRelativeInfoLimited(const std::vector<WayPoint>& trajectory, const WayPoint& p, RelativeInfo& info, const int& prevIndex = 0);
+
+	static bool GetRelativeInfoSlow(const std::vector<WayPoint>& trajectory, const WayPoint& p, RelativeInfo& info, const int& prevIndex =0);
+
+	static bool GetRelativeInfoRange(const std::vector<std::vector<WayPoint> >& trajectories, const WayPoint& p, const double& searchDistance, RelativeInfo& info);
 
 	static WayPoint GetFollowPointOnTrajectory(const std::vector<WayPoint>& trajectory, const RelativeInfo& init_p, const double& distance, unsigned int& point_index);
 
@@ -178,7 +179,14 @@ public:
 
 	static LIGHT_INDICATOR GetIndicatorsFromPath(const std::vector<WayPoint>& path, const WayPoint& pose, const double& seachDistance);
 
-	static PlannerHNS::WayPoint GetRealCenter(const PlannerHNS::WayPoint& currState, const double& wheel_base);
+	static WayPoint GetRealCenter(const PlannerHNS::WayPoint& currState, const double& wheel_base);
+
+	static std::string MakePathID(const std::vector<PlannerHNS::WayPoint>& _path);
+	static std::string MakePathDirectionID(const std::vector<PlannerHNS::WayPoint>& _path);
+
+	static double GetDistanceFromPoseToEnd(const PlannerHNS::WayPoint& pose, const std::vector<WayPoint>& path);
+
+	static int PointInsidePolygon(const std::vector<GPSPoint>& points,const GPSPoint& p);
 
 	static void TestQuadraticSpline(const std::vector<WayPoint>& center_line, std::vector<WayPoint>& path);
 

@@ -265,7 +265,7 @@ PlannerHNS::BEH_STATE_TYPE OpenPlannerDataLogger::GetBehStateFromNumber(const in
 	else if(iBehState == 5)
 		return PlannerHNS::BEH_ACCELERATING_STATE;
 	else if(iBehState == 6)
-		return PlannerHNS::BEH_SLOWDOWN_STATE;
+		return PlannerHNS::BEH_PARKING_STATE;
 	else
 		return PlannerHNS::BEH_FORWARD_STATE;
 }

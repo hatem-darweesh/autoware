@@ -12,6 +12,7 @@
 #include <vector>
 #include <sstream>
 #include "op_utility/UtilityH.h"
+#include "float.h"
 
 #define OPENPLANNER_ENABLE_LOGS
 
@@ -39,7 +40,7 @@ enum SHIFT_POS {SHIFT_POS_PP = 0x60, SHIFT_POS_RR = 0x40, SHIFT_POS_NN = 0x20,
 enum ACTION_TYPE {FORWARD_ACTION, BACKWARD_ACTION, STOP_ACTION, LEFT_TURN_ACTION,
 	RIGHT_TURN_ACTION, U_TURN_ACTION, SWERVE_ACTION, OVERTACK_ACTION, START_ACTION, SLOWDOWN_ACTION, CHANGE_DESTINATION, WAITING_ACTION, DESTINATION_REACHED,  UNKOWN_ACTION};
 
-enum BEH_STATE_TYPE {BEH_FORWARD_STATE=0,BEH_STOPPING_STATE=1, BEH_BRANCH_LEFT_STATE=2, BEH_BRANCH_RIGHT_STATE=3, BEH_YIELDING_STATE=4, BEH_ACCELERATING_STATE=5, BEH_SLOWDOWN_STATE=6};
+enum BEH_STATE_TYPE {BEH_FORWARD_STATE=0,BEH_STOPPING_STATE=1, BEH_BRANCH_LEFT_STATE=2, BEH_BRANCH_RIGHT_STATE=3, BEH_YIELDING_STATE=4, BEH_ACCELERATING_STATE=5, BEH_PARKING_STATE=6, BEH_UNKNOWN_STATE = 7};
 
 enum SEGMENT_TYPE {NORMAL_ROAD_SEG, INTERSECTION_ROAD_SEG, UTURN_ROAD_SEG, EXIT_ROAD_SEG, MERGE_ROAD_SEG, HIGHWAY_ROAD_SEG};
 enum RoadSegmentType {NORMAL_ROAD, INTERSECTION_ROAD, UTURN_ROAD, EXIT_ROAD, MERGE_ROAD, HIGHWAY_ROAD};
@@ -51,6 +52,8 @@ enum TrafficSignTypes {UNKNOWN_SIGN, STOP_SIGN, MAX_SPEED_SIGN, MIN_SPEED_SIGN};
 class Lane;
 class TrafficLight;
 class RoadSegment;
+class Boundary;
+
 
 class ObjTimeStamp
 {
@@ -63,24 +66,6 @@ public:
 		tStamp.tv_sec = 0;
 	}
 };
-
-//class POINT2D
-//{
-//public:
-//    double x;
-//    double y;
-//    double z;
-//    POINT2D()
-//    {
-//      x=0;y=0;z=0;
-//    }
-//    POINT2D(double px, double py, double pz = 0)
-//    {
-//      x = px;
-//      y = py;
-//      z = pz;
-//    }
-//};
 
 class GPSPoint
 {
@@ -377,6 +362,7 @@ public:
 	double  	totalReward;
 	double  	collisionCost;
 	double 		laneChangeCost;
+	double      	width;
 	int 		laneId;
 	int 		id;
 	int 		LeftPointId;
@@ -388,8 +374,10 @@ public:
 	STATE_TYPE	state;
 	BEH_STATE_TYPE beh_state;
 	int 		iOriginalIndex;
+	int boundaryId;
 
 	Lane* pLane;
+	Boundary* pBoundary;
 	WayPoint* pLeft;
 	WayPoint* pRight;
 	std::vector<int> 	toIds;
@@ -407,9 +395,11 @@ public:
 		v = 0;
 		cost = 0;
 		laneId = -1;
-		pLane  = 0;
-		pLeft = 0;
-		pRight = 0;
+		boundaryId = -1;
+		pLane  = nullptr;
+		pLeft = nullptr;
+		pRight = nullptr;
+		pBoundary = nullptr;
 		bDir = FORWARD_DIR;
 		LeftPointId = 0;
 		RightPointId = 0;
@@ -423,7 +413,7 @@ public:
 		state = INITIAL_STATE;
 		beh_state = BEH_STOPPING_STATE;
 		iOriginalIndex = 0;
-
+		width = 0;
 		gid = 0;
 		originalMapID = -1;
 	}
@@ -439,9 +429,11 @@ public:
 		v = 0;
 		cost = 0;
 		laneId = -1;
-		pLane  = 0;
-		pLeft = 0;
-		pRight = 0;
+		boundaryId = -1;
+		pLane  = nullptr;
+		pLeft = nullptr;
+		pRight = nullptr;
+		pBoundary = nullptr;
 		bDir = FORWARD_DIR;
 		LeftPointId = 0;
 		RightPointId = 0;
@@ -455,7 +447,7 @@ public:
 		iOriginalIndex = 0;
 		state = INITIAL_STATE;
 		beh_state = BEH_STOPPING_STATE;
-
+		width = 0;
 		gid = 0;
 		originalMapID = -1;
 	}
@@ -497,6 +489,7 @@ public:
 	int id;
 	int roadId;
 	std::vector<GPSPoint> points;
+	GPSPoint center;
 	RoadSegment* pSegment;
 
 	Boundary()
@@ -911,6 +904,9 @@ public:
 	bool 	enabTrajectoryVelocities;
 	double minIndicationDistance;
 
+	double maxLaneSearchDistance;
+	double goalDiscoveryDistance;
+
 	PlanningParams()
 	{
 		maxSpeed 						= 3;
@@ -949,6 +945,9 @@ public:
 		enableStopSignBehavior			= false;
 		enabTrajectoryVelocities 		= false;
 		minIndicationDistance			= 15;
+
+		maxLaneSearchDistance = 3.0;
+		goalDiscoveryDistance = 2.5;
 	}
 };
 
@@ -1005,6 +1004,7 @@ public:
 
 	//-------------------------------------------//
 	//General
+	bool 				bFinalLocalTrajectory; //the local trajectory that reaches the goal
 	bool 				bNewGlobalPath;
 	bool 				bRePlan;
 	double 				currentVelocity;
@@ -1012,6 +1012,8 @@ public:
 	int 				bOutsideControl; // 0 waiting, 1 start, 2 Green Traffic Light, 3 Red Traffic Light, 5 Emergency Stop
 	bool				bGreenOutsideControl;
 	std::vector<double> stoppingDistances;
+
+	double 				distanceToGoal;
 
 
 	double distanceToStop()
@@ -1065,6 +1067,9 @@ public:
 		iPrevSafeLane			= -1;
 
 		indicator 				= INDICATOR_NONE;
+
+		distanceToGoal 			= DBL_MAX;
+		bFinalLocalTrajectory	= false;
 	}
 
 	virtual ~PreCalculatedConditions(){}
@@ -1327,6 +1332,7 @@ public:
 	int acl; //slow down -1 braking , 0 cruising , 1 accelerating
 	PlannerHNS::LIGHT_INDICATOR indicator;
 	PlannerHNS::STATE_TYPE state;
+	RelativeInfo info_to_path;
 
 	ParticleInfo()
 	{

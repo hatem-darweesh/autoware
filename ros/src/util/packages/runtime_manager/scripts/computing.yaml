@@ -1191,6 +1191,15 @@ params :
       cmd_param:
         dash     : ''
         delim    : ':='
+    - name : splitter_topic
+      desc : splitter topic
+      label: Advanced Params -----------------------------------------------------------------
+      min  : 1
+      max  : 1
+      v    : 1
+      cmd_param:
+        dash     : ''
+        delim    : ':='
     - name : polygon_quarters
       desc : Number of Quarters
       label: Quarters Number
@@ -2607,30 +2616,6 @@ params :
 
   - name  : op_global_planner
     vars  :
-    - name : enableLaneChange
-      desc : global plan extended by lane changes
-      label: Lane Changing
-      kind : checkbox
-      v    : False
-      cmd_param:
-        dash     : ''
-        delim    : ':='
-    - name : enableReplan
-      desc : infinite replanning to multiple goals including the start position
-      label: Replanning
-      kind : checkbox
-      v    : False
-      cmd_param:
-        dash     : ''
-        delim    : ':='
-    - name : enableSmoothing
-      desc : smooth and fix global path
-      label: Smoothing
-      kind : checkbox
-      v    : False
-      cmd_param:
-        dash     : ''
-        delim    : ':='
     - name : enableRvizInput
       desc : Enable Destination selection by Rviz or from Log file
       label: Rviz Goals
@@ -2639,7 +2624,30 @@ params :
       cmd_param:
         dash   : ''
         delim  : ':='
-
+    - name : enableLaneChange
+      desc : global plan extended by lane changes
+      label: Enable Lane Changing
+      kind : checkbox
+      v    : False
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+    - name : enableReplan
+      desc : infinite replanning to multiple goals including the start position
+      label: Enable Replanning
+      kind : checkbox
+      v    : False
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+    - name : enableSmoothing
+      desc : smooth and fix global path
+      label: Enable Smoothing
+      kind : checkbox
+      v    : False
+      cmd_param:
+        dash     : ''
+        delim    : ':='
     - name : pathDensity
       desc : distance between each two waypoints
       label: Path Density
@@ -2665,6 +2673,14 @@ params :
       cmd_param:
         dash     : ''
         delim    : ':='
+    - name : experimentName
+      desc : experiment name, should be one for all OpenPlanner nodes, leave empty to use default log folder
+      label: Experiment Name
+      kind : str
+      v    : ''
+      cmd_param:
+        dash     : ''
+        delim    : ':='        
   - name  : dp_planner
     vars  :
     - name : enabTrajectoryVelocities
@@ -3011,7 +3027,7 @@ params :
         dash     : ''
         delim    : ':='
     - name : maxAcceleration
-      desc : Maximum acceleration allowed
+      desc : Maximum acceleration allowed 
       label: Acceleration
       min  : 0.01
       max  : 25.0
@@ -3129,6 +3145,14 @@ params :
       cmd_param:
         dash     : ''
         delim    : ':='
+    - name : experimentName
+      desc : experiment name, should be one for all OpenPlanner nodes, leave empty to use default log folder
+      label: Experiment Name
+      kind : str
+      v    : ''
+      cmd_param:
+        dash     : ''
+        delim    : ':='        
 
   - name  : op_trajectory_generator
     vars  :
@@ -3154,7 +3178,7 @@ params :
   - name  : op_motion_predictor
     vars  :
     - name : enableCurbObstacles
-      desc : Enable using curb from map as obstacles
+      desc : Enable using curb from map as obstacles 
       label: Detect curbs from map
       kind : checkbox
       v    : False
@@ -3182,11 +3206,83 @@ params :
       desc : Max trajectory prediction distance
       label: Prediction distance
       min  : 1.0
-      max  : 75.0
+      max  : 150.0
       v    : 25.0
       cmd_param:
         dash     : ''
         delim    : ':='
+    - name : particles_number
+      desc : Max Number of particles  
+      label: Particles Number
+      min  : 2
+      max  : 1000
+      v    : 30
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+    - name : min_particles_num
+      desc : Min Number of particles
+      label: Min Particles
+      min  : 0
+      max  : 100
+      v    : 1
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+    - name : keep_percentage
+      desc : Deleting weak particles percentage 
+      label: Keep Percentage
+      min  : 0.0
+      max  : 1.0
+      v    : 0.5
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+    - name : pose_weight_factor
+      desc : Position Weight Factor 
+      label: Pose Factor
+      min  : 0.0
+      max  : 1.0
+      v    : 0.2
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+    - name : dir_weight_factor
+      desc : Direction  Weight Factor 
+      label: Direction Factor
+      min  : 0.0
+      max  : 1.0
+      v    : 0.2
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+    - name : vel_weight_factor
+      desc : Velocity  Weight Factor 
+      label: Velocity Factor
+      min  : 0.0
+      max  : 1.0
+      v    : 0.2
+      cmd_param:
+        dash     : ''
+        delim    : ':='     
+    - name : acc_weight_factor
+      desc : Acceleration Weight Factor 
+      label: Acceleration Factor 
+      min  : 0.0
+      max  : 1.0
+      v    : 0.2
+      cmd_param:
+        dash     : ''
+        delim    : ':='     
+    - name : ind_weight_factor
+      desc : Indicator Weight Factor 
+      label: Indicators Factor
+      min  : 0.0
+      max  : 1.0
+      v    : 0.2
+      cmd_param:
+        dash     : ''
+        delim    : ':='                                                               
     - name : enableStepByStepSignal
       desc : Enable Step by Step Prediction Test
       label: Enable Step by Step Test
@@ -3207,7 +3303,7 @@ params :
   - name  : op_trajectory_evaluator
     vars  :
     - name : enablePrediction
-      desc : treat all obstacles as dynamic or as static
+      desc : treat all obstacles as dynamic or as static 
       label: Enable Prediction
       kind : checkbox
       v    : False
@@ -3256,6 +3352,15 @@ params :
       cmd_param:
         dash     : ''
         delim    : ':='
+    - name : enableStepByStepSignal
+      desc : Send Data only when signal send from utility program 
+      label: Enable Step By Step
+      kind : checkbox
+      v    : False
+      cmd_param:
+        dash     : ''
+        delim    : ':='
+        
   - name  : op_signs_simulator
     vars  :
     - name : first_signs_list_ids
@@ -3525,6 +3630,14 @@ params :
       cmd_param:
         dash     : ''
         delim    : ':='
+    - name : experimentName
+      desc : experiment name, should be one for all OpenPlanner nodes, leave empty to use default log folder
+      label: Experiment Name
+      kind : str
+      v    : ''
+      cmd_param:
+        dash     : ''
+        delim    : ':='        
 
   - name  : waypoint_saver
     vars  :

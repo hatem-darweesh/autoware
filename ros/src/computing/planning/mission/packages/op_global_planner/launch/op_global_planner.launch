@@ -4,10 +4,11 @@
 	<arg name="enableSmoothing" 				default="true" /> <!-- 1 or 0 -->
 	<arg name="enableLaneChange" 				default="false" /> <!-- 1 or 0 -->
 	<arg name="enableRvizInput" 				default="false" /> <!-- 1 or 0 -->
+	<arg name="experimentName" 					default="" />
 	<arg name="enableReplan"    				default="true" /> <!-- 1 or 0 -->	
 	<arg name="velocitySource"					default="1" /> <!-- read velocities from (0- Odometry, 1- autoware current_velocities, 2- car_info) "" -->
 	<arg name="mapSource" 						default="0" /> <!-- Autoware=0, Vector Map Folder=1, kml file=2 -->
-	<arg name="mapFileName" 					default="" /> <!-- incase of kml map source -->
+	<arg name="mapFileName" 					default="/media/hatem/8ac0c5d5-8793-4b98-8728-55f8d67ec0f4/Projects/TierIV/MapIV/hkstp/hkstp_vmap.kml" /> <!-- incase of kml map source -->
 	<arg name="enableDynamicMapUpdate" 			default="false" />	
 	
 <node pkg="op_global_planner" type="op_global_planner" name="op_global_planner" output="screen">
@@ -16,6 +17,7 @@
 		<param name="enableSmoothing" 			value="$(arg enableSmoothing)" />
 		<param name="enableLaneChange" 			value="$(arg enableLaneChange)" />
 		<param name="enableRvizInput" 			value="$(arg enableRvizInput)" />
+		<param name="experimentName" 			value="$(arg experimentName)" />
 		<param name="enableReplan" 				value="$(arg enableReplan)" />				
 		<param name="velocitySource" 			value="$(arg velocitySource)" />
 		<param name="mapSource" 				value="$(arg mapSource)" />

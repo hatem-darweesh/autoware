@@ -46,7 +46,7 @@ public:
 
 	double PredictPlanUsingDP(const WayPoint& startPose, WayPoint* closestWP, const double& maxPlanningDistance, std::vector<std::vector<WayPoint> >& paths, const bool& bFindBranches = true);
 
-	double PredictTrajectoriesUsingDP(const WayPoint& startPose, std::vector<WayPoint*> closestWPs, const double& maxPlanningDistance, std::vector<std::vector<WayPoint> >& paths, const bool& bFindBranches = true, const bool bDirectionBased = false, const bool pathDensity = 1.0);
+	double PredictTrajectoriesUsingDP(const WayPoint& startPose, std::vector<WayPoint*> closestWPs, const double& maxPlanningDistance, std::vector<std::vector<WayPoint> >& paths, const bool& bFindBranches = true, const bool& bDirectionBased = false, const double& pathDensity = 1.0);
 
 	void DeleteWaypoints(std::vector<WayPoint*>& wps);
 };

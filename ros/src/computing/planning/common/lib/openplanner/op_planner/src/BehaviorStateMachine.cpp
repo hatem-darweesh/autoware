@@ -5,10 +5,7 @@
 /// \date Jun 19, 2016
 
 #include "op_planner/BehaviorStateMachine.h"
-#include "op_utility/UtilityH.h"
 #include <iostream>
-
-using namespace UtilityHNS;
 
 
 namespace PlannerHNS
@@ -106,12 +103,12 @@ BehaviorStateMachine* BehaviorStateMachine::FindBehaviorState(const STATE_TYPE& 
 
 void BehaviorStateMachine::Init()
 {
-	UtilityH::GetTickCount(m_StateTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_StateTimer);
 }
 
 void BehaviorStateMachine::ResetTimer()
 {
-	UtilityH::GetTickCount(m_StateTimer);
+	UtilityHNS::UtilityH::GetTickCount(m_StateTimer);
 }
 
 BehaviorStateMachine::~BehaviorStateMachine()
@@ -120,7 +117,7 @@ BehaviorStateMachine::~BehaviorStateMachine()
 
 BehaviorStateMachine* ForwardState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this; //return this behavior only , without reset
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -170,7 +167,7 @@ BehaviorStateMachine* MissionAccomplishedState::GetNextState()
 
 BehaviorStateMachine* StopState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -184,7 +181,7 @@ BehaviorStateMachine* StopState::GetNextState()
 
 BehaviorStateMachine* TrafficLightStopState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -203,7 +200,7 @@ BehaviorStateMachine* TrafficLightStopState::GetNextState()
 
 BehaviorStateMachine* TrafficLightWaitState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -224,7 +221,7 @@ BehaviorStateMachine* TrafficLightWaitState::GetNextState()
 
 BehaviorStateMachine* StopSignStopState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -240,7 +237,7 @@ BehaviorStateMachine* StopSignStopState::GetNextState()
 
 BehaviorStateMachine* StopSignWaitState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -254,7 +251,7 @@ BehaviorStateMachine* StopSignWaitState::GetNextState()
 
 BehaviorStateMachine* WaitState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	//PreCalculatedConditions* pCParams = GetCalcParams();
@@ -264,7 +261,7 @@ BehaviorStateMachine* WaitState::GetNextState()
 
 BehaviorStateMachine* InitState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -281,7 +278,7 @@ BehaviorStateMachine* InitState::GetNextState()
 
 BehaviorStateMachine* FollowState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 			return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -309,7 +306,7 @@ BehaviorStateMachine* FollowState::GetNextState()
 
 BehaviorStateMachine* SwerveState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -326,7 +323,7 @@ BehaviorStateMachine* SwerveState::GetNextState()
 
 BehaviorStateMachine* GoalState::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -366,10 +363,14 @@ BehaviorStateMachine* ForwardStateII::GetNextState()
 		return FindBehaviorState(FOLLOW_STATE);
 
 	else if(m_pParams->enableSwerving
-			&& pCParams->distanceToNext <= m_pParams->minDistanceToAvoid
+			&& (pCParams->distanceToNext <= m_pParams->minDistanceToAvoid || pCParams->distanceToNext == m_pParams->horizonDistance)
 			&& !pCParams->bFullyBlock
 			&& pCParams->iCurrSafeTrajectory != pCParams->iPrevSafeTrajectory)
 		return FindBehaviorState(OBSTACLE_AVOIDANCE_STATE);
+
+	else if(pCParams->bFinalLocalTrajectory
+			&& (pCParams->distanceToGoal - pCParams->minStoppingDistance) < 1.0 )
+		return FindBehaviorState(STOPPING_STATE);
 
 	else
 		return FindBehaviorState(this->m_Behavior);
@@ -378,6 +379,8 @@ BehaviorStateMachine* ForwardStateII::GetNextState()
 BehaviorStateMachine* FollowStateII::GetNextState()
 {
 	PreCalculatedConditions* pCParams = GetCalcParams();
+
+	std::cout << "Follow: " << pCParams->distanceToNext << ", " << pCParams->minStoppingDistance  <<", " << pCParams->bFullyBlock <<std::endl;
 
 	if(pCParams->currentGoalID != pCParams->prevGoalID)
 		return FindBehaviorState(GOAL_STATE);
@@ -394,7 +397,7 @@ BehaviorStateMachine* FollowStateII::GetNextState()
 		return FindBehaviorState(STOP_SIGN_STOP_STATE);
 
 	else if(m_pParams->enableSwerving
-			&& pCParams->distanceToNext <= m_pParams->minDistanceToAvoid
+	                && (pCParams->distanceToNext <= m_pParams->minDistanceToAvoid || pCParams->distanceToNext == m_pParams->horizonDistance)
 			&& !pCParams->bFullyBlock
 			&& pCParams->iCurrSafeTrajectory != pCParams->iPrevSafeTrajectory)
 		return FindBehaviorState(OBSTACLE_AVOIDANCE_STATE);
@@ -412,6 +415,8 @@ BehaviorStateMachine* SwerveStateII::GetNextState()
 
 	pCParams->iPrevSafeTrajectory = pCParams->iCurrSafeTrajectory;
 	pCParams->bRePlan = true;
+
+	std::cout << "Swerve : " << pCParams->distanceToNext << ", " << pCParams->minStoppingDistance  <<", " << pCParams->bFullyBlock <<std::endl;
 
 	return FindBehaviorState(FORWARD_STATE);
 }
@@ -461,7 +466,7 @@ BehaviorStateMachine* StopSignStopStateII::GetNextState()
 
 BehaviorStateMachine* StopSignWaitStateII::GetNextState()
 {
-	if(UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
+	if(UtilityHNS::UtilityH::GetTimeDiffNow(m_StateTimer) < decisionMakingTime)
 		return this;
 
 	PreCalculatedConditions* pCParams = GetCalcParams();
@@ -511,8 +516,22 @@ BehaviorStateMachine* TrafficLightWaitStateII::GetNextState()
 //		return FindBehaviorState(TRAFFIC_LIGHT_STOP_STATE);
 
 	else
-		return FindBehaviorState(this->m_Behavior); // return and reset
+		return FindBehaviorState(this->m_Behavior);
 
+}
+
+BehaviorStateMachine* StopStateII::GetNextState()
+{
+	PreCalculatedConditions* pCParams = GetCalcParams();
+
+	if(pCParams->currentGoalID != pCParams->prevGoalID)
+		return FindBehaviorState(GOAL_STATE);
+
+	else if((pCParams->distanceToGoal - pCParams->minStoppingDistance) > 1.0)
+		return FindBehaviorState(FORWARD_STATE);
+
+	else
+		return FindBehaviorState(this->m_Behavior);
 }
 
 } /* namespace PlannerHNS */

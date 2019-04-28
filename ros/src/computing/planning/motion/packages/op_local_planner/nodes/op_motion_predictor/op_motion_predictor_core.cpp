@@ -45,13 +45,16 @@ MotionPrediction::MotionPrediction()
 	pub_PredictedTrajectoriesRviz = nh.advertise<visualization_msgs::MarkerArray>("/predicted_trajectories_rviz", 1);
 	pub_CurbsRviz					= nh.advertise<visualization_msgs::MarkerArray>("/map_curbs_rviz", 1);
 	pub_ParticlesRviz = nh.advertise<visualization_msgs::MarkerArray>("prediction_particles", 1);
+	pub_GeneratedParticlesRviz = nh.advertise<visualization_msgs::MarkerArray>("generated_particles", 1);
+	pub_BehaviorStateRviz = nh.advertise<visualization_msgs::MarkerArray>("prediction_behaviors", 1);
+	pub_TargetPointsRviz = nh.advertise<visualization_msgs::MarkerArray>("target_points_on_trajs", 1);
 
 	sub_StepSignal = nh.subscribe("/pred_step_signal", 		1, &MotionPrediction::callbackGetStepForwardSignals, 		this);
 	sub_tracked_objects	= nh.subscribe("/tracked_objects", 			1,		&MotionPrediction::callbackGetTrackedObjects, 		this);
 	sub_current_pose 	= nh.subscribe("/current_pose", 10,	&MotionPrediction::callbackGetCurrentPose, 		this);
 
 	int bVelSource = 1;
-	_nh.getParam("/op_motion_predictor/velocitySource", bVelSource);
+	_nh.getParam("/op_common_params/velocitySource", bVelSource);
 	if(bVelSource == 0)
 		sub_robot_odom = nh.subscribe("/odom", 10, &MotionPrediction::callbackGetRobotOdom, this);
 	else if(bVelSource == 1)
@@ -62,23 +65,27 @@ MotionPrediction::MotionPrediction()
 	UtilityHNS::UtilityH::GetTickCount(m_VisualizationTimer);
 	PlannerHNS::ROSHelpers::InitPredMarkers(100, m_PredictedTrajectoriesDummy);
 	PlannerHNS::ROSHelpers::InitCurbsMarkers(100, m_CurbsDummy);
-	PlannerHNS::ROSHelpers::InitPredParticlesMarkers(500, m_PredictedParticlesDummy);
+	PlannerHNS::ROSHelpers::InitPredParticlesMarkers(1000, m_PredictedParticlesDummy);
+	PlannerHNS::ROSHelpers::InitPredParticlesMarkers(2000, m_GeneratedParticlesDummy, true);
 
 	//Mapping Section
-	sub_lanes = nh.subscribe("/vector_map_info/lane", 1, &MotionPrediction::callbackGetVMLanes,  this);
-	sub_points = nh.subscribe("/vector_map_info/point", 1, &MotionPrediction::callbackGetVMPoints,  this);
-	sub_dt_lanes = nh.subscribe("/vector_map_info/dtlane", 1, &MotionPrediction::callbackGetVMdtLanes,  this);
-	sub_intersect = nh.subscribe("/vector_map_info/cross_road", 1, &MotionPrediction::callbackGetVMIntersections,  this);
-	sup_area = nh.subscribe("/vector_map_info/area", 1, &MotionPrediction::callbackGetVMAreas,  this);
-	sub_lines = nh.subscribe("/vector_map_info/line", 1, &MotionPrediction::callbackGetVMLines,  this);
-	sub_stop_line = nh.subscribe("/vector_map_info/stop_line", 1, &MotionPrediction::callbackGetVMStopLines,  this);
-	sub_signals = nh.subscribe("/vector_map_info/signal", 1, &MotionPrediction::callbackGetVMSignal,  this);
-	sub_vectors = nh.subscribe("/vector_map_info/vector", 1, &MotionPrediction::callbackGetVMVectors,  this);
-	sub_curbs = nh.subscribe("/vector_map_info/curb", 1, &MotionPrediction::callbackGetVMCurbs,  this);
-	sub_edges = nh.subscribe("/vector_map_info/road_edge", 1, &MotionPrediction::callbackGetVMRoadEdges,  this);
-	sub_way_areas = nh.subscribe("/vector_map_info/way_area", 1, &MotionPrediction::callbackGetVMWayAreas,  this);
-	sub_cross_walk = nh.subscribe("/vector_map_info/cross_walk", 1, &MotionPrediction::callbackGetVMCrossWalks,  this);
-	sub_nodes = nh.subscribe("/vector_map_info/node", 1, &MotionPrediction::callbackGetVMNodes,  this);
+	if(m_MapType == PlannerHNS::MAP_AUTOWARE)
+	{
+		sub_lanes = nh.subscribe("/vector_map_info/lane", 1, &MotionPrediction::callbackGetVMLanes,  this);
+		sub_points = nh.subscribe("/vector_map_info/point", 1, &MotionPrediction::callbackGetVMPoints,  this);
+		sub_dt_lanes = nh.subscribe("/vector_map_info/dtlane", 1, &MotionPrediction::callbackGetVMdtLanes,  this);
+		sub_intersect = nh.subscribe("/vector_map_info/cross_road", 1, &MotionPrediction::callbackGetVMIntersections,  this);
+		sup_area = nh.subscribe("/vector_map_info/area", 1, &MotionPrediction::callbackGetVMAreas,  this);
+		sub_lines = nh.subscribe("/vector_map_info/line", 1, &MotionPrediction::callbackGetVMLines,  this);
+		sub_stop_line = nh.subscribe("/vector_map_info/stop_line", 1, &MotionPrediction::callbackGetVMStopLines,  this);
+		sub_signals = nh.subscribe("/vector_map_info/signal", 1, &MotionPrediction::callbackGetVMSignal,  this);
+		sub_vectors = nh.subscribe("/vector_map_info/vector", 1, &MotionPrediction::callbackGetVMVectors,  this);
+		sub_curbs = nh.subscribe("/vector_map_info/curb", 1, &MotionPrediction::callbackGetVMCurbs,  this);
+		sub_edges = nh.subscribe("/vector_map_info/road_edge", 1, &MotionPrediction::callbackGetVMRoadEdges,  this);
+		sub_way_areas = nh.subscribe("/vector_map_info/way_area", 1, &MotionPrediction::callbackGetVMWayAreas,  this);
+		sub_cross_walk = nh.subscribe("/vector_map_info/cross_walk", 1, &MotionPrediction::callbackGetVMCrossWalks,  this);
+		sub_nodes = nh.subscribe("/vector_map_info/node", 1, &MotionPrediction::callbackGetVMNodes,  this);
+	}
 
 	std::cout << "OpenPlanner Motion Predictor initialized successfully " << std::endl;
 }
@@ -143,16 +150,43 @@ void MotionPrediction::UpdatePlanningParams(ros::NodeHandle& _nh)
 		m_MapType = PlannerHNS::MAP_KML_FILE;
 
 	_nh.getParam("/op_common_params/mapFileName" , m_MapPath);
+	_nh.getParam("/op_common_params/experimentName" , m_ExperimentFolderName);
+	if(m_ExperimentFolderName.size() > 0)
+	{
+		if(m_ExperimentFolderName.at(m_ExperimentFolderName.size()-1) != '/')
+			m_ExperimentFolderName.push_back('/');
+	}
+
+	UtilityHNS::DataRW::CreateLoggingMainFolder();
+	if(m_ExperimentFolderName.size() > 1)
+		UtilityHNS::DataRW::CreateExperimentFolder(m_ExperimentFolderName);
+
+
 
 	_nh.getParam("/op_motion_predictor/enableGenrateBranches" , m_PredictBeh.m_bGenerateBranches);
 	_nh.getParam("/op_motion_predictor/max_distance_to_lane" , m_PredictBeh.m_MaxLaneDetectionDistance);
-	_nh.getParam("/op_motion_predictor/prediction_distance" , m_PredictBeh.m_PredictionDistance);
+	_nh.getParam("/op_motion_predictor/prediction_distance" , m_PredictBeh.m_MaxPredictionDistance);
 	_nh.getParam("/op_motion_predictor/enableCurbObstacles"	, m_bEnableCurbObstacles);
 	_nh.getParam("/op_motion_predictor/distanceBetweenCurbs", m_DistanceBetweenCurbs);
 	_nh.getParam("/op_motion_predictor/visualizationTime", m_VisualizationTime);
 	_nh.getParam("/op_motion_predictor/enableStepByStepSignal", 	m_PredictBeh.m_bStepByStep );
+	if(m_PredictBeh.m_bStepByStep)
+		m_PredictBeh.m_bDebugOut = true;
+
 	_nh.getParam("/op_motion_predictor/enableParticleFilterPrediction", 	m_PredictBeh.m_bParticleFilter);
 
+	m_PredictBeh.g_PredParams.experiment_name = m_ExperimentFolderName;
+	std::cout << "Particles Num Before : " <<  m_PredictBeh.g_PredParams.MAX_PARTICLES_NUM << std::endl;
+	_nh.getParam("/op_motion_predictor/pose_weight_factor", 	m_PredictBeh.g_PredParams.POSE_FACTOR);
+	_nh.getParam("/op_motion_predictor/dir_weight_factor", 	m_PredictBeh.g_PredParams.DIRECTION_FACTOR);
+	_nh.getParam("/op_motion_predictor/vel_weight_factor", 	m_PredictBeh.g_PredParams.VELOCITY_FACTOR);
+	_nh.getParam("/op_motion_predictor/acc_weight_factor", 	m_PredictBeh.g_PredParams.ACCELERATE_FACTOR);
+	_nh.getParam("/op_motion_predictor/ind_weight_factor", 	m_PredictBeh.g_PredParams.INDICATOR_FACTOR);
+
+	_nh.getParam("/op_motion_predictor/particles_number", 	m_PredictBeh.g_PredParams.MAX_PARTICLES_NUM);
+	_nh.getParam("/op_motion_predictor/min_particles_num", 	m_PredictBeh.g_PredParams.MIN_PARTICLES_NUM);
+	_nh.getParam("/op_motion_predictor/keep_percentage", 	m_PredictBeh.g_PredParams.KEEP_PERCENTAGE);
+	m_PredictBeh.SetForTrajTracker();
 
 	UtilityHNS::UtilityH::GetTickCount(m_SensingTimer);
 }
@@ -167,7 +201,7 @@ void MotionPrediction::callbackGetStepForwardSignals(const geometry_msgs::TwistS
 
 void MotionPrediction::callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr& msg)
 {
-	m_CurrentPos = PlannerHNS::WayPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z, tf::getYaw(msg->pose.orientation));
+	m_CurrentPos.pos = PlannerHNS::GPSPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z, tf::getYaw(msg->pose.orientation));
 	bNewCurrentPos = true;
 }
 
@@ -212,11 +246,6 @@ void MotionPrediction::callbackGetTrackedObjects(const autoware_msgs::DetectedOb
 			PlannerHNS::ROSHelpers::ConvertFromAutowareDetectedObjectToOpenPlannerDetectedObject(msg->objects.at(i), obj);
 			m_TrackedObjects.push_back(obj);
 		}
-//		else
-//		{
-//			std::cout << " Ego Car avoid detecting itself from motion prediction node! ID: " << msg->objects.at(i).id << std::endl;
-//		}
-
 	}
 
 	//if(bMap)
@@ -234,11 +263,11 @@ void MotionPrediction::callbackGetTrackedObjects(const autoware_msgs::DetectedOb
 
 		m_PredictedResultsResults.objects.clear();
 		autoware_msgs::DetectedObject pred_obj;
-		for(unsigned int i = 0 ; i <m_PredictBeh.m_ParticleInfo_II.size(); i++)
+		for(unsigned int i = 0 ; i <m_PredictBeh.m_ParticleInfo.size(); i++)
 		{
-			PlannerHNS::ROSHelpers::ConvertFromOpenPlannerDetectedObjectToAutowareDetectedObject(m_PredictBeh.m_ParticleInfo_II.at(i)->obj, false, pred_obj);
-			if(m_PredictBeh.m_ParticleInfo_II.at(i)->best_beh_track)
-				pred_obj.behavior_state = m_PredictBeh.m_ParticleInfo_II.at(i)->best_beh_track->best_beh;
+			PlannerHNS::ROSHelpers::ConvertFromOpenPlannerDetectedObjectToAutowareDetectedObject(m_PredictBeh.m_ParticleInfo.at(i)->obj, false, pred_obj);
+			if(m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track)
+				pred_obj.behavior_state = m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->best_beh_by_p;
 			m_PredictedResultsResults.objects.push_back(pred_obj);
 		}
 
@@ -256,6 +285,7 @@ void MotionPrediction::callbackGetTrackedObjects(const autoware_msgs::DetectedOb
 
 		m_PredictedResultsResults.header.stamp = ros::Time().now();
 		pub_predicted_objects_trajectories.publish(m_PredictedResultsResults);
+
 	}
 }
 
@@ -313,83 +343,88 @@ void MotionPrediction::VisualizePrediction()
 	m_all_pred_paths.clear();
 	m_particles_points.clear();
 	visualization_msgs::MarkerArray behavior_rviz_arr;
-	int number_of_particles = 0;
-	for(unsigned int i=0; i< m_PredictBeh.m_ParticleInfo_II.size(); i++)
+
+
+	m_TargetPointsOnTrajectories.markers.clear();
+
+	for(unsigned int i=0; i< m_PredictBeh.m_ParticleInfo.size(); i++)
 	{
-		m_all_pred_paths.insert(m_all_pred_paths.begin(), m_PredictBeh.m_ParticleInfo_II.at(i)->obj.predTrajectories.begin(), m_PredictBeh.m_ParticleInfo_II.at(i)->obj.predTrajectories.end());
+		m_all_pred_paths.insert(m_all_pred_paths.begin(), m_PredictBeh.m_ParticleInfo.at(i)->obj.predTrajectories.begin(), m_PredictBeh.m_ParticleInfo.at(i)->obj.predTrajectories.end());
 
-		for(unsigned int t=0; t < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.size(); t++)
+		for(unsigned int t=0; t < m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.size(); t++)
 		{
+			PlannerHNS::WayPoint tt_wp = m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.at(t)->followPoint;
+			visualization_msgs::Marker targetPoint = PlannerHNS::ROSHelpers::CreateGenMarker(tt_wp.pos.x,tt_wp.pos.y,tt_wp.pos.z,0,0,0.0,1,0.5,t,"target_trajectory_point", visualization_msgs::Marker::SPHERE);
+			m_TargetPointsOnTrajectories.markers.push_back(targetPoint);
+
 			PlannerHNS::WayPoint p_wp;
-			for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_StopPart.size(); j++)
+			for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.at(t)->m_CurrParts.size(); j++)
 			{
-				p_wp = m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_StopPart.at(j).pose;
-				p_wp.bDir = PlannerHNS::STANDSTILL_DIR;
-				m_particles_points.push_back(p_wp);
-				number_of_particles++;
-			}
-
-			for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_YieldPart.size(); j++)
-			{
-				p_wp = m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_YieldPart.at(j).pose;
-				p_wp.bDir = PlannerHNS::BACKWARD_DIR;
-				m_particles_points.push_back(p_wp);
-				number_of_particles++;
-			}
-
-			if(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->beh == PlannerHNS::BEH_FORWARD_STATE)
-			{
-				for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_ForwardPart.size(); j++)
-				{
-					p_wp = m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_ForwardPart.at(j).pose;
+				PlannerHNS::Particle* pPart = &m_PredictBeh.m_ParticleInfo.at(i)->m_TrajectoryTracker.at(t)->m_CurrParts.at(j);
+				p_wp = pPart->pose;
+				if(pPart->beh == PlannerHNS::BEH_STOPPING_STATE)
+					p_wp.bDir = PlannerHNS::STANDSTILL_DIR;
+				else if(pPart->beh == PlannerHNS::BEH_PARKING_STATE)
+					p_wp.bDir = PlannerHNS::STANDSTILL_DIR;
+				else if(pPart->beh == PlannerHNS::BEH_YIELDING_STATE)
+					p_wp.bDir = PlannerHNS::BACKWARD_DIR;
+				else if(pPart->beh == PlannerHNS::BEH_FORWARD_STATE)
 					p_wp.bDir = PlannerHNS::FORWARD_DIR;
-					m_particles_points.push_back(p_wp);
-					number_of_particles++;
-				}
-			}
-
-			if(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->beh == PlannerHNS::BEH_BRANCH_LEFT_STATE)
-			{
-				//std::cout << "Left Particles : " << m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_LeftPart.size() << std::endl;
-				for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_LeftPart.size(); j++)
-				{
-					p_wp = m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_LeftPart.at(j).pose;
+				else if(pPart->beh == PlannerHNS::BEH_BRANCH_LEFT_STATE)
 					p_wp.bDir = PlannerHNS::FORWARD_LEFT_DIR;
-					m_particles_points.push_back(p_wp);
-					number_of_particles++;
-				}
-			}
-
-			if(m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->beh == PlannerHNS::BEH_BRANCH_RIGHT_STATE)
-			{
-				for(unsigned int j=0; j < m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_RightPart.size(); j++)
-				{
-					p_wp = m_PredictBeh.m_ParticleInfo_II.at(i)->m_TrajectoryTracker.at(t)->m_RightPart.at(j).pose;
+				else if(pPart->beh == PlannerHNS::BEH_BRANCH_RIGHT_STATE)
 					p_wp.bDir = PlannerHNS::FORWARD_RIGHT_DIR;
-					m_particles_points.push_back(p_wp);
-					number_of_particles++;
-				}
+
+				m_particles_points.push_back(p_wp);
 			}
 		}
 
-
-//		visualization_msgs::Marker behavior_rviz;
-//		std::ostringstream ns_beh;
-//		ns_beh << "pred_beh_state_" << i;
-//		ROSHelpers::VisualizeBehaviorState(m_PredictBeh.m_ParticleInfo_II.at(i).obj.center, m_PredictBeh.m_ParticleInfo_II.at(i).m_beh, false , 0, behavior_rviz, ns_beh.str(), 3);
-//		behavior_rviz_arr.markers.push_back(behavior_rviz);
-
+		if(m_PredictBeh.m_ParticleInfo.at(i) != nullptr && m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track != nullptr)
+		{
+			visualization_msgs::Marker behavior_rviz;
+			std::ostringstream ns_beh;
+			ns_beh << "pred_beh_state_" << i;
+			PlannerHNS::ROSHelpers::VisualizeIntentionState(m_PredictBeh.m_ParticleInfo.at(i)->obj.center, m_PredictBeh.m_ParticleInfo.at(i)->best_behavior_track->best_beh_by_p, behavior_rviz, ns_beh.str(), 3);
+			behavior_rviz_arr.markers.push_back(behavior_rviz);
+		}
 	}
+	pub_BehaviorStateRviz.publish(behavior_rviz_arr);
 
-//	pub_PredBehaviorStateRviz.publish(behavior_rviz_arr);
 
 	PlannerHNS::ROSHelpers::ConvertParticles(m_particles_points,m_PredictedParticlesActual, m_PredictedParticlesDummy);
-	//std::cout << "Original Particles: " << number_of_particles <<  ", Total Particles Num: " << m_PredictedParticlesActual.markers.size() << std::endl;
 	pub_ParticlesRviz.publish(m_PredictedParticlesActual);
 
 	//std::cout << "Start Tracking of Trajectories : " <<  m_all_pred_paths.size() << endl;
 	PlannerHNS::ROSHelpers::ConvertPredictedTrqajectoryMarkers(m_all_pred_paths, m_PredictedTrajectoriesActual, m_PredictedTrajectoriesDummy);
 	pub_PredictedTrajectoriesRviz.publish(m_PredictedTrajectoriesActual);
+
+	m_generated_particles_points.clear();
+	for(unsigned int i=0; i< m_PredictBeh.m_ParticleInfo.size(); i++)
+	{
+		PlannerHNS::WayPoint p_wp;
+		for(unsigned int t=0; t < m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.size(); t++)
+		{
+			p_wp = m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).pose;
+			if(m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_STOPPING_STATE)
+			{
+				p_wp.bDir = PlannerHNS::STANDSTILL_DIR;
+			}
+			else if(m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_FORWARD_STATE)
+			{
+				p_wp.bDir = PlannerHNS::FORWARD_DIR;
+			}
+			else if(m_PredictBeh.m_ParticleInfo.at(i)->m_AllGeneratedParticles.at(t).beh == PlannerHNS::BEH_YIELDING_STATE)
+			{
+				p_wp.bDir = PlannerHNS::BACKWARD_DIR;
+			}
+			m_generated_particles_points.push_back(p_wp);
+		}
+	}
+	PlannerHNS::ROSHelpers::ConvertParticles(m_generated_particles_points,m_GeneratedParticlesActual, m_GeneratedParticlesDummy, true);
+	pub_GeneratedParticlesRviz.publish(m_GeneratedParticlesActual);
+
+
+	pub_TargetPointsRviz.publish(m_TargetPointsOnTrajectories);
 
 	UtilityHNS::UtilityH::GetTickCount(m_VisualizationTimer);
 }
@@ -415,7 +450,7 @@ void MotionPrediction::MainLoop()
 		}
 		else if (m_MapType == PlannerHNS::MAP_AUTOWARE && !bMap)
 		{
-			std::vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;;
+			std::vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;
 
 			if(m_MapRaw.GetVersion()==2)
 			{
@@ -424,7 +459,7 @@ void MotionPrediction::MainLoop()
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
 						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,
-						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, PlannerHNS::GPSPoint(), m_Map, true, m_PlanningParams.enableLaneChange, true);
+						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, PlannerHNS::GPSPoint(), m_Map, true, m_PlanningParams.enableLaneChange, m_bEnableCurbObstacles);
 
 				if(m_Map.roadSegments.size() > 0)
 				{
@@ -438,7 +473,7 @@ void MotionPrediction::MainLoop()
 						m_MapRaw.pCenterLines->m_data_list, m_MapRaw.pIntersections->m_data_list,m_MapRaw.pAreas->m_data_list,
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
-						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,  PlannerHNS::GPSPoint(), m_Map, true);
+						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,  PlannerHNS::GPSPoint(), m_Map, true, m_PlanningParams.enableLaneChange, m_bEnableCurbObstacles);
 
 				if(m_Map.roadSegments.size() > 0)
 				{

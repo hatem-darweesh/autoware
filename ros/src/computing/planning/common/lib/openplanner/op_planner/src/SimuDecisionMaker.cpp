@@ -4,7 +4,6 @@
 /// \date Jan 10, 2018
 
 #include "op_planner/SimuDecisionMaker.h"
-#include "op_utility/UtilityH.h"
 #include "op_planner/PlanningHelpers.h"
 #include "op_planner/MappingHelpers.h"
 #include "op_planner/MatrixOperations.h"
@@ -172,7 +171,7 @@ void SimuDecisionMaker::FirstLocalizeMe(const WayPoint& initCarPos)
 	 bool bNewTrajectory = false;
 	 PlannerHNS::PreCalculatedConditions *preCalcPrams = m_pCurrentBehaviorState->GetCalcParams();
 
-	 if(!preCalcPrams || m_TotalPath.size()==0) return bNewTrajectory;
+	 if(!preCalcPrams || m_TotalPath.size() == 0 || preCalcPrams->bFinalLocalTrajectory) return bNewTrajectory;
 
 	int currIndex = PlannerHNS::PlanningHelpers::GetClosestNextPointIndexFast(m_Path, state);
 	int index_limit = 0;
@@ -229,7 +228,7 @@ void SimuDecisionMaker::FirstLocalizeMe(const WayPoint& initCarPos)
 
 	if(m_TotalPath.size()==0) return beh;
 
-	UpdateCurrentLane(m_MaxLaneSearchDistance);
+	UpdateCurrentLane(m_params.maxLaneSearchDistance);
 
 	PlannerHNS::TrajectoryCost tc = m_TrajectoryCostsCalculator.DoOneStepStatic(m_RollOuts, m_TotalPath.at(m_iCurrentTotalPathId), state,	m_params, m_CarInfo, vehicleState, objects);
 
@@ -242,6 +241,9 @@ void SimuDecisionMaker::FirstLocalizeMe(const WayPoint& initCarPos)
 	beh.bNewPlan = SelectSafeTrajectory();
 
 	beh.maxVelocity = UpdateVelocityDirectlyToTrajectory(beh, vehicleState, dt);
+
+	if(beh.state != FORWARD_STATE && beh.state != OBSTACLE_AVOIDANCE_STATE && beh.state != FOLLOW_STATE && beh.maxVelocity < 0.5)
+	  beh.maxVelocity = 0;
 
 	//std::cout << "Eval_i: " << tc.index << ", Curr_i: " <<  m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeTrajectory << ", Prev_i: " << m_pCurrentBehaviorState->GetCalcParams()->iPrevSafeTrajectory << std::endl;
 

@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   op_ros_helpers
   cv_bridge
   autoware_msgs
+  autoware_can_msgs
   )
 
 find_package(OpenCV REQUIRED)

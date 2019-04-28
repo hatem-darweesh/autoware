@@ -14,7 +14,6 @@
 #include "math.h"
 #include <fstream>
 
-using namespace UtilityHNS;
 using namespace std;
 #define RIGHT_INITIAL_TURNS_COST 0
 #define LEFT_INITIAL_TURNS_COST 0
@@ -28,7 +27,11 @@ int MappingHelpers::g_max_point_id = 0;
 int MappingHelpers::g_max_lane_id = 0;
 int MappingHelpers::g_max_stop_line_id = 0;
 int MappingHelpers::g_max_traffic_light_id = 0;
+int MappingHelpers::g_max_boundary_area_id = 0;
 double MappingHelpers::m_USING_VER_ZERO = 0;
+
+constexpr int ANGLE_MAX_FOR_DIRECTION_CHECK = 30;
+constexpr double MAX_DISTANCE_TO_START_LANE_DETECTION = 100;
 
 MappingHelpers::MappingHelpers() {
 }
@@ -539,37 +542,37 @@ void MappingHelpers::ConstructRoadNetworkFromDataFiles(const std::string vectoMa
 	string intersection_info = vectoMapPath + "intersection.csv";
 
 	cout << " >> Loading vector map data files ... " << endl;
-	AisanCenterLinesFileReader  center_lanes(center_lines_info);
-	AisanLanesFileReader lanes(lane_info);
-	AisanPointsFileReader points(laneLinesDetails);
-	AisanNodesFileReader nodes(node_info);
-	AisanLinesFileReader lines(line_info);
-	AisanStopLineFileReader stop_line(stop_line_info);
-	AisanSignalFileReader signal(signal_info);
-	AisanVectorFileReader vec(vector_info);
-	AisanCurbFileReader curb(curb_info);
-	AisanRoadEdgeFileReader roadedge(roadedge_info);
-	AisanDataConnFileReader conn(conn_info);
-	AisanAreasFileReader areas(area_info);
-	AisanWayareaFileReader way_area(wayarea_info);
-	AisanCrossWalkFileReader cross_walk(crosswalk_info);
+	UtilityHNS::AisanCenterLinesFileReader  center_lanes(center_lines_info);
+	UtilityHNS::AisanLanesFileReader lanes(lane_info);
+	UtilityHNS::AisanPointsFileReader points(laneLinesDetails);
+	UtilityHNS::AisanNodesFileReader nodes(node_info);
+	UtilityHNS::AisanLinesFileReader lines(line_info);
+	UtilityHNS::AisanStopLineFileReader stop_line(stop_line_info);
+	UtilityHNS::AisanSignalFileReader signal(signal_info);
+	UtilityHNS::AisanVectorFileReader vec(vector_info);
+	UtilityHNS::AisanCurbFileReader curb(curb_info);
+	UtilityHNS::AisanRoadEdgeFileReader roadedge(roadedge_info);
+	UtilityHNS::AisanDataConnFileReader conn(conn_info);
+	UtilityHNS::AisanAreasFileReader areas(area_info);
+	UtilityHNS::AisanWayareaFileReader way_area(wayarea_info);
+	UtilityHNS::AisanCrossWalkFileReader cross_walk(crosswalk_info);
 
 
-	vector<AisanIntersectionFileReader::AisanIntersection> intersection_data;
-	vector<AisanNodesFileReader::AisanNode> nodes_data;
-	vector<AisanLanesFileReader::AisanLane> lanes_data;
-	vector<AisanPointsFileReader::AisanPoints> points_data;
-	vector<AisanCenterLinesFileReader::AisanCenterLine> dt_data;
-	vector<AisanLinesFileReader::AisanLine> line_data;
-	vector<AisanStopLineFileReader::AisanStopLine> stop_line_data;
-	vector<AisanSignalFileReader::AisanSignal> signal_data;
-	vector<AisanVectorFileReader::AisanVector> vector_data;
-	vector<AisanCurbFileReader::AisanCurb> curb_data;
-	vector<AisanRoadEdgeFileReader::AisanRoadEdge> roadedge_data;
-	vector<AisanAreasFileReader::AisanArea> area_data;
-	vector<AisanWayareaFileReader::AisanWayarea> way_area_data;
-	vector<AisanCrossWalkFileReader::AisanCrossWalk> crosswalk_data;
-	vector<AisanDataConnFileReader::DataConn> conn_data;
+	vector<UtilityHNS::AisanIntersectionFileReader::AisanIntersection> intersection_data;
+	vector<UtilityHNS::AisanNodesFileReader::AisanNode> nodes_data;
+	vector<UtilityHNS::AisanLanesFileReader::AisanLane> lanes_data;
+	vector<UtilityHNS::AisanPointsFileReader::AisanPoints> points_data;
+	vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine> dt_data;
+	vector<UtilityHNS::AisanLinesFileReader::AisanLine> line_data;
+	vector<UtilityHNS::AisanStopLineFileReader::AisanStopLine> stop_line_data;
+	vector<UtilityHNS::AisanSignalFileReader::AisanSignal> signal_data;
+	vector<UtilityHNS::AisanVectorFileReader::AisanVector> vector_data;
+	vector<UtilityHNS::AisanCurbFileReader::AisanCurb> curb_data;
+	vector<UtilityHNS::AisanRoadEdgeFileReader::AisanRoadEdge> roadedge_data;
+	vector<UtilityHNS::AisanAreasFileReader::AisanArea> area_data;
+	vector<UtilityHNS::AisanWayareaFileReader::AisanWayarea> way_area_data;
+	vector<UtilityHNS::AisanCrossWalkFileReader::AisanCrossWalk> crosswalk_data;
+	vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;
 
 
 	nodes.ReadAllData(nodes_data);
@@ -676,7 +679,7 @@ void MappingHelpers::LoadKML(const std::string& kmlFile, RoadNetwork& map)
 		return;
 	}
 
-	std::cout << " >> Loading KML Map file ... " << std::endl;
+	std::cout << " >> Loading KML Map file ... " <<  kmlFile << std::endl;
 
 	TiXmlDocument doc(kmlFile);
 	try
@@ -867,6 +870,11 @@ void MappingHelpers::LoadKML(const std::string& kmlFile, RoadNetwork& map)
 		}
 	}
 
+	//Link waypoints && StopLines
+	cout << " >> Link Boundaries and Waypoints ... " << endl;
+	ConnectBoundariesToWayPoints(map);
+	LinkBoundariesToWayPoints(map);
+
 	cout << " >> Find Max IDs ... " << endl;
 	GetMapMaxIds(map);
 
@@ -911,35 +919,72 @@ TiXmlElement* MappingHelpers::GetDataFolder(const string& folderName, TiXmlEleme
 
 WayPoint* MappingHelpers::GetClosestWaypointFromMap(const WayPoint& pos, RoadNetwork& map, const bool bDirectionBased)
 {
-	double distance_to_nearest_lane = 1;
-	Lane* pLane = 0;
-	while(distance_to_nearest_lane < 100 && pLane == 0)
+	WayPoint* pWaypoint = nullptr;
+	double min_d = DBL_MAX;
+
+	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
 	{
-		pLane = GetClosestLaneFromMap(pos, map, distance_to_nearest_lane, bDirectionBased);
-		distance_to_nearest_lane += 1;
+		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
+		{
+			Lane* pL = &map.roadSegments.at(j).Lanes.at(k);
+			RelativeInfo info;
+			if(PlanningHelpers::GetRelativeInfoLimited(pL->points, pos, info))
+			{
+				if(bDirectionBased && fabs(info.angle_diff) > ANGLE_MAX_FOR_DIRECTION_CHECK)
+					continue;
+
+				double d = fabs(info.perp_distance);
+				if(info.bAfter)
+				{
+					d = hypot(pL->points.at(pL->points.size()-1).pos.y - pos.pos.y, pL->points.at(pL->points.size()-1).pos.x - pos.pos.x);
+				}
+				else if(info.bBefore)
+				{
+					d = hypot(pL->points.at(0).pos.y - pos.pos.y, pL->points.at(0).pos.x - pos.pos.x);
+				}
+
+				if(d < MAX_DISTANCE_TO_START_LANE_DETECTION && d < min_d)
+				{
+					pWaypoint = &pL->points.at(info.iFront);
+					min_d = d;
+				}
+			}
+		}
 	}
 
-	if(!pLane) return nullptr;
-
-	int closest_index = PlanningHelpers::GetClosestNextPointIndexFast(pLane->points, pos);
-
-	return &pLane->points.at(closest_index);
+	return pWaypoint;
 }
 
 vector<WayPoint*> MappingHelpers::GetClosestWaypointsListFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance, const bool bDirectionBased)
 {
-	vector<Lane*> pLanes = GetClosestLanesListFromMap(pos, map, distance, bDirectionBased);
-
 	vector<WayPoint*> waypoints_list;
 
-	if(pLanes.size() == 0) return waypoints_list;
-
-	for(unsigned int i = 0; i < pLanes.size(); i++)
+	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
 	{
-		if(pLanes.at(i))
+		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
 		{
-			int closest_index = PlanningHelpers::GetClosestNextPointIndexFast(pLanes.at(i)->points, pos);
-			waypoints_list.push_back(&pLanes.at(i)->points.at(closest_index));
+			Lane* pL = &map.roadSegments.at(j).Lanes.at(k);
+			RelativeInfo info;
+			if(PlanningHelpers::GetRelativeInfoLimited(pL->points, pos, info))
+			{
+				if(bDirectionBased && fabs(info.angle_diff) > ANGLE_MAX_FOR_DIRECTION_CHECK)
+					continue;
+
+				double d = fabs(info.perp_distance);
+				if(info.bAfter)
+				{
+					d = hypot(pL->points.at(pL->points.size()-1).pos.y - pos.pos.y, pL->points.at(pL->points.size()-1).pos.x - pos.pos.x);
+				}
+				else if(info.bBefore)
+				{
+					d = hypot(pL->points.at(0).pos.y - pos.pos.y, pL->points.at(0).pos.x - pos.pos.x);
+				}
+
+				if(d < distance)
+				{
+					waypoints_list.push_back(&pL->points.at(info.iBack));
+				}
+			}
 		}
 	}
 
@@ -991,199 +1036,272 @@ std::vector<Lane*> MappingHelpers::GetClosestLanesFast(const WayPoint& center, R
 	return lanesList;
 }
 
+
 Lane* MappingHelpers::GetClosestLaneFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance, const bool bDirectionBased)
 {
-	vector<pair<double, Lane*> > laneLinksList;
-	double d = 0;
+	//From 6/September/2018
+//	vector<pair<double, Lane*> > laneLinksList;
+//	double d = 0;
+//	double min_d = DBL_MAX;
+//	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
+//	{
+//		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
+//		{
+//			//Lane* pLane = &pEdge->lanes.at(k);
+//			 d = 0;
+//			min_d = DBL_MAX;
+//			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
+//			{
+//
+//				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
+//				if(d < min_d)
+//					min_d = d;
+//			}
+//
+//			if(min_d < distance)
+//				laneLinksList.push_back(make_pair(min_d, &map.roadSegments.at(j).Lanes.at(k)));
+//		}
+//	}
+//
+//	if(laneLinksList.size() == 0) return nullptr;
+//
+//	min_d = DBL_MAX;
+//	Lane* closest_lane = 0;
+//	for(unsigned int i = 0; i < laneLinksList.size(); i++)
+//	{
+//		RelativeInfo info;
+//		PlanningHelpers::GetRelativeInfo(laneLinksList.at(i).second->points, pos, info);
+//
+//		if(info.perp_distance == 0 && laneLinksList.at(i).first != 0)
+//			continue;
+//
+//		if(bDirectionBased && fabs(info.perp_distance) < min_d && fabs(info.angle_diff) < 45)
+//		{
+//			min_d = fabs(info.perp_distance);
+//			closest_lane = laneLinksList.at(i).second;
+//		}
+//		else if(!bDirectionBased && fabs(info.perp_distance) < min_d)
+//		{
+//			min_d = fabs(info.perp_distance);
+//			closest_lane = laneLinksList.at(i).second;
+//		}
+//	}
+
+	Lane* pCloseLane = nullptr;
 	double min_d = DBL_MAX;
+
 	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
 	{
 		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
 		{
-			//Lane* pLane = &pEdge->lanes.at(k);
-			 d = 0;
-			min_d = DBL_MAX;
-			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
+			Lane* pL = &map.roadSegments.at(j).Lanes.at(k);
+			RelativeInfo info;
+			if(PlanningHelpers::GetRelativeInfoLimited(pL->points, pos, info))
 			{
+				if(bDirectionBased && fabs(info.angle_diff) > ANGLE_MAX_FOR_DIRECTION_CHECK)
+					continue;
 
-				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
-				if(d < min_d)
-					min_d = d;
-			}
-
-			if(min_d < distance)
-				laneLinksList.push_back(make_pair(min_d, &map.roadSegments.at(j).Lanes.at(k)));
-		}
-	}
-
-	if(laneLinksList.size() == 0) return nullptr;
-
-	min_d = DBL_MAX;
-	Lane* closest_lane = 0;
-	for(unsigned int i = 0; i < laneLinksList.size(); i++)
-	{
-		RelativeInfo info;
-		PlanningHelpers::GetRelativeInfo(laneLinksList.at(i).second->points, pos, info);
-
-		if(info.perp_distance == 0 && laneLinksList.at(i).first != 0)
-			continue;
-
-		if(bDirectionBased && fabs(info.perp_distance) < min_d && fabs(info.angle_diff) < 45)
-		{
-			min_d = fabs(info.perp_distance);
-			closest_lane = laneLinksList.at(i).second;
-		}
-		else if(!bDirectionBased && fabs(info.perp_distance) < min_d)
-		{
-			min_d = fabs(info.perp_distance);
-			closest_lane = laneLinksList.at(i).second;
-		}
-	}
-
-	return closest_lane;
-}
-
-vector<Lane*> MappingHelpers::GetClosestLanesListFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance, const bool bDirectionBased)
-{
-	vector<pair<double, Lane*> > laneLinksList;
-	double d = 0;
-	double min_d = DBL_MAX;
-	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
-	{
-		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
-		{
-			//Lane* pLane = &pEdge->lanes.at(k);
-			 d = 0;
-			min_d = DBL_MAX;
-			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
-			{
-
-				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
-				if(d < min_d)
-					min_d = d;
-			}
-
-			if(min_d < distance)
-				laneLinksList.push_back(make_pair(min_d, &map.roadSegments.at(j).Lanes.at(k)));
-		}
-	}
-
-	vector<Lane*> closest_lanes;
-	if(laneLinksList.size() == 0) return closest_lanes;
-
-
-	for(unsigned int i = 0; i < laneLinksList.size(); i++)
-	{
-		RelativeInfo info;
-		PlanningHelpers::GetRelativeInfo(laneLinksList.at(i).second->points, pos, info);
-
-		if(info.perp_distance == 0 && laneLinksList.at(i).first != 0)
-			continue;
-
-		if(bDirectionBased && fabs(info.perp_distance) < distance && fabs(info.angle_diff) < 30)
-		{
-			closest_lanes.push_back(laneLinksList.at(i).second);
-		}
-		else if(!bDirectionBased && fabs(info.perp_distance) < distance)
-		{
-			closest_lanes.push_back(laneLinksList.at(i).second);
-		}
-	}
-
-	return closest_lanes;
-}
-
-Lane* MappingHelpers::GetClosestLaneFromMapDirectionBased(const WayPoint& pos, RoadNetwork& map, const double& distance)
-{
-	vector<pair<double, WayPoint*> > laneLinksList;
-	double d = 0;
-	double min_d = DBL_MAX;
-	int min_i = 0;
-	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
-	{
-		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
-		{
-			//Lane* pLane = &pEdge->lanes.at(k);
-			d = 0;
-			min_d = DBL_MAX;
-			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
-			{
-
-				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
-				if(d < min_d)
+				double d = fabs(info.perp_distance);
+				if(info.bAfter)
 				{
-					min_d = d;
-					min_i = pindex;
+					d = hypot(pL->points.at(pL->points.size()-1).pos.y - pos.pos.y, pL->points.at(pL->points.size()-1).pos.x - pos.pos.x);
 				}
-			}
-
-			if(min_d < distance)
-				laneLinksList.push_back(make_pair(min_d, &map.roadSegments.at(j).Lanes.at(k).points.at(min_i)));
-		}
-	}
-
-	if(laneLinksList.size() == 0) return nullptr;
-
-	min_d = DBL_MAX;
-	Lane* closest_lane = 0;
-	double a_diff = 0;
-	for(unsigned int i = 0; i < laneLinksList.size(); i++)
-	{
-		RelativeInfo info;
-		PlanningHelpers::GetRelativeInfo(laneLinksList.at(i).second->pLane->points, pos, info);
-		if(info.perp_distance == 0 && laneLinksList.at(i).first != 0)
-			continue;
-
-		a_diff = UtilityH::AngleBetweenTwoAnglesPositive(laneLinksList.at(i).second->pos.a, pos.pos.a);
-
-		if(fabs(info.perp_distance)<min_d && a_diff <= M_PI_4)
-		{
-			min_d = fabs(info.perp_distance);
-			closest_lane = laneLinksList.at(i).second->pLane;
-		}
-	}
-
-	return closest_lane;
-}
-
-
- std::vector<Lane*> MappingHelpers::GetClosestMultipleLanesFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance)
-{
-	vector<Lane*> lanesList;
-	double d = 0;
-	double a_diff = 0;
-	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
-	{
-		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
-		{
-			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
-			{
-				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
-				a_diff = UtilityH::AngleBetweenTwoAnglesPositive(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos.a, pos.pos.a);
-
-				if(d <= distance && a_diff <= M_PI_4)
+				else if(info.bBefore)
 				{
-					bool bLaneExist = false;
-					for(unsigned int il = 0; il < lanesList.size(); il++)
-					{
-						if(lanesList.at(il)->id == map.roadSegments.at(j).Lanes.at(k).id)
-						{
-							bLaneExist = true;
-							break;
-						}
-					}
+					d = hypot(pL->points.at(0).pos.y - pos.pos.y, pL->points.at(0).pos.x - pos.pos.x);
+				}
 
-					if(!bLaneExist)
-						lanesList.push_back(&map.roadSegments.at(j).Lanes.at(k));
-
-					break;
+				if(d < distance && d < min_d)
+				{
+					pCloseLane = pL;
+					min_d = d;
 				}
 			}
 		}
 	}
 
-	return lanesList;
+	return pCloseLane;
 }
+
+//vector<Lane*> MappingHelpers::GetClosestLanesListFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance, const bool bDirectionBased)
+//{
+//// From 6/September/2018
+//
+////	vector<pair<double, Lane*> > laneLinksList;
+////	double d = 0;
+////	double min_d = DBL_MAX;
+////	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
+////	{
+////		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
+////		{
+////			//Lane* pLane = &pEdge->lanes.at(k);
+////			 d = 0;
+////			min_d = DBL_MAX;
+////			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
+////			{
+////
+////				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
+////				if(d < min_d)
+////					min_d = d;
+////			}
+////
+////			if(min_d < distance)
+////				laneLinksList.push_back(make_pair(min_d, &map.roadSegments.at(j).Lanes.at(k)));
+////		}
+////	}
+////
+////	cout << "##### Lanes: " <<  laneLinksList.size() << ", " << min_d << endl;
+////	vector<Lane*> closest_lanes;
+////	if(laneLinksList.size() == 0) return closest_lanes;
+////
+////
+////	for(unsigned int i = 0; i < laneLinksList.size(); i++)
+////	{
+////		RelativeInfo info;
+////		PlanningHelpers::GetRelativeInfo(laneLinksList.at(i).second->points, pos, info);
+////
+////		if(info.perp_distance == 0 && laneLinksList.at(i).first != 0)
+////			continue;
+////
+////		if(bDirectionBased && fabs(info.perp_distance) < distance && fabs(info.angle_diff) < 30)
+////		{
+////			closest_lanes.push_back(laneLinksList.at(i).second);
+////		}
+////		else if(!bDirectionBased && fabs(info.perp_distance) < distance)
+////		{
+////			closest_lanes.push_back(laneLinksList.at(i).second);
+////		}
+////		else
+////		{
+////			cout << "Can't Find Lane Because Angle Or Distance : (" << fabs(info.angle_diff) << ", " << fabs(info.perp_distance) << ", " << distance  << endl;
+////		}
+////	}
+//
+//	vector<Lane*> closest_lanes;
+//
+//	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
+//	{
+//		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
+//		{
+//			Lane* pL = &map.roadSegments.at(j).Lanes.at(k);
+//			RelativeInfo info;
+//			if(PlanningHelpers::GetRelativeInfoLimited(pL->points, pos, info))
+//			{
+//				if(bDirectionBased && fabs(info.angle_diff) > ANGLE_MAX_FOR_DIRECTION_CHECK)
+//					continue;
+//
+//				double d = fabs(info.perp_distance);
+//				if(info.bAfter)
+//				{
+//					d = hypot(pL->points.at(pL->points.size()-1).pos.y - pos.pos.y, pL->points.at(pL->points.size()-1).pos.x - pos.pos.x);
+//				}
+//				else if(info.bBefore)
+//				{
+//					d = hypot(pL->points.at(0).pos.y - pos.pos.y, pL->points.at(0).pos.x - pos.pos.x);
+//				}
+//
+//				if(d < distance)
+//				{
+//					closest_lanes.push_back(pL);
+//				}
+//			}
+//		}
+//	}
+//
+//	return closest_lanes;
+//}
+
+//Lane* MappingHelpers::GetClosestLaneFromMapDirectionBased(const WayPoint& pos, RoadNetwork& map, const double& distance)
+//{
+//	vector<pair<double, WayPoint*> > laneLinksList;
+//	double d = 0;
+//	double min_d = DBL_MAX;
+//	int min_i = 0;
+//	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
+//	{
+//		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
+//		{
+//			//Lane* pLane = &pEdge->lanes.at(k);
+//			d = 0;
+//			min_d = DBL_MAX;
+//			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
+//			{
+//
+//				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
+//				if(d < min_d)
+//				{
+//					min_d = d;
+//					min_i = pindex;
+//				}
+//			}
+//
+//			if(min_d < distance)
+//				laneLinksList.push_back(make_pair(min_d, &map.roadSegments.at(j).Lanes.at(k).points.at(min_i)));
+//		}
+//	}
+//
+//	if(laneLinksList.size() == 0) return nullptr;
+//
+//	min_d = DBL_MAX;
+//	Lane* closest_lane = 0;
+//	double a_diff = 0;
+//	for(unsigned int i = 0; i < laneLinksList.size(); i++)
+//	{
+//		RelativeInfo info;
+//		PlanningHelpers::GetRelativeInfo(laneLinksList.at(i).second->pLane->points, pos, info);
+//		if(info.perp_distance == 0 && laneLinksList.at(i).first != 0)
+//			continue;
+//
+//		a_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(laneLinksList.at(i).second->pos.a, pos.pos.a);
+//
+//		if(fabs(info.perp_distance)<min_d && a_diff <= M_PI_4)
+//		{
+//			min_d = fabs(info.perp_distance);
+//			closest_lane = laneLinksList.at(i).second->pLane;
+//		}
+//	}
+//
+//	return closest_lane;
+//}
+
+
+// std::vector<Lane*> MappingHelpers::GetClosestMultipleLanesFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance)
+//{
+//	vector<Lane*> lanesList;
+//	double d = 0;
+//	double a_diff = 0;
+//	for(unsigned int j=0; j< map.roadSegments.size(); j ++)
+//	{
+//		for(unsigned int k=0; k< map.roadSegments.at(j).Lanes.size(); k ++)
+//		{
+//			for(unsigned int pindex=0; pindex< map.roadSegments.at(j).Lanes.at(k).points.size(); pindex ++)
+//			{
+//				d = distance2points(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos, pos.pos);
+//				a_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(map.roadSegments.at(j).Lanes.at(k).points.at(pindex).pos.a, pos.pos.a);
+//
+//				if(d <= distance && a_diff <= M_PI_4)
+//				{
+//					bool bLaneExist = false;
+//					for(unsigned int il = 0; il < lanesList.size(); il++)
+//					{
+//						if(lanesList.at(il)->id == map.roadSegments.at(j).Lanes.at(k).id)
+//						{
+//							bLaneExist = true;
+//							break;
+//						}
+//					}
+//
+//					if(!bLaneExist)
+//						lanesList.push_back(&map.roadSegments.at(j).Lanes.at(k));
+//
+//					break;
+//				}
+//			}
+//		}
+//	}
+//
+//	return lanesList;
+//}
 
 WayPoint MappingHelpers::GetFirstWaypoint(RoadNetwork& map)
 {
@@ -1740,14 +1858,6 @@ vector<WayPoint> MappingHelpers::GetCenterLaneDataVer0(TiXmlElement* pElem, cons
 				gps_points.at(i).toIds =  GetIDsFromPrefix(add_info_list.at(i), "To", "Vel");
 				gps_points.at(i).v =  GetDoubleFromPrefix(add_info_list.at(i), "Vel", "Dir").at(0);
 				gps_points.at(i).pos.a = gps_points.at(i).pos.dir =  GetDoubleFromPrefix(add_info_list.at(i), "Dir", "").at(0);
-//				if(currLaneID == 11115)
-//				{
-//
-//					pair<ACTION_TYPE, double> act_cost;
-//						act_cost.first = FORWARD_ACTION;
-//						act_cost.second = 100;
-//					gps_points.at(i).actionCost.push_back(act_cost);
-//				}
 			}
 		}
 	}
@@ -1876,7 +1986,7 @@ void MappingHelpers::FindAdjacentLanes(RoadNetwork& map)
 					WayPoint closest_p = map.roadSegments.at(rs_2).Lanes.at(i2).points.at(iCenter2);
 					double mid_a1 = wp_1.pos.a;
 					double mid_a2 = closest_p.pos.a;
-					double angle_diff = UtilityH::AngleBetweenTwoAnglesPositive(mid_a1, mid_a2);
+					double angle_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(mid_a1, mid_a2);
 					double distance = distance2points(wp_1.pos, closest_p.pos);
 
 					if(pL->id != map.roadSegments.at(rs_2).Lanes.at(i2).id && angle_diff < 0.05 && distance < 3.5 && distance > 2.5)
@@ -2067,6 +2177,77 @@ void MappingHelpers::ExtractWayArea(const std::vector<UtilityHNS::AisanAreasFile
 		}
 
 		map.boundaries.push_back(bound);
+	}
+}
+
+void MappingHelpers::ConnectBoundariesToWayPoints(RoadNetwork& map)
+{
+	for(unsigned int rs = 0; rs < map.roadSegments.size(); rs++)
+	{
+		for(unsigned int i =0; i < map.roadSegments.at(rs).Lanes.size(); i++)
+		{
+			for(unsigned int p= 0; p < map.roadSegments.at(rs).Lanes.at(i).points.size(); p++)
+			{
+				WayPoint* pWP = &map.roadSegments.at(rs).Lanes.at(i).points.at(p);
+
+				for(unsigned int ib=0; ib < map.boundaries.size(); ib++)
+				{
+					if(map.boundaries.at(ib).points.size() > 0)
+					{
+						Boundary* pB = &map.boundaries.at(ib);
+						//calculate center of the boundary
+						GPSPoint sum_p;
+						for(unsigned int i=0; i < pB->points.size(); i++)
+						{
+							sum_p.x += pB->points.at(i).x;
+							sum_p.y += pB->points.at(i).y;
+							sum_p.z += pB->points.at(i).z;
+						}
+
+						pB->center.x = sum_p.x / (double)pB->points.size();
+						pB->center.y = sum_p.y / (double)pB->points.size();
+						pB->center.z = sum_p.z / (double)pB->points.size();
+
+						//add boundary ID to proper waypoint
+						double d_to_center = hypot(pWP->pos.y - pB->center.y, pWP->pos.x - pB->center.x);
+						if(d_to_center < 100)
+						{
+							if(PlanningHelpers::PointInsidePolygon(pB->points, pWP->pos) == 1)
+							{
+								pWP->boundaryId = pB->id;
+							}
+						}
+
+					}
+				}
+			}
+		}
+	}
+}
+
+void MappingHelpers::LinkBoundariesToWayPoints(RoadNetwork& map)
+{
+	for(unsigned int rs = 0; rs < map.roadSegments.size(); rs++)
+	{
+		for(unsigned int i =0; i < map.roadSegments.at(rs).Lanes.size(); i++)
+		{
+			for(unsigned int p= 0; p < map.roadSegments.at(rs).Lanes.at(i).points.size(); p++)
+			{
+				WayPoint* pWP = &map.roadSegments.at(rs).Lanes.at(i).points.at(p);
+
+				for(unsigned int ib=0; ib < map.boundaries.size(); ib++)
+				{
+					if(map.boundaries.at(ib).points.size() > 0)
+					{
+						Boundary* pB = &map.boundaries.at(ib);
+						if(pWP->boundaryId == pB->id)
+						{
+							pWP->pBoundary = pB;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -2352,7 +2533,7 @@ void MappingHelpers::ConstructRoadNetworkFromROSMessageV2(const std::vector<Util
 					break;
 
 					}
-				  }
+				}
 			}
 		}
 	}
@@ -2380,6 +2561,10 @@ void MappingHelpers::ConstructRoadNetworkFromROSMessageV2(const std::vector<Util
 		//Wayarea
 		cout << " >> Extract wayarea data ... " << endl;
 		ExtractWayArea(area_data, wayarea_data, line_data, points_data, origin, map);
+
+		cout << " >> Connect Wayarea (boundaries) to waypoints ... " << endl;
+		ConnectBoundariesToWayPoints(map);
+		LinkBoundariesToWayPoints(map);
 	}
 
 	//Link waypoints
@@ -2398,7 +2583,7 @@ bool MappingHelpers::GetPointFromDataList(UtilityHNS::AisanPointsFileReader* pPo
 {
 	if(pPointsData == nullptr) return false;
 
-	AisanPointsFileReader::AisanPoints* pP =  pPointsData->GetDataRowById(pid);
+	UtilityHNS::AisanPointsFileReader::AisanPoints* pP =  pPointsData->GetDataRowById(pid);
 
 	if(pP!=nullptr)
 	{
@@ -2810,8 +2995,11 @@ void MappingHelpers::FixTwoPointsLanes(std::vector<Lane>& lanes)
 
 void MappingHelpers::InsertWayPointToBackOfLane(const WayPoint& wp, Lane& lane, int& global_id)
 {
-	WayPoint* pFirst = &lane.points.at(0);
-	pFirst->pos = wp.pos;
+	if(lane.points.size() > 0)
+	{
+		WayPoint* pFirst = &lane.points.at(0);
+		pFirst->pos = wp.pos;
+	}
 
 //	WayPoint f_wp = *pFirst;
 //	f_wp.pos = wp.pos;
@@ -2838,8 +3026,11 @@ void MappingHelpers::InsertWayPointToBackOfLane(const WayPoint& wp, Lane& lane, 
 
 void MappingHelpers::InsertWayPointToFrontOfLane(const WayPoint& wp, Lane& lane, int& global_id)
 {
-	WayPoint* pLast = &lane.points.at(lane.points.size()-1);
-	pLast->pos = wp.pos;
+	if(lane.points.size() > 0)
+	{
+		WayPoint* pLast = &lane.points.at(lane.points.size()-1);
+		pLast->pos = wp.pos;
+	}
 
 //	WayPoint l_wp = *pLast;
 //	l_wp.pos = wp.pos;
@@ -2864,8 +3055,13 @@ void MappingHelpers::InsertWayPointToFrontOfLane(const WayPoint& wp, Lane& lane,
 //	lane.points.push_back(l_wp);
 }
 
-void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
+void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes, const int& max_angle_diff)
 {
+	for(unsigned int il=0; il < lanes.size(); il ++)
+	{
+		PlanningHelpers::CalcAngleAndCost(lanes.at(il).points);
+	}
+
 	std::vector<Lane> sp_lanes = lanes;
 	bool bAtleastOneChange = false;
 	//Find before lanes
@@ -2889,7 +3085,7 @@ void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
 			int closest_index = -1;
 			for(int l=0; l < sp_lanes.size(); l ++)
 			{
-				if(pFL->id != sp_lanes.at(l).id )
+				if(pFL->id != sp_lanes.at(l).id)
 				{
 					PlannerHNS::RelativeInfo info;
 					WayPoint lastofother = sp_lanes.at(l).points.at(sp_lanes.at(l).points.size()-1);
@@ -2900,12 +3096,11 @@ void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
 						bCloseFromBack = true;
 
 
-					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && info.bBefore == false && bCloseFromBack)
+					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && fabs(info.angle_diff) < max_angle_diff && info.bBefore == false && bCloseFromBack)
 					{
 						closest_d = fabs(info.perp_distance);
 						pL = &sp_lanes.at(l);
 						closest_info = info;
-						closest_info.angle_diff = back_distance;
 						closest_index = l;
 					}
 				}
@@ -3036,12 +3231,11 @@ void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
 					if((info.bBefore == true && front_distance < 15.0) || info.bBefore == false)
 						bCloseFromFront = true;
 
-					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && info.bAfter == false && bCloseFromFront)
+					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && fabs(info.angle_diff) < max_angle_diff && info.bAfter == false && bCloseFromFront)
 					{
 						closest_d = fabs(info.perp_distance);
 						pL = &sp_lanes.at(l);
 						closest_info = info;
-						closest_info.angle_diff = front_distance;
 						closest_index = l;
 					}
 				}
@@ -3196,7 +3390,7 @@ void MappingHelpers::ExtractCurbDataV2(const std::vector<UtilityHNS::AisanCurbFi
 				if(s_id == 0)
 					s_id = pLinedata->m_data_list.at(il).FPID;
 
-				AisanPointsFileReader::AisanPoints* pP = pPointsData->GetDataRowById(s_id);
+				UtilityHNS::AisanPointsFileReader::AisanPoints* pP = pPointsData->GetDataRowById(s_id);
 				if(pP != nullptr)
 				{
 					c.points.push_back(GPSPoint(pP->Ly + origin.x, pP->Bx + origin.y, pP->H + origin.z, 0));
@@ -3233,7 +3427,7 @@ void MappingHelpers::ExtractSignalDataV2(const std::vector<UtilityHNS::AisanSign
 			{
 				if(signal_data.at(is).VID == vector_data.at(iv).VID)
 				{
-					AisanPointsFileReader::AisanPoints* pP =  pPointData->GetDataRowById(vector_data.at(iv).PID);
+					UtilityHNS::AisanPointsFileReader::AisanPoints* pP =  pPointData->GetDataRowById(vector_data.at(iv).PID);
 					if(pP != nullptr)
 					{
 						tl.pos = GPSPoint(pP->Ly + origin.x, pP->Bx + origin.y, pP->H + origin.z, vector_data.at(iv).Hang*DEG2RAD);
@@ -3262,7 +3456,7 @@ void MappingHelpers::ExtractStopLinesDataV2(const std::vector<UtilityHNS::AisanS
 		else
 			sl.stopSignID = 100+ist;
 
-		AisanLinesFileReader::AisanLine* pLine = pLineData->GetDataRowById(stop_line_data.at(ist).LID);
+		UtilityHNS::AisanLinesFileReader::AisanLine* pLine = pLineData->GetDataRowById(stop_line_data.at(ist).LID);
 		if(pLine != nullptr)
 		{
 			UtilityHNS::AisanPointsFileReader::AisanPoints* pStart = pPointData->GetDataRowById(pLine->BPID);
@@ -3359,7 +3553,7 @@ void MappingHelpers::FindAdjacentLanesV2(RoadNetwork& map)
 					RelativeInfo info;
 					PlanningHelpers::GetRelativeInfoLimited(pL2->points, *pWP, info);
 
-					if(!info.bAfter && !info.bBefore && fabs(info.perp_distance) > 1.2 && fabs(info.perp_distance) < 3.5 && UtilityH::AngleBetweenTwoAnglesPositive(info.perp_point.pos.a, pWP->pos.a) < 0.06)
+					if(!info.bAfter && !info.bBefore && fabs(info.perp_distance) > 1.2 && fabs(info.perp_distance) < 3.5 && UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(info.perp_point.pos.a, pWP->pos.a) < 0.06)
 					{
 						WayPoint* pWP2 = &pL2->points.at(info.iFront);
 						if(info.perp_distance < 0)

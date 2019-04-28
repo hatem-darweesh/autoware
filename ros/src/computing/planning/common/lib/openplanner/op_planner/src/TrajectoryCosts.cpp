@@ -183,6 +183,7 @@ void TrajectoryCosts::CalculateLateralAndLongitudinalCosts(vector<TrajectoryCost
 		{
 			RelativeInfo car_info;
 			PlanningHelpers::GetRelativeInfo(totalPaths.at(il), currState, car_info);
+//*TODO Check this bug , using "il" index for both rollOuts and totalPaths !! how this doesn't crash !!!!!
 
 
 			for(unsigned int it=0; it< rollOuts.at(il).size(); it++)

@@ -11,7 +11,6 @@
 
 #include <math.h>
 #include "RoadNetwork.h"
-#include "op_utility/UtilityH.h"
 #include "op_utility/DataRW.h"
 #include "tinyxml.h"
 
@@ -82,9 +81,6 @@ public:
 
 
 	static Lane* GetClosestLaneFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance = 5.0, const bool bDirectionBased = true);
-	static std::vector<Lane*> GetClosestLanesListFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance = 2.0, const bool bDirectionBased = true);
-	static Lane* GetClosestLaneFromMapDirectionBased(const WayPoint& pos, RoadNetwork& map, const double& distance = 5.0);
-	static std::vector<Lane*> GetClosestMultipleLanesFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance = 5.0);
 	static WayPoint* GetClosestWaypointFromMap(const WayPoint& pos, RoadNetwork& map, const bool bDirectionBased = true);
 	static std::vector<Lane*> GetClosestLanesFast(const WayPoint& pos, RoadNetwork& map, const double& distance = 10.0);
 
@@ -131,10 +127,14 @@ public:
 			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 			const GPSPoint& origin, RoadNetwork& map);
 
-	static void LinkMissingBranchingWayPoints(RoadNetwork& map);
-	static void LinkMissingBranchingWayPointsV2(RoadNetwork& map);
+	static void ConnectBoundariesToWayPoints(RoadNetwork& map);
+
+	static void LinkBoundariesToWayPoints(RoadNetwork& map);
+
+	static void LinkMissingBranchingWayPoints(RoadNetwork& map); // pointers link
+	static void LinkMissingBranchingWayPointsV2(RoadNetwork& map);  // pointers link
 	static void LinkTrafficLightsAndStopLinesConData(const std::vector<UtilityHNS::AisanDataConnFileReader::DataConn>& conn_data,
-			const std::vector<std::pair<int,int> >& id_replace_list, RoadNetwork& map);
+			const std::vector<std::pair<int,int> >& id_replace_list, RoadNetwork& map); //pointers link
 
 	static void LinkTrafficLightsAndStopLines(RoadNetwork& map);
 
@@ -205,7 +205,8 @@ public:
 	static void FixRedundantPointsLanes(std::vector<Lane>& lanes);
 	static void FixTwoPointsLanes(std::vector<Lane>& lanes);
 	static void FixTwoPointsLane(Lane& lanes);
-	static void FixUnconnectedLanes(std::vector<Lane>& lanes);
+	static void FixUnconnectedLanes(std::vector<Lane>& lanes, const int& max_angle_diff = 90);
+
 	static void InsertWayPointToBackOfLane(const WayPoint& wp, Lane& lane, int& global_id);
 	static void InsertWayPointToFrontOfLane(const WayPoint& wp, Lane& lane, int& global_id);
 
@@ -219,6 +220,7 @@ public:
 	static int g_max_lane_id;
 	static int g_max_stop_line_id;
 	static int g_max_traffic_light_id ;
+	static int g_max_boundary_area_id ;
 
 };
 

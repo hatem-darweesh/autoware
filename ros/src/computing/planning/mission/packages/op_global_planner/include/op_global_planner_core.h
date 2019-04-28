@@ -63,6 +63,7 @@ class WayPlannerParams
 {
 public:
 	std::string KmlMapPath;
+	std::string exprimentName;
 	bool bEnableSmoothing;
 	bool bEnableLaneChange;
 	bool bEnableHMI;
@@ -97,6 +98,7 @@ protected:
 	WayPlannerParams m_params;
 	PlannerHNS::WayPoint m_CurrentPose;
 	std::vector<PlannerHNS::WayPoint> m_GoalsPos;
+	PlannerHNS::WayPoint m_StartPose;
 	geometry_msgs::Pose m_OriginPos;
 	PlannerHNS::VehicleState m_VehicleState;
 	std::vector<int> m_GridMapIntType;
