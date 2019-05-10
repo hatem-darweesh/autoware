@@ -254,46 +254,46 @@ void BehaviorGen::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg)
 
 void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayConstPtr& msg)
 {
-	if(msg->lanes.size() > 0 && bMap)
+	if(msg->lanes.size() > 0)
 	{
-
 		bool bOldGlobalPath = m_GlobalPaths.size() == msg->lanes.size();
-
 		m_GlobalPaths.clear();
 
 		for(unsigned int i = 0 ; i < msg->lanes.size(); i++)
 		{
 			PlannerHNS::RosHelpers::ConvertFromAutowareLaneToLocalLane(msg->lanes.at(i), m_temp_path);
-			PlannerHNS::Lane* pPrevValid = 0;
-			for(unsigned int j = 0 ; j < m_temp_path.size(); j++)
+			if(bMap)
 			{
-				PlannerHNS::Lane* pLane = 0;
-				pLane = PlannerHNS::MappingHelpers::GetLaneById(m_temp_path.at(j).laneId, m_Map);
-				if(!pLane)
+				PlannerHNS::Lane* pPrevValid = 0;
+				for(unsigned int j = 0 ; j < m_temp_path.size(); j++)
 				{
-					pLane = PlannerHNS::MappingHelpers::GetClosestLaneFromMap(m_temp_path.at(j), m_Map, 1, true);
-
-					if(!pLane && !pPrevValid)
-					{
-						ROS_ERROR("Map inconsistency between Global Path and Local Planer Map, Can't identify current lane.");
-						return;
-					}
-
+					PlannerHNS::Lane* pLane = 0;
+					pLane = PlannerHNS::MappingHelpers::GetLaneById(m_temp_path.at(j).laneId, m_Map);
 					if(!pLane)
-						m_temp_path.at(j).pLane = pPrevValid;
-					else
 					{
-						m_temp_path.at(j).pLane = pLane;
-						pPrevValid = pLane ;
+						pLane = PlannerHNS::MappingHelpers::GetClosestLaneFromMap(m_temp_path.at(j), m_Map, 1, true);
+
+						if(!pLane && !pPrevValid)
+						{
+							ROS_ERROR("Map inconsistency between Global Path and Local Planer Map, Can't identify current lane.");
+							return;
+						}
+
+						if(!pLane)
+							m_temp_path.at(j).pLane = pPrevValid;
+						else
+						{
+							m_temp_path.at(j).pLane = pLane;
+							pPrevValid = pLane ;
+						}
+
+						m_temp_path.at(j).laneId = m_temp_path.at(j).pLane->id;
 					}
+					else
+						m_temp_path.at(j).pLane = pLane;
 
-					m_temp_path.at(j).laneId = m_temp_path.at(j).pLane->id;
+					//std::cout << "StopLineInGlobalPath: " << m_temp_path.at(j).stopLineID << std::endl;
 				}
-				else
-					m_temp_path.at(j).pLane = pLane;
-
-
-				//std::cout << "StopLineInGlobalPath: " << m_temp_path.at(j).stopLineID << std::endl;
 			}
 
 			PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_temp_path);
@@ -313,9 +313,7 @@ void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayCon
 			{
 				PlannerHNS::PlanningHelpers::FixPathDensity(m_GlobalPaths.at(i), m_PlanningParams.pathDensity);
 				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.35, 0.4, 0.05);
-
 				PlannerHNS::PlanningHelpers::GenerateRecommendedSpeed(m_GlobalPaths.at(i), m_CarInfo.max_speed_forward, m_PlanningParams.speedProfileFactor);
-				m_GlobalPaths.at(i).at(m_GlobalPaths.at(i).size()-1).v = 0;
 			}
 
 			std::cout << "Received New Global Path Selector! " << std::endl;

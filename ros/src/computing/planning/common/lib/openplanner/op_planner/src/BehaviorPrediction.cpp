@@ -21,7 +21,7 @@ constexpr double PREDICTED_PATH_DENSITY = 0.5;
 constexpr double PARKING_LEFT_MARGIN = 1.5; // meters
 int TrajectoryTracker::max_particles_number = 30;
 int TrajectoryTracker::min_particles_number = 0;
-int TrajectoryTracker::active_intentions_number = 4;
+int TrajectoryTracker::active_intentions_number = 3;
 int TrajectoryTracker::total_particles_number = 90;
 
 BehaviorPrediction::BehaviorPrediction()
@@ -44,6 +44,51 @@ BehaviorPrediction::BehaviorPrediction()
 
 BehaviorPrediction::~BehaviorPrediction()
 {
+	DeleteTheRest(m_ParticleInfo);
+	m_temp_list.clear();
+
+	//save log data
+	std::ostringstream fileName;
+	if(g_PredParams.experiment_name.size() == 0)
+		fileName << UtilityHNS::UtilityH::GetHomeDirectory()+UtilityHNS::DataRW::LoggingMainfolderName + UtilityHNS::DataRW::PredictionFolderName;
+	else
+		fileName << UtilityHNS::UtilityH::GetHomeDirectory()+UtilityHNS::DataRW::LoggingMainfolderName + UtilityHNS::DataRW::ExperimentsFolderName + g_PredParams.experiment_name + UtilityHNS::DataRW::PredictionFolderName;
+
+	for(unsigned int i=0; i < m_AllLogData.size(); i++)
+	{
+		std::ostringstream car_num;
+		car_num << "pred_log_car_" << m_AllLogData.at(i).first << "__";
+
+		if(m_AllLogData.at(i).second.size() > 2)
+		{
+			  UtilityHNS::DataRW::WriteLogData(fileName.str(),
+				  car_num.str(),
+				  "time,x,y,heading,Velocity,Acceleration,Indicator,Best_Traj,real_W_F,real_W_L,real_W_R,Best_Beh_P,Best_Beh_W,Best_w_f,Best_w_s,Best_w_y,Best_w_p,"
+				  "id_F,n_part_forward_F,p_forward_F,w_forward_F,"
+				  "n_part_stopping_F,p_stopping_F,w_stopping_F,"
+				  "n_part_yielding_F,p_yielding_F,w_yielding_F,"
+				  "n_part_parking_F,p_parking_F,w_parking_F,"
+				  "best_beh_F,all_p_F,all_w_F,best_p_F,best_w_F,real_w_F,"
+
+				  "id_L,n_part_forward_L,p_forward_L,w_forward_L,"
+				  "n_part_stopping_L,p_stopping_L,w_stopping_L,"
+				  "n_part_yielding_L,p_yielding_L,w_yielding_L,"
+				  "n_part_parking_L,p_parking_L,w_parking_L,"
+				  "best_beh_L,all_p_L,all_w_L,best_p_L,best_w_L,real_w_L,"
+
+				  "id_R,n_part_forward_R,p_forward_R,w_forward_R,"
+				  "n_part_stopping_R,p_stopping_R,w_stopping_R,"
+				  "n_part_yielding_R,p_yielding_R,w_yielding_R,"
+				  "n_part_parking_R,p_parking_R,w_parking_R,"
+				  "best_beh_R,all_p_R,all_w_R,best_p_R,best_w_R,real_w_R,"
+
+				  "id_U,n_part_forward_U,p_forward_U,w_forward_U,"
+				  "n_part_stopping_U,p_stopping_U,w_stopping_U,"
+				  "n_part_yielding_U,p_yielding_U,w_yielding_U,"
+				  "n_part_parking_U,p_parking_U,w_parking_U,"
+				  "best_beh_U,all_p_U,all_w_U,best_p_U,best_w_U,real_w_U," , m_AllLogData.at(i).second);
+		}
+	}
 }
 
 void BehaviorPrediction::DoOneStep(const std::vector<DetectedObject>& obj_list, const WayPoint& currPose, const double& minSpeed, const double& maxDeceleration, RoadNetwork& map)
@@ -180,6 +225,7 @@ void BehaviorPrediction::ParticleFilterSteps(std::vector<ObjParticles*>& part_in
 		RemoveWeakParticles(part_info.at(i));
 		CalculateAveragesAndProbabilities(part_info.at(i));
 		FindBest(part_info.at(i));
+		part_info.at(i)->LogDataRow();
 	}
 }
 
@@ -251,7 +297,8 @@ void BehaviorPrediction::SamplesFreshParticles(ObjParticles* pParts)
 			int n_ps_f = TrajectoryTracker::max_particles_number - pParts->m_TrajectoryTracker.at(t)->nAliveForward;
 			int n_ps_s = TrajectoryTracker::max_particles_number - pParts->m_TrajectoryTracker.at(t)->nAliveStop;
 			int n_ps_y = TrajectoryTracker::max_particles_number - pParts->m_TrajectoryTracker.at(t)->nAliveYield;
-			int n_ps_p = TrajectoryTracker::max_particles_number - pParts->m_TrajectoryTracker.at(t)->nAlivePark;
+			if(g_PredParams.bEnableParking)
+				int n_ps_p = TrajectoryTracker::max_particles_number - pParts->m_TrajectoryTracker.at(t)->nAlivePark;
 
 			std::cout << ">>>>> Total Size Before: " <<pParts->m_TrajectoryTracker.at(t)->m_CurrParts.size() << std::endl;
 			for(unsigned int i=0; i < TrajectoryTracker::total_particles_number; i++)
@@ -263,7 +310,7 @@ void BehaviorPrediction::SamplesFreshParticles(ObjParticles* pParts)
 					p_new.beh = PlannerHNS::BEH_STOPPING_STATE;
 				else if(i <= 3.0*TrajectoryTracker::max_particles_number/TrajectoryTracker::active_intentions_number)
 				  p_new.beh = PlannerHNS::BEH_YIELDING_STATE;
-				else
+				else if(g_PredParams.bEnableParking)
 					p_new.beh = PlannerHNS::BEH_PARKING_STATE;
 
 				p_new.car_curr_pose = p.pose;

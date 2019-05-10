@@ -52,6 +52,8 @@ enum TrafficSignTypes {UNKNOWN_SIGN, STOP_SIGN, MAX_SPEED_SIGN, MIN_SPEED_SIGN};
 class Lane;
 class TrafficLight;
 class RoadSegment;
+class Boundary;
+
 
 class ObjTimeStamp
 {
@@ -360,7 +362,7 @@ public:
 	double  	totalReward;
 	double  	collisionCost;
 	double 		laneChangeCost;
-	double          width;
+	double      	width;
 	int 		laneId;
 	int 		id;
 	int 		LeftPointId;
@@ -372,8 +374,10 @@ public:
 	STATE_TYPE	state;
 	BEH_STATE_TYPE beh_state;
 	int 		iOriginalIndex;
+	int boundaryId;
 
 	Lane* pLane;
+	Boundary* pBoundary;
 	WayPoint* pLeft;
 	WayPoint* pRight;
 	std::vector<int> 	toIds;
@@ -391,9 +395,11 @@ public:
 		v = 0;
 		cost = 0;
 		laneId = -1;
-		pLane  = 0;
-		pLeft = 0;
-		pRight = 0;
+		boundaryId = -1;
+		pLane  = nullptr;
+		pLeft = nullptr;
+		pRight = nullptr;
+		pBoundary = nullptr;
 		bDir = FORWARD_DIR;
 		LeftPointId = 0;
 		RightPointId = 0;
@@ -423,9 +429,11 @@ public:
 		v = 0;
 		cost = 0;
 		laneId = -1;
-		pLane  = 0;
-		pLeft = 0;
-		pRight = 0;
+		boundaryId = -1;
+		pLane  = nullptr;
+		pLeft = nullptr;
+		pRight = nullptr;
+		pBoundary = nullptr;
 		bDir = FORWARD_DIR;
 		LeftPointId = 0;
 		RightPointId = 0;
@@ -481,6 +489,7 @@ public:
 	int id;
 	int roadId;
 	std::vector<GPSPoint> points;
+	GPSPoint center;
 	RoadSegment* pSegment;
 
 	Boundary()

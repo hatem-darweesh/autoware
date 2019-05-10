@@ -27,6 +27,7 @@ int MappingHelpers::g_max_point_id = 0;
 int MappingHelpers::g_max_lane_id = 0;
 int MappingHelpers::g_max_stop_line_id = 0;
 int MappingHelpers::g_max_traffic_light_id = 0;
+int MappingHelpers::g_max_boundary_area_id = 0;
 double MappingHelpers::m_USING_VER_ZERO = 0;
 
 constexpr int ANGLE_MAX_FOR_DIRECTION_CHECK = 30;
@@ -869,6 +870,11 @@ void MappingHelpers::LoadKML(const std::string& kmlFile, RoadNetwork& map)
 		}
 	}
 
+	//Link waypoints && StopLines
+	cout << " >> Link Boundaries and Waypoints ... " << endl;
+	ConnectBoundariesToWayPoints(map);
+	LinkBoundariesToWayPoints(map);
+
 	cout << " >> Find Max IDs ... " << endl;
 	GetMapMaxIds(map);
 
@@ -913,21 +919,6 @@ TiXmlElement* MappingHelpers::GetDataFolder(const string& folderName, TiXmlEleme
 
 WayPoint* MappingHelpers::GetClosestWaypointFromMap(const WayPoint& pos, RoadNetwork& map, const bool bDirectionBased)
 {
-	//Old Implementation From before 6-September-2018
-//	double distance_to_nearest_lane = 1;
-//	Lane* pLane = 0;
-//	while(distance_to_nearest_lane < 100 && pLane == 0)
-//	{
-//		pLane = GetClosestLaneFromMap(pos, map, distance_to_nearest_lane, bDirectionBased);
-//		distance_to_nearest_lane += 1;
-//	}
-//
-//	if(!pLane) return nullptr;
-//
-//	int closest_index = PlanningHelpers::GetClosestNextPointIndexFast(pLane->points, pos);
-//
-//	return &pLane->points.at(closest_index);
-
 	WayPoint* pWaypoint = nullptr;
 	double min_d = DBL_MAX;
 
@@ -1867,14 +1858,6 @@ vector<WayPoint> MappingHelpers::GetCenterLaneDataVer0(TiXmlElement* pElem, cons
 				gps_points.at(i).toIds =  GetIDsFromPrefix(add_info_list.at(i), "To", "Vel");
 				gps_points.at(i).v =  GetDoubleFromPrefix(add_info_list.at(i), "Vel", "Dir").at(0);
 				gps_points.at(i).pos.a = gps_points.at(i).pos.dir =  GetDoubleFromPrefix(add_info_list.at(i), "Dir", "").at(0);
-//				if(currLaneID == 11115)
-//				{
-//
-//					pair<ACTION_TYPE, double> act_cost;
-//						act_cost.first = FORWARD_ACTION;
-//						act_cost.second = 100;
-//					gps_points.at(i).actionCost.push_back(act_cost);
-//				}
 			}
 		}
 	}
@@ -2197,6 +2180,77 @@ void MappingHelpers::ExtractWayArea(const std::vector<UtilityHNS::AisanAreasFile
 	}
 }
 
+void MappingHelpers::ConnectBoundariesToWayPoints(RoadNetwork& map)
+{
+	for(unsigned int rs = 0; rs < map.roadSegments.size(); rs++)
+	{
+		for(unsigned int i =0; i < map.roadSegments.at(rs).Lanes.size(); i++)
+		{
+			for(unsigned int p= 0; p < map.roadSegments.at(rs).Lanes.at(i).points.size(); p++)
+			{
+				WayPoint* pWP = &map.roadSegments.at(rs).Lanes.at(i).points.at(p);
+
+				for(unsigned int ib=0; ib < map.boundaries.size(); ib++)
+				{
+					if(map.boundaries.at(ib).points.size() > 0)
+					{
+						Boundary* pB = &map.boundaries.at(ib);
+						//calculate center of the boundary
+						GPSPoint sum_p;
+						for(unsigned int i=0; i < pB->points.size(); i++)
+						{
+							sum_p.x += pB->points.at(i).x;
+							sum_p.y += pB->points.at(i).y;
+							sum_p.z += pB->points.at(i).z;
+						}
+
+						pB->center.x = sum_p.x / (double)pB->points.size();
+						pB->center.y = sum_p.y / (double)pB->points.size();
+						pB->center.z = sum_p.z / (double)pB->points.size();
+
+						//add boundary ID to proper waypoint
+						double d_to_center = hypot(pWP->pos.y - pB->center.y, pWP->pos.x - pB->center.x);
+						if(d_to_center < 100)
+						{
+							if(PlanningHelpers::PointInsidePolygon(pB->points, pWP->pos) == 1)
+							{
+								pWP->boundaryId = pB->id;
+							}
+						}
+
+					}
+				}
+			}
+		}
+	}
+}
+
+void MappingHelpers::LinkBoundariesToWayPoints(RoadNetwork& map)
+{
+	for(unsigned int rs = 0; rs < map.roadSegments.size(); rs++)
+	{
+		for(unsigned int i =0; i < map.roadSegments.at(rs).Lanes.size(); i++)
+		{
+			for(unsigned int p= 0; p < map.roadSegments.at(rs).Lanes.at(i).points.size(); p++)
+			{
+				WayPoint* pWP = &map.roadSegments.at(rs).Lanes.at(i).points.at(p);
+
+				for(unsigned int ib=0; ib < map.boundaries.size(); ib++)
+				{
+					if(map.boundaries.at(ib).points.size() > 0)
+					{
+						Boundary* pB = &map.boundaries.at(ib);
+						if(pWP->boundaryId == pB->id)
+						{
+							pWP->pBoundary = pB;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void MappingHelpers::LinkMissingBranchingWayPoints(RoadNetwork& map)
 {
 	for(unsigned int rs = 0; rs < map.roadSegments.size(); rs++)
@@ -2479,7 +2533,7 @@ void MappingHelpers::ConstructRoadNetworkFromRosMessageV2(const std::vector<Util
 					break;
 
 					}
-				  }
+				}
 			}
 		}
 	}
@@ -2507,6 +2561,10 @@ void MappingHelpers::ConstructRoadNetworkFromRosMessageV2(const std::vector<Util
 		//Wayarea
 		cout << " >> Extract wayarea data ... " << endl;
 		ExtractWayArea(area_data, wayarea_data, line_data, points_data, origin, map);
+
+		cout << " >> Connect Wayarea (boundaries) to waypoints ... " << endl;
+		ConnectBoundariesToWayPoints(map);
+		LinkBoundariesToWayPoints(map);
 	}
 
 	//Link waypoints
@@ -2937,8 +2995,11 @@ void MappingHelpers::FixTwoPointsLanes(std::vector<Lane>& lanes)
 
 void MappingHelpers::InsertWayPointToBackOfLane(const WayPoint& wp, Lane& lane, int& global_id)
 {
-	WayPoint* pFirst = &lane.points.at(0);
-	pFirst->pos = wp.pos;
+	if(lane.points.size() > 0)
+	{
+		WayPoint* pFirst = &lane.points.at(0);
+		pFirst->pos = wp.pos;
+	}
 
 //	WayPoint f_wp = *pFirst;
 //	f_wp.pos = wp.pos;
@@ -2965,8 +3026,11 @@ void MappingHelpers::InsertWayPointToBackOfLane(const WayPoint& wp, Lane& lane, 
 
 void MappingHelpers::InsertWayPointToFrontOfLane(const WayPoint& wp, Lane& lane, int& global_id)
 {
-	WayPoint* pLast = &lane.points.at(lane.points.size()-1);
-	pLast->pos = wp.pos;
+	if(lane.points.size() > 0)
+	{
+		WayPoint* pLast = &lane.points.at(lane.points.size()-1);
+		pLast->pos = wp.pos;
+	}
 
 //	WayPoint l_wp = *pLast;
 //	l_wp.pos = wp.pos;
@@ -2991,8 +3055,13 @@ void MappingHelpers::InsertWayPointToFrontOfLane(const WayPoint& wp, Lane& lane,
 //	lane.points.push_back(l_wp);
 }
 
-void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
+void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes, const int& max_angle_diff)
 {
+	for(unsigned int il=0; il < lanes.size(); il ++)
+	{
+		PlanningHelpers::CalcAngleAndCost(lanes.at(il).points);
+	}
+
 	std::vector<Lane> sp_lanes = lanes;
 	bool bAtleastOneChange = false;
 	//Find before lanes
@@ -3016,7 +3085,7 @@ void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
 			int closest_index = -1;
 			for(int l=0; l < sp_lanes.size(); l ++)
 			{
-				if(pFL->id != sp_lanes.at(l).id )
+				if(pFL->id != sp_lanes.at(l).id)
 				{
 					PlannerHNS::RelativeInfo info;
 					WayPoint lastofother = sp_lanes.at(l).points.at(sp_lanes.at(l).points.size()-1);
@@ -3027,12 +3096,11 @@ void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
 						bCloseFromBack = true;
 
 
-					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && info.bBefore == false && bCloseFromBack)
+					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && fabs(info.angle_diff) < max_angle_diff && info.bBefore == false && bCloseFromBack)
 					{
 						closest_d = fabs(info.perp_distance);
 						pL = &sp_lanes.at(l);
 						closest_info = info;
-						closest_info.angle_diff = back_distance;
 						closest_index = l;
 					}
 				}
@@ -3163,12 +3231,11 @@ void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
 					if((info.bBefore == true && front_distance < 15.0) || info.bBefore == false)
 						bCloseFromFront = true;
 
-					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && info.bAfter == false && bCloseFromFront)
+					if(fabs(info.perp_distance) < 2 && fabs(info.perp_distance) < closest_d && fabs(info.angle_diff) < max_angle_diff && info.bAfter == false && bCloseFromFront)
 					{
 						closest_d = fabs(info.perp_distance);
 						pL = &sp_lanes.at(l);
 						closest_info = info;
-						closest_info.angle_diff = front_distance;
 						closest_index = l;
 					}
 				}

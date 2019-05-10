@@ -29,6 +29,10 @@ double  VELOCITY_FACTOR ;
 double  ACCELERATE_FACTOR;
 double  INDICATOR_FACTOR;
 
+bool bEnableParking;
+
+std::string experiment_name;
+
 	PredictionParams()
 	{
 		MAX_PARTICLES_NUM = 30;
@@ -40,6 +44,8 @@ double  INDICATOR_FACTOR;
 		VELOCITY_FACTOR = 0.35;
 		ACCELERATE_FACTOR = 0.35;
 		INDICATOR_FACTOR = 0.2;
+
+		bEnableParking = false;
 	}
 };
 
@@ -918,6 +924,11 @@ public:
 
 	bool bCanDecide;
 
+	double m_t;
+	timespec m_LogTime;
+	std::vector<std::string>  m_LogData;
+
+
 	virtual ~ObjParticles()
 	{
 		DeleteTheRest(m_TrajectoryTracker);
@@ -926,6 +937,7 @@ public:
 
 	ObjParticles(PredictionParams _predParams)
 	{
+		m_t = 0;
 		bCanDecide = true;
 		m_PredictionDistance = 0;
 		best_behavior_track = nullptr;
@@ -1299,6 +1311,11 @@ public:
 //			}
 //		}
 
+		best_behavior_track = nullptr;
+		best_forward_track = nullptr;
+		i_best_beh_track = -1;
+		i_best_for_track = -1;
+
 		if(m_TrajectoryTracker.size() > 0)
 		{
 			best_behavior_track = m_TrajectoryTracker.at(0);
@@ -1326,6 +1343,99 @@ public:
 //				best_behavior_track = m_TrajectoryTracker.at(t);
 //				i_best_beh_track = t;
 //			}
+		}
+	}
+
+	std::string GetPredictionLogDataLine(std::vector<PlannerHNS::TrajectoryTracker*> trajectoryTrackers, std::string path_id)
+	{
+	  for(unsigned int i=0; i < trajectoryTrackers.size(); i++)
+	  {
+	    if(trajectoryTrackers.at(i)->id_.compare(path_id) == 0)
+	    {
+	      std::ostringstream dataLine;
+	      dataLine << trajectoryTrackers.at(i)->id_ << ",";
+	      dataLine << trajectoryTrackers.at(i)->nAliveForward << "," << trajectoryTrackers.at(i)->pForward << "," << trajectoryTrackers.at(i)->w_avg_forward <<",";
+	      dataLine << trajectoryTrackers.at(i)->nAliveStop << "," << trajectoryTrackers.at(i)->pStop << "," << trajectoryTrackers.at(i)->w_avg_stop <<",";
+	      dataLine << trajectoryTrackers.at(i)->nAliveYield << "," << trajectoryTrackers.at(i)->pYield << "," << trajectoryTrackers.at(i)->w_avg_yield <<",";
+	      dataLine << trajectoryTrackers.at(i)->nAlivePark << "," << trajectoryTrackers.at(i)->pPark << "," << trajectoryTrackers.at(i)->w_avg_park <<",";
+	      dataLine << trajectoryTrackers.at(i)->best_beh_by_p <<",";
+	      dataLine << trajectoryTrackers.at(i)->all_p << "," << trajectoryTrackers.at(i)->all_w << "," << trajectoryTrackers.at(i)->best_p <<"," << trajectoryTrackers.at(i)->best_w <<"," << trajectoryTrackers.at(i)->all_w_real <<",";
+	      return dataLine.str();
+	    }
+	  }
+
+	  return "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,";
+	}
+
+	std::string GetPredictionLogDataRealWeightItem(std::vector<PlannerHNS::TrajectoryTracker*> trajectoryTrackers, std::string path_id)
+	{
+	  for(unsigned int i=0; i < trajectoryTrackers.size(); i++)
+	  {
+	    if(trajectoryTrackers.at(i)->id_.compare(path_id) == 0)
+	    {
+	      std::ostringstream dataLine;
+	      dataLine << trajectoryTrackers.at(i)->all_w_real <<",";
+	      return dataLine.str();
+	    }
+	  }
+
+	  return "0,";
+	}
+
+	void LogDataRow()
+	{
+
+		std::ostringstream dataLine;
+		dataLine << m_t << "," << obj.center.pos.x << "," <<  obj.center.pos.y << "," << obj.center.pos.a << "," << obj.center.v << "," << obj.acceleration_desc
+					  << "," << obj.indicator_state << ",";
+
+		if(best_forward_track != nullptr)
+		{
+		if(best_forward_track->id_.compare("F")==0)
+		  dataLine << "1" << ",";
+		else if(best_forward_track->id_.compare("L")==0)
+		  dataLine << "2" << ",";
+		else if(best_forward_track->id_.compare("R")==0)
+		  dataLine << "3" << ",";
+		else
+		  dataLine << "0" << ",";
+		}
+		else
+		dataLine << "0" << ",";
+
+
+		dataLine << GetPredictionLogDataRealWeightItem(m_TrajectoryTracker, "F");
+		dataLine << GetPredictionLogDataRealWeightItem(m_TrajectoryTracker, "L");
+		dataLine << GetPredictionLogDataRealWeightItem(m_TrajectoryTracker, "R");
+
+		if(best_behavior_track != nullptr)
+		{
+		  dataLine << best_behavior_track->best_beh_by_p << ",";
+		  dataLine << best_behavior_track->best_beh_by_w << ",";
+		  dataLine << best_behavior_track->w_avg_forward << ",";
+		  dataLine << best_behavior_track->w_avg_stop << ",";
+		  dataLine << best_behavior_track->w_avg_yield << ",";
+		  dataLine << best_behavior_track->w_avg_park << ",";
+		}
+		else
+			dataLine << "-1,-1,0,0,0,0,";
+
+		dataLine << GetPredictionLogDataLine(m_TrajectoryTracker, "F");
+		dataLine << GetPredictionLogDataLine(m_TrajectoryTracker, "L");
+		dataLine << GetPredictionLogDataLine(m_TrajectoryTracker, "R");
+		dataLine << GetPredictionLogDataLine(m_TrajectoryTracker, "U");
+
+		m_LogData.push_back(dataLine.str());
+
+		if(m_t==0)
+		{
+			  UtilityHNS::UtilityH::GetTickCount(m_LogTime);
+			  m_t = 0.01;
+		}
+		else
+		{
+			  m_t += UtilityHNS::UtilityH::GetTimeDiffNow(m_LogTime);
+			  UtilityHNS::UtilityH::GetTickCount(m_LogTime);
 		}
 	}
 };
@@ -1357,9 +1467,6 @@ public:
 	bool m_bDebugOut;
 	bool m_bDebugMotion;
 	bool m_bDebugOutWeights;
-
-
-	std::vector<std::vector<std::string> >  m_LogData;
 
 
 protected:
@@ -1398,6 +1505,7 @@ protected:
 
 public:
 	PredictionParams g_PredParams;
+	std::vector<std::pair<int, std::vector<std::string> > >  m_AllLogData;
 
 	void SetForTrajTracker()
 	{
@@ -1423,6 +1531,7 @@ public:
 	{
 		for(unsigned int k = 0; k < delete_me.size(); k++)
 		{
+			m_AllLogData.push_back(std::make_pair(delete_me.at(k)->obj.id, delete_me.at(k)->m_LogData));
 			delete delete_me.at(k);
 		}
 
@@ -1523,6 +1632,7 @@ public:
 
 		return &part_list.at(max_i);
 	}
+
 };
 
 

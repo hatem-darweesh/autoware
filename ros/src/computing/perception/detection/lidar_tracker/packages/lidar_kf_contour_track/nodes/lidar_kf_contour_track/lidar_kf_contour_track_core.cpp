@@ -1,31 +1,17 @@
 /*
- *  Copyright (c) 2018, Nagoya University
- *  All rights reserved.
+ * Copyright 2018-2019 Autoware Foundation. All rights reserved.
  *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions are met:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- *  * Neither the name of Autoware nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- *  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- *  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- *  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "lidar_kf_contour_track_core.h"
@@ -173,6 +159,8 @@ void ContourTracker::ReadCommonParams()
 		m_Params.bEnableLaneChange = false;
 
 	int iSource = 0;
+	_nh.getParam("/op_common_params/mapSource" , iSource);
+
 	if(iSource == 0)
 		m_MapType = PlannerHNS::MAP_AUTOWARE;
 	else if (iSource == 1)
@@ -185,7 +173,6 @@ void ContourTracker::ReadCommonParams()
 	if(!_nh.getParam("/op_common_params/velocitySource", m_VelocitySource))
 		m_VelocitySource = 1;
 }
-
 
 void ContourTracker::dumpResultText(autoware_msgs::DetectedObjectArray& detected_objects)
 {
@@ -464,7 +451,9 @@ void ContourTracker::ImportCloudClusters(const autoware_msgs::CloudClusterArray&
 		obj.h = msg.clusters.at(i).dimensions.z;
 
 		UtilityHNS::UtilityH::GetTickCount(filter_time);
-		if(!IsCar(obj, m_CurrentPos, m_Map)) continue;
+
+		if(!FilterBySize(obj, m_CurrentPos)) continue;
+		if(!FilterByMap(obj, m_CurrentPos, m_Map)) continue;
 		m_FilteringTime += UtilityHNS::UtilityH::GetTimeDiffNow(filter_time);
 
 		obj.id = msg.clusters.at(i).id;
@@ -531,7 +520,9 @@ void ContourTracker::ImportDetectedObjects(const autoware_msgs::DetectedObjectAr
 		obj.h = msg.objects.at(i).dimensions.z;
 
 		UtilityHNS::UtilityH::GetTickCount(filter_time);
-		if(!IsCar(obj, m_CurrentPos, m_Map)) continue;
+
+		if(!FilterBySize(obj, m_CurrentPos)) continue;
+		if(!FilterByMap(obj, m_CurrentPos, m_Map)) continue;
 		m_FilteringTime += UtilityHNS::UtilityH::GetTimeDiffNow(filter_time);
 
 		obj.id = msg.objects.at(i).id;
@@ -571,65 +562,72 @@ void ContourTracker::ImportDetectedObjects(const autoware_msgs::DetectedObjectAr
 	}
 }
 
-bool ContourTracker::IsCar(const PlannerHNS::DetectedObject& obj, const PlannerHNS::WayPoint& currState, PlannerHNS::RoadNetwork& map)
+bool ContourTracker::FilterByMap(const PlannerHNS::DetectedObject& obj, const PlannerHNS::WayPoint& currState, PlannerHNS::RoadNetwork& map)
 {
-
 	if(bMap)
 	{
-		bool bOnLane = false;
-	//	std::cout << "Debug Obj: " << obj.id << ", Closest Lane: " << m_ClosestLanesList.size() << std::endl;
-
-		for(unsigned int i =0 ; i < m_ClosestLanesList.size(); i++)
+		for(unsigned int ib = 0; ib < map.boundaries.size(); ib++)
 		{
-
-			PlannerHNS::RelativeInfo info;
-			PlannerHNS::PlanningHelpers::GetRelativeInfoLimited(m_ClosestLanesList.at(i)->points, obj.center, info);
-			PlannerHNS::WayPoint wp = m_ClosestLanesList.at(i)->points.at(info.iFront);
-
-			double direct_d = hypot(wp.pos.y - obj.center.pos.y, wp.pos.x - obj.center.pos.x);
-
-		//	std::cout << "- Distance To Car: " << obj.distance_to_center << ", PerpD: " << info.perp_distance << ", DirectD: " << direct_d << ", bAfter: " << info.bAfter << ", bBefore: " << info.bBefore << std::endl;
-
-			if((info.bAfter || info.bBefore) && direct_d > m_MapFilterDistance*2.0)
-				continue;
-
-			if(fabs(info.perp_distance) <= m_MapFilterDistance)
+			double d_to_center = hypot(map.boundaries.at(ib).center.y - currState.pos.y, map.boundaries.at(ib).center.x - currState.pos.x);
+			std::cout << "boundary detection ! " << d_to_center <<std::endl;
+			if(d_to_center < m_Params.DetectionRadius*2.0)
 			{
-				bOnLane = true;
-				break;
+
+				if(PlannerHNS::PlanningHelpers::PointInsidePolygon(map.boundaries.at(ib).points, obj.center.pos) == 1)
+					return true;
 			}
 		}
 
-		if(bOnLane == false)
-			return false;
+//		for(unsigned int i =0 ; i < m_ClosestLanesList.size(); i++)
+//		{
+//
+//			PlannerHNS::RelativeInfo info;
+//			PlannerHNS::PlanningHelpers::GetRelativeInfoLimited(m_ClosestLanesList.at(i)->points, obj.center, info);
+//			PlannerHNS::WayPoint wp = m_ClosestLanesList.at(i)->points.at(info.iFront);
+//
+//			double direct_d = hypot(wp.pos.y - obj.center.pos.y, wp.pos.x - obj.center.pos.x);
+//
+//		//	std::cout << "- Distance To Car: " << obj.distance_to_center << ", PerpD: " << info.perp_distance << ", DirectD: " << direct_d << ", bAfter: " << info.bAfter << ", bBefore: " << info.bBefore << std::endl;
+//
+//			if((info.bAfter || info.bBefore) && direct_d > m_MapFilterDistance*2.0)
+//				continue;
+//
+//			if(fabs(info.perp_distance) <= m_MapFilterDistance)
+//			{
+//				return true;
+//			}
+//		}
 	}
+
+	return false;
+}
+
+bool ContourTracker::FilterBySize(const PlannerHNS::DetectedObject& obj, const PlannerHNS::WayPoint& currState)
+{
 
 	if(!m_Params.bEnableSimulation)
 	{
 		double object_size = hypot(obj.w, obj.l);
-
-		//std::cout << "Filter the detected Obstacles: (" <<  obj.distance_to_center  << ",>" <<  m_Params.DetectionRadius << " | "<< object_size << ",< " <<  m_Params.MinObjSize  << "| " <<  object_size << ", >" <<  m_Params.MaxObjSize << ")"<< std::endl;
-
-		if(obj.distance_to_center > m_Params.DetectionRadius || object_size < m_Params.MinObjSize || object_size > m_Params.MaxObjSize)
-			return false;
+		if(obj.distance_to_center <= m_Params.DetectionRadius && object_size >= m_Params.MinObjSize && object_size <= m_Params.MaxObjSize)
+			return true;
 	}
 
-	if(m_Params.bEnableSimulation)
-	{
-		PlannerHNS::Mat3 rotationMat(-currState.pos.a);
-		PlannerHNS::Mat3 translationMat(-currState.pos.x, -currState.pos.y);
+//	if(m_Params.bEnableSimulation)
+//	{
+//		PlannerHNS::Mat3 rotationMat(-currState.pos.a);
+//		PlannerHNS::Mat3 translationMat(-currState.pos.x, -currState.pos.y);
+//
+//		PlannerHNS::GPSPoint relative_point = translationMat*obj.center.pos;
+//		relative_point = rotationMat*relative_point;
+//
+//		double distance_x = fabs(relative_point.x - m_Params.VehicleLength/3.0);
+//		double distance_y = fabs(relative_point.y);
+//
+////		if(distance_x  <= m_Params.VehicleLength*0.5 && distance_y <=  m_Params.VehicleWidth*0.5) // don't detect yourself
+////			return false;
+//	}
 
-		PlannerHNS::GPSPoint relative_point = translationMat*obj.center.pos;
-		relative_point = rotationMat*relative_point;
-
-		double distance_x = fabs(relative_point.x - m_Params.VehicleLength/3.0);
-		double distance_y = fabs(relative_point.y);
-
-//		if(distance_x  <= m_Params.VehicleLength*0.5 && distance_y <=  m_Params.VehicleWidth*0.5) // don't detect yourself
-//			return false;
-	}
-
-	return true;
+	return false;
 }
 
 void ContourTracker::callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr &msg)
@@ -716,7 +714,7 @@ void ContourTracker::VisualizeLocalTracking()
 
 		box.value = 0.9;
 
-		box.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, m_ObstacleTracking.m_DetectedObjects.at(i).center.pos.a);
+		box.pose.orientation = tf::createQuaternionMsgFromRollPitchYaw(0, 0, m_ObstacleTracking.m_DetectedObjects.at(i).center.pos.a+M_PI_2);
 		box.dimensions.x = m_ObstacleTracking.m_DetectedObjects.at(i).l;
 		box.dimensions.y = m_ObstacleTracking.m_DetectedObjects.at(i).w;
 		box.dimensions.z = m_ObstacleTracking.m_DetectedObjects.at(i).h;
@@ -880,7 +878,7 @@ void ContourTracker::MainLoop()
 			if(m_Map.roadSegments.size() > 0)
 			{
 				bMap = true;
-				std::cout << " ******* Map Is Loaded successfully from the tracker !! " << std::endl;
+				std::cout << " ******* Map Is Loaded successfully from the tracker, KML File." << std::endl;
 			}
 		}
 		else if (m_MapFilterDistance > 0 && m_MapType == PlannerHNS::MAP_FOLDER && !bMap)
@@ -888,13 +886,13 @@ void ContourTracker::MainLoop()
 			PlannerHNS::MappingHelpers::ConstructRoadNetworkFromDataFiles(m_MapPath, m_Map, true);
 			if(m_Map.roadSegments.size() > 0)
 			{
-				std::cout << " ******* Map Is Loaded successfully from the tracker !! " << std::endl;
+				std::cout << " ******* Map Is Loaded successfully from the tracker, Vector Maps folder. " << std::endl;
 				bMap = true;
 			}
 		}
 		else if (m_MapFilterDistance > 0 && m_MapType == PlannerHNS::MAP_AUTOWARE && !bMap)
 		{
-			std::vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;;
+			std::vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;
 
 			if(m_MapRaw.GetVersion()==2)
 			{
@@ -908,7 +906,7 @@ void ContourTracker::MainLoop()
 				if(m_Map.roadSegments.size() > 0)
 				{
 					bMap = true;
-					std::cout << " ******* Map Is Loaded successfully from the tracker !! " << std::endl;
+					std::cout << " ******* Map Is Loaded successfully from the tracker, Autoware Map V2." << std::endl;
 				}
 			}
 			else if(m_MapRaw.GetVersion()==1)
@@ -922,7 +920,7 @@ void ContourTracker::MainLoop()
 				if(m_Map.roadSegments.size() > 0)
 				{
 					bMap = true;
-					std::cout << " ******* Map Is Loaded successfully from the tracker !! " << std::endl;
+					std::cout << " ******* Map Is Loaded successfully from the tracker, Autoware Map V1." << std::endl;
 				}
 			}
 		}

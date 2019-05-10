@@ -108,8 +108,6 @@ void TrajectoryEvalCore::UpdatePlanningParams(ros::NodeHandle& _nh)
 	else
 		m_PlanningParams.rollOutNumber = 0;
 
-//	std::cout << "Rolls Number: " << m_PlanningParams.rollOutNumber << std::endl;
-
 	_nh.getParam("/op_common_params/horizonDistance", m_PlanningParams.horizonDistance);
 	_nh.getParam("/op_common_params/minFollowingDistance", m_PlanningParams.minFollowingDistance);
 	_nh.getParam("/op_common_params/minDistanceToAvoid", m_PlanningParams.minDistanceToAvoid);
@@ -249,7 +247,6 @@ void TrajectoryEvalCore::callbackGetPredictedObjects(const autoware_msgs::Detect
 	bPredictedObjects = true;
 
 	PlannerHNS::DetectedObject obj;
-
 	for(unsigned int i = 0 ; i <msg->objects.size(); i++)
 	{
 		if(msg->objects.at(i).id > 0)
@@ -293,11 +290,6 @@ void TrajectoryEvalCore::MainLoop()
 
 			if(m_GlobalPathSections.size()>0)
 			{
-//				if(m_bUseMoveingObjectsPrediction)
-//					tc = m_TrajectoryCostsCalculator.DoOneStepDynamic(m_GeneratedRollOuts, m_GlobalPathSections.at(0), m_CurrentPos,m_PlanningParams, m_CarInfo,m_VehicleStatus, m_PredictedObjects, m_CurrentBehavior.iTrajectory);
-//				else
-//					tc = m_TrajectoryCostsCalculator.DoOneStepStatic(m_GeneratedRollOuts, m_GlobalPathSections.at(0), m_CurrentPos,	m_PlanningParams, m_CarInfo,m_VehicleStatus, m_PredictedObjects);
-
 			  tc = m_TrajectoryCostsCalculator.doOneStep(m_GeneratedRollOuts, m_GlobalPathSections.at(0), m_CurrentPos, m_PlanningParams, m_CarInfo,m_VehicleStatus, m_PredictedObjects, !m_bUseMoveingObjectsPrediction, m_CurrentBehavior.iTrajectory);
 
 
@@ -309,7 +301,6 @@ void TrajectoryEvalCore::MainLoop()
 				l.lane_index = tc.index;
 				pub_TrajectoryCost.publish(l);
 			}
-
 
                         autoware_msgs::LaneArray local_lanes;
                         for(unsigned int i=0; i < m_TrajectoryCostsCalculator.local_roll_outs_.size(); i++)

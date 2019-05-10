@@ -82,8 +82,6 @@ protected:
 	std::vector<std::string>  m_LogDataCar0;
 	std::vector<std::string>  m_LogDataCar1;
 	std::vector<std::string>  m_LogDataCar2;
-	double m_t;
-	timespec m_LogTime;
 
 	std::vector<PlannerHNS::DetectedObject> m_TrackedObjects;
 	bool bTrackedObjects;
@@ -149,12 +147,9 @@ protected:
 	void callbackGetStepForwardSignals(const geometry_msgs::TwistStampedConstPtr& msg);
 
 	//Helper functions
-	void LogDataRaw();
 	void VisualizePrediction();
 	void UpdatePlanningParams(ros::NodeHandle& _nh);
 	void GenerateCurbsObstacles(std::vector<PlannerHNS::DetectedObject>& curb_obstacles);
-	std::string GetPredictionLogDataLine(std::vector<PlannerHNS::TrajectoryTracker*> trajectoryTrackers, std::string path_id);
-	std::string GetPredictionLogDataRealWeightItem(std::vector<PlannerHNS::TrajectoryTracker*> trajectoryTrackers, std::string path_id);
 
 public:
 	MotionPrediction();
