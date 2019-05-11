@@ -440,18 +440,15 @@ void DecisionMaker::InitBehaviorStates()
 		if(max_velocity < CurrStatus.speed)
 			acceleration_critical = m_CarInfo.max_deceleration ;
 
-		double desired_before_pid = (acceleration_critical * dt) + CurrStatus.speed;
+		desiredVelocity = (acceleration_critical * dt) + CurrStatus.speed;
 
-		double e = max_velocity - CurrStatus.speed;
+		if(desiredVelocity > 0 && desiredVelocity < 1.0)
+			desiredVelocity = 1.0;
 
-		if(e > 0)
-			desiredVelocity = desired_before_pid +1 ;
-		else
-			desiredVelocity = desired_before_pid - 1 ;
-
+		desiredVelocity  = max_velocity;
 
 		//std::cout << "bEnd : " << preCalcPrams->bFinalLocalTrajectory << ", Min D: " << preCalcPrams->minStoppingDistance << ", D To Goal: " << preCalcPrams->distanceToGoal << std::endl;
-		std::cout << "Forward Target desired vel: " << desired_before_pid << ", PID Velocity: " << desiredVelocity << ", Max Velocity : " << m_params.maxSpeed << ", Current Vel: " << CurrStatus.speed  << std::endl;
+		std::cout << "Forward: dt" << dt << " ,Target vel: " << desiredVelocity << ", Acc: " << acceleration_critical << ", Max Vel: " << max_velocity << ", Curr Vel: " << CurrStatus.speed << ", break_d: " << m_params.additionalBrakingDistance  << std::endl;
 		//std::cout << "Forward Target Acc: " << acceleration_critical  << ", PID Velocity: " << desiredVelocity << ", Max Velocity : " << max_velocity  << std::endl;
 	}
 	else if(beh.state == STOP_SIGN_WAIT_STATE || beh.state == TRAFFIC_LIGHT_WAIT_STATE)

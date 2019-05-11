@@ -63,6 +63,7 @@ protected:
 	ros::NodeHandle nh;
 
 	//define publishers
+	ros::Publisher pub_PathsRviz;
 	ros::Publisher pub_LocalTrajectories;
 	ros::Publisher pub_LocalTrajectoriesRviz;
 

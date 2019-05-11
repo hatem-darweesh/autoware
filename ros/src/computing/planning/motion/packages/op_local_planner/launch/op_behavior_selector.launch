@@ -2,10 +2,12 @@
 	<!-- Behavior selector specific parameters -->
 	
 	<arg name="evidence_trust_number" 	default="25"/>
+	<arg name="use_sim_time" 	default="false"/>	
 			
 	<node pkg="op_local_planner" type="op_behavior_selector" name="op_behavior_selector" output="screen">
 	
 	<param name="evidence_trust_number" 	value="$(arg evidence_trust_number)"/>				
+	<param name="use_sim_time" 				value="$(arg use_sim_time)e" />
 			
 	</node>				
 			

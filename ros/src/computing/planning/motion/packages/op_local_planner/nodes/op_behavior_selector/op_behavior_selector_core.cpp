@@ -51,16 +51,16 @@ BehaviorGen::BehaviorGen()
 	pub_SelectedPathRviz = nh.advertise<visualization_msgs::MarkerArray>("local_selected_trajectory_rviz", 1);
 	pub_TargetSpeedRviz = nh.advertise<std_msgs::Float32>("op_target_velocity_rviz", 1);
 
-	sub_current_pose = nh.subscribe("/current_pose", 10,	&BehaviorGen::callbackGetCurrentPose, this);
+	sub_current_pose = nh.subscribe("/current_pose", 1,	&BehaviorGen::callbackGetCurrentPose, this);
 
 	int bVelSource = 1;
 	_nh.getParam("/op_common_params/velocitySource", bVelSource);
 	if(bVelSource == 0)
-		sub_robot_odom = nh.subscribe("/odom", 10, &BehaviorGen::callbackGetRobotOdom, this);
+		sub_robot_odom = nh.subscribe("/odom", 1, &BehaviorGen::callbackGetRobotOdom, this);
 	else if(bVelSource == 1)
-		sub_current_velocity = nh.subscribe("/current_velocity", 10, &BehaviorGen::callbackGetVehicleStatus, this);
+		sub_current_velocity = nh.subscribe("/current_velocity", 1, &BehaviorGen::callbackGetVehicleStatus, this);
 	else if(bVelSource == 2)
-		sub_can_info = nh.subscribe("/can_info", 10, &BehaviorGen::callbackGetCANInfo, this);
+		sub_can_info = nh.subscribe("/can_info", 1, &BehaviorGen::callbackGetCANInfo, this);
 
 	sub_GlobalPlannerPaths = nh.subscribe("/lane_waypoints_array", 1, &BehaviorGen::callbackGetGlobalPlannerPath, this);
 	sub_LocalPlannerPaths = nh.subscribe("/local_weighted_trajectories", 1, &BehaviorGen::callbackGetLocalPlannerPath, this);
@@ -156,6 +156,7 @@ void BehaviorGen::UpdatePlanningParams(ros::NodeHandle& _nh)
 	nh.getParam("/op_common_params/steeringDelay", controlParams.SteeringDelay);
 	nh.getParam("/op_common_params/minPursuiteDistance", controlParams.minPursuiteDistance );
 	nh.getParam("/op_common_params/additionalBrakingDistance", m_PlanningParams.additionalBrakingDistance );
+	std::cout << "##### Add Brake Distance:" <<  m_PlanningParams.additionalBrakingDistance << std::endl;
 	nh.getParam("/op_common_params/giveUpDistance", m_PlanningParams.giveUpDistance );
 
 	int iSource = 0;
@@ -286,7 +287,6 @@ void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayCon
 				}
 			}
 
-			PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_temp_path);
 			m_GlobalPaths.push_back(m_temp_path);
 
 			if(bOldGlobalPath)
@@ -302,6 +302,7 @@ void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayCon
 			for(unsigned int i = 0; i < m_GlobalPaths.size(); i++)
 			{
 				PlannerHNS::PlanningHelpers::FixPathDensity(m_GlobalPaths.at(i), m_PlanningParams.pathDensity);
+				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_temp_path);
 				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.35, 0.4, 0.05);
 				PlannerHNS::PlanningHelpers::GenerateRecommendedSpeed(m_GlobalPaths.at(i), m_CarInfo.max_speed_forward, m_PlanningParams.speedProfileFactor);
 			}
@@ -581,10 +582,12 @@ void BehaviorGen::MainLoop()
 
 	while (ros::ok())
 	{
-		ros::spinOnce();
 
 		double dt  = UtilityHNS::UtilityH::GetTimeDiffNow(planningTimer);
 		UtilityHNS::UtilityH::GetTickCount(planningTimer);
+		//std::cout << "Forward: dt" << dt << std::endl;
+
+		ros::spinOnce();
 
 		if(m_MapType == PlannerHNS::MAP_KML_FILE && !bMap)
 		{
@@ -655,6 +658,9 @@ void BehaviorGen::MainLoop()
 		}
 		else
 			sub_GlobalPlannerPaths = nh.subscribe("/lane_waypoints_array", 	1,		&BehaviorGen::callbackGetGlobalPlannerPath, 	this);
+
+
+
 
 		loop_rate.sleep();
 	}

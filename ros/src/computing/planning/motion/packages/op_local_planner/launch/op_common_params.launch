@@ -37,7 +37,7 @@
 
 	<arg name="steeringDelay" 			default="1.2" />
 	<arg name="minPursuiteDistance" 	default="3.0"  />
-	<arg name="additionalBrakingDistance" default="10.0"  />
+	<arg name="additionalBrakingDistance" default="30.0"  />
 	
 	<arg name="giveUpDistance" 			default="-4.0"  />
 	
