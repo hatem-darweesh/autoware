@@ -30,6 +30,20 @@
 
 namespace autoware_map
 {
+	
+	bool exists(autoware_map_msgs::LaneArray &lanes, int lane_id){
+		for(const auto lane: lanes.data){
+			if(lane_id == lane.lane_id) return true;
+		}
+		return false;
+	}
+
+	bool exists(autoware_map_msgs::WaypointArray &waypoints, int waypoint_id){
+		for(const auto waypoint: waypoints.data){
+			if(waypoint_id == waypoint.waypoint_id) return true;
+		}
+		return false;
+	}
 
 MapWriter::MapWriter()
 {
@@ -168,6 +182,19 @@ void MapWriter::writeAutowareMap(std::string folder_name, PlannerHNS::RoadNetwor
 			wp_lanes_relations_list.data.push_back(wplr);
 		}
 	}
+
+	//remove invalid relations
+	auto erase_itr = std::remove_if(lane_relations_list.data.begin(),lane_relations_list.data.end(),
+ 								[&](autoware_map_msgs::LaneRelation lr){return (!exists(lanes_list, lr.next_lane_id)) ;});
+  for(auto itr = erase_itr; itr != lane_relations_list.data.end() ; itr++ ){
+		std::cout << "deleting: " << itr->lane_id << "->" << itr->next_lane_id << " " << (!exists(lanes_list, itr->lane_id)) << std::endl;
+	}
+	lane_relations_list.data.erase(erase_itr, lane_relations_list.data.end());
+
+	auto erase_itr2 = std::remove_if(wp_relations_list.data.begin(),wp_relations_list.data.end(),
+ 								[&](autoware_map_msgs::WaypointRelation wr){return !exists(waypoints_list, wr.waypoint_id) || !exists(waypoints_list, wr.next_waypoint_id) ;});
+	wp_relations_list.data.erase(erase_itr2, wp_relations_list.data.end());
+
 
 	for(unsigned int i=0; i<map.trafficLights.size(); i++)
 	{

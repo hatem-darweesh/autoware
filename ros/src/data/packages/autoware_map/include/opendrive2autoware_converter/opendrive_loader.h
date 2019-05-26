@@ -52,6 +52,7 @@ public:
     void connectRoads();
 
 private:
+		bool keep_right_;
     std::vector<OpenDriveRoad> roads_list_;
     std::vector<Junction> junctions_list_;
     std::vector<std::pair<std::string, std::vector<CSV_Reader::LINE_DATA> > > country_signal_codes_;

@@ -93,6 +93,7 @@ public:
 	int id_;
 	int junction_id_;
 	double length_;
+	bool keep_right_;
 	std::vector<FromRoadLink> predecessor_road_;
 	std::vector<ToRoadLink> successor_road_;
 	std::vector<Geometry> geometries_;
@@ -109,9 +110,8 @@ public:
 	std::vector<Connection> from_roads_;
 	std::vector<std::pair<std::string, std::vector<CSV_Reader::LINE_DATA> > >* p_country_signal_codes_;
 
-
-	std::vector<Connection> getFirstSectionConnections();
-	std::vector<Connection> getLastSectionConnections();
+	std::vector<Connection> getFirstSectionConnections( OpenDriveRoad *_p_predecessor_road);
+	std::vector<Connection> getLastSectionConnections( OpenDriveRoad *_p_predecessor_road);
 	void getRoadLanes(std::vector<PlannerHNS::Lane>& lanes_list, double resolution = 0.5);
 	void getTrafficLights(std::vector<PlannerHNS::TrafficLight>& all_lights);
 	void getTrafficSigns(std::vector<PlannerHNS::TrafficSign>& all_signs);
@@ -125,10 +125,27 @@ public:
 		id_ = 0;
 		junction_id_ = 0;
 		length_ = 0;
+		keep_right_ = true;
 
 	}
 
-	OpenDriveRoad(TiXmlElement* main_element, std::vector<std::pair<std::string, std::vector<CSV_Reader::LINE_DATA> > >* country_signal_codes = nullptr);
+	OpenDriveRoad(TiXmlElement* main_element, std::vector<std::pair<std::string, std::vector<CSV_Reader::LINE_DATA> > >* country_signal_codes = nullptr, bool keep_right = true);
+
+	RoadSection* getFirstSection()
+	{
+		if(sections_.size() == 0)
+			return nullptr;
+
+		return &sections_.at(0);
+	}
+
+	RoadSection* getLastSection()
+	{
+		if(sections_.size() == 0)
+			return nullptr;
+
+		return &sections_.at(sections_.size()-1);
+	}
 
 private:
 	Geometry* getMatchingGeometry(const double& sOffset)
@@ -238,7 +255,7 @@ private:
 	bool createRoadCenterPoint(RoadCenterInfo& inf_point, double _s);
 	void insertRoadCenterInfo(std::vector<RoadCenterInfo>& points_list, RoadCenterInfo& inf_point);
 	void fixRedundantPointsLanes(PlannerHNS::Lane& _lane);
-	void createSectionPoints(const RoadCenterInfo& ref_info, std::vector<PlannerHNS::Lane>& lanes_list, RoadSection* p_sec, int& wp_id_seq);
+	void createSectionPoints(const RoadCenterInfo& ref_info, std::vector<PlannerHNS::Lane>& lanes_list, RoadSection* p_sec, int& wp_id_seq, std::vector<int> &left_lane_ids, std::vector<int> &right_lane_ids);
 
 
 	PlannerHNS::Lane* getLaneById(const int& _l_id, std::vector<PlannerHNS::Lane>& _lanes_list)
@@ -250,22 +267,6 @@ private:
 		}
 
 		return nullptr;
-	}
-
-	RoadSection* getFirstSection()
-	{
-		if(sections_.size() == 0)
-			return nullptr;
-
-		return &sections_.at(0);
-	}
-
-	RoadSection* getLastSection()
-	{
-		if(sections_.size() == 0)
-			return nullptr;
-
-		return &sections_.at(sections_.size()-1);
 	}
 
 	bool exists(const std::vector<int>& _list, int _val)

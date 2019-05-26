@@ -304,6 +304,7 @@ class Connection
 public:
 	int id_;
 	int incoming_section_;
+	int outgoing_section_;
 	int incoming_road_;
 	int outgoing_road_;
 	std::string contact_point_;
@@ -313,6 +314,7 @@ public:
 	{
 		id_ = -1;
 		incoming_section_ = -1;
+		outgoing_section_ = -1; 
 		incoming_road_ = -1;
 		outgoing_road_ = -1;
 	}
@@ -359,6 +361,36 @@ public:
 
 		return 0;
 	}
+
+	void flip()
+	{
+		int tmp = incoming_road_;
+		incoming_road_ = outgoing_road_;
+		outgoing_road_ = tmp;
+
+		tmp = incoming_section_;
+		incoming_section_ = outgoing_section_;
+		outgoing_section_ = tmp; 
+		
+		for (auto &lane_link : lane_links)
+		{
+			tmp = lane_link.first;
+			lane_link.first = lane_link.second;
+			lane_link.second = tmp;
+		}
+	}
+
+	void flipRoad()
+	{
+		int tmp = incoming_road_;
+		incoming_road_ = outgoing_road_;
+		outgoing_road_ = tmp;
+		tmp = incoming_section_;
+		incoming_section_ = outgoing_section_;
+		outgoing_section_ = tmp;
+		
+	}
+
 };
 
 //from <OpenDRIVE>
@@ -382,6 +414,18 @@ public:
 				connections_.push_back(Connection(elements.at(i)));
 			}
 		}
+	}
+	std::vector<Connection> getConnectionsByRoadId(int road_id)
+	{
+		std::vector<Connection> ret_connections;
+		for( const auto connection: connections_)
+		{
+			if( connection.incoming_road_ == road_id)
+			{
+				ret_connections.push_back(connection);
+			}
+		}
+		return ret_connections;
 	}
 };
 
@@ -559,13 +603,27 @@ public:
 			XmlHelpers::findElements("predecessor", elements.at(0)->FirstChildElement(), pred_elements);
 			for(unsigned int j=0; j < pred_elements.size(); j++)
 			{
-				from_lane_.push_back(FromLaneLink(pred_elements.at(j)));
+				if(id_ > 0 )//left lanes
+				{
+					to_lane_.push_back(ToLaneLink(pred_elements.at(j)));
+				}
+				else if ( id_ < 0 )//right lanes
+				{
+					from_lane_.push_back(FromLaneLink(pred_elements.at(j)));	
+				}
 			}
 
 			XmlHelpers::findElements("successor", elements.at(0)->FirstChildElement(), succ_elements);
 			for(unsigned int j=0; j < succ_elements.size(); j++)
 			{
-				to_lane_.push_back(ToLaneLink(succ_elements.at(j)));
+				if(id_ > 0 )//left lanes
+				{
+					from_lane_.push_back(FromLaneLink(succ_elements.at(j)));
+				}
+				else if (id_ < 0)
+				{
+					to_lane_.push_back(ToLaneLink(succ_elements.at(j)));	
+				}
 			}
 		}
 
