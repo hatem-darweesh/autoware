@@ -50,13 +50,14 @@ BehaviorGen::BehaviorGen()
 	pub_BehaviorStateRviz = nh.advertise<visualization_msgs::MarkerArray>("behavior_state", 1);
 	pub_SelectedPathRviz = nh.advertise<visualization_msgs::MarkerArray>("local_selected_trajectory_rviz", 1);
 	pub_TargetSpeedRviz = nh.advertise<std_msgs::Float32>("op_target_velocity_rviz", 1);
+	pub_ActualSpeedRviz = nh.advertise<std_msgs::Float32>("op_actual_velocity_rviz", 1);
 
 	sub_current_pose = nh.subscribe("/current_pose", 1,	&BehaviorGen::callbackGetCurrentPose, this);
 
 	int bVelSource = 1;
 	_nh.getParam("/op_common_params/velocitySource", bVelSource);
 	if(bVelSource == 0)
-		sub_robot_odom = nh.subscribe("/odom", 1, &BehaviorGen::callbackGetRobotOdom, this);
+		sub_robot_odom = nh.subscribe("/carla/ego_vehicle/odometry", 1, &BehaviorGen::callbackGetRobotOdom, this);
 	else if(bVelSource == 1)
 		sub_current_velocity = nh.subscribe("/current_velocity", 1, &BehaviorGen::callbackGetVehicleStatus, this);
 	else if(bVelSource == 2)
@@ -215,7 +216,7 @@ void BehaviorGen::callbackGetVehicleStatus(const geometry_msgs::TwistStampedCons
 	m_VehicleStatus.speed = msg->twist.linear.x;
 	m_CurrentPos.v = m_VehicleStatus.speed;
 
-	if(fabs(m_CurrentPos.v) > 0.25)
+	if(fabs(m_CurrentPos.v) > 0.1)
 		m_VehicleStatus.steer = atan(m_CarInfo.wheel_base * msg->twist.angular.z/m_CurrentPos.v);
 	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;
@@ -305,6 +306,20 @@ void BehaviorGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayCon
 				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_temp_path);
 				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.35, 0.4, 0.05);
 				PlannerHNS::PlanningHelpers::GenerateRecommendedSpeed(m_GlobalPaths.at(i), m_CarInfo.max_speed_forward, m_PlanningParams.speedProfileFactor);
+
+				std::ostringstream str_out;
+				str_out << UtilityHNS::UtilityH::GetHomeDirectory();
+				if(m_ExperimentFolderName.size() == 0)
+					str_out << UtilityHNS::DataRW::LoggingMainfolderName;
+				else
+					str_out << UtilityHNS::DataRW::LoggingMainfolderName + UtilityHNS::DataRW::ExperimentsFolderName + m_ExperimentFolderName;
+
+				str_out << UtilityHNS::DataRW::GlobalPathLogFolderName;
+				str_out << "GlobalPath_";
+				str_out << i;
+				str_out << "_";
+				PlannerHNS::PlanningHelpers::WritePathToFile(str_out.str(), m_GlobalPaths.at(i));
+
 			}
 
 			std::cout << "Received New Global Path Selector! " << std::endl;
@@ -446,6 +461,8 @@ void BehaviorGen::VisualizeLocalPlanner()
 	std_msgs::Float32 target_speed;
 	target_speed.data = m_CurrentBehavior.maxVelocity * 3.6;
 	pub_TargetSpeedRviz.publish(target_speed);
+	target_speed.data = m_CurrentPos.v * 3.6;
+	pub_ActualSpeedRviz.publish(target_speed);
 
 	visualization_msgs::MarkerArray selected_path;
 	std::vector<PlannerHNS::WayPoint> path = m_BehaviorGenerator.m_Path;
@@ -516,6 +533,11 @@ void BehaviorGen::SendLocalPlanningTopics()
 
 void BehaviorGen::LogLocalPlanningInfo(double dt)
 {
+	//just for carla
+	int curr_lucky_index = 0;
+	if(m_BehaviorGenerator.m_prev_index.size() > 0)
+		curr_lucky_index = m_BehaviorGenerator.m_prev_index.at(0);
+
 	timespec log_t;
 	UtilityHNS::UtilityH::GetTickCount(log_t);
 	std::ostringstream dataLine;
@@ -523,7 +545,8 @@ void BehaviorGen::LogLocalPlanningInfo(double dt)
 			m_BehaviorGenerator.m_pCurrentBehaviorState->m_pParams->rollOutNumber << "," <<
 			m_BehaviorGenerator.m_pCurrentBehaviorState->GetCalcParams()->bFullyBlock << "," <<
 			m_BehaviorGenerator.m_pCurrentBehaviorState->GetCalcParams()->iCentralTrajectory << "," <<
-			m_BehaviorGenerator.m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeTrajectory << "," <<
+			//m_BehaviorGenerator.m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeTrajectory << "," << // only for carla
+			curr_lucky_index << "," <<// only for carla
 			m_BehaviorGenerator.m_pCurrentBehaviorState->GetCalcParams()->currentStopSignID << "," <<
 			m_BehaviorGenerator.m_pCurrentBehaviorState->GetCalcParams()->currentTrafficLightID << "," <<
 			m_BehaviorGenerator.m_pCurrentBehaviorState->GetCalcParams()->minStoppingDistance << "," <<
@@ -551,25 +574,25 @@ void BehaviorGen::LogLocalPlanningInfo(double dt)
 		str_out << "Local_Trajectory_";
 		PlannerHNS::PlanningHelpers::WritePathToFile(str_out.str(), m_BehaviorGenerator.m_Path);
 	}
-
-	if(bWayGlobalPathLogs)
-	{
-		for(unsigned int i=0; i < m_GlobalPaths.size(); i++)
-		{
-			std::ostringstream str_out;
-			str_out << UtilityHNS::UtilityH::GetHomeDirectory();
-			if(m_ExperimentFolderName.size() == 0)
-				str_out << UtilityHNS::DataRW::LoggingMainfolderName;
-			else
-				str_out << UtilityHNS::DataRW::LoggingMainfolderName + UtilityHNS::DataRW::ExperimentsFolderName + m_ExperimentFolderName;
-			str_out << UtilityHNS::DataRW::PathLogFolderName;
-			str_out << "Global_Path_";
-			str_out << i;
-			str_out << "_";
-			PlannerHNS::PlanningHelpers::WritePathToFile(str_out.str(), m_GlobalPaths.at(i));
-		}
-		bWayGlobalPathLogs = false;
-	}
+//
+//	if(bWayGlobalPathLogs)
+//	{
+//		for(unsigned int i=0; i < m_GlobalPaths.size(); i++)
+//		{
+//			std::ostringstream str_out;
+//			str_out << UtilityHNS::UtilityH::GetHomeDirectory();
+//			if(m_ExperimentFolderName.size() == 0)
+//				str_out << UtilityHNS::DataRW::LoggingMainfolderName;
+//			else
+//				str_out << UtilityHNS::DataRW::LoggingMainfolderName + UtilityHNS::DataRW::ExperimentsFolderName + m_ExperimentFolderName;
+//			str_out << UtilityHNS::DataRW::PathLogFolderName;
+//			str_out << "Global_Path_";
+//			str_out << i;
+//			str_out << "_";
+//			PlannerHNS::PlanningHelpers::WritePathToFile(str_out.str(), m_GlobalPaths.at(i));
+//		}
+//		bWayGlobalPathLogs = false;
+//	}
 }
 
 void BehaviorGen::MainLoop()

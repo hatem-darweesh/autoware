@@ -86,6 +86,11 @@ public:
   {
     return minimum_lookahead_distance_;
   }
+
+  unsigned int getTrajectorySize()
+  {
+	  return current_waypoints_.size();
+  }
   // processing
   bool canGetCurvature(double *output_kappa);
 

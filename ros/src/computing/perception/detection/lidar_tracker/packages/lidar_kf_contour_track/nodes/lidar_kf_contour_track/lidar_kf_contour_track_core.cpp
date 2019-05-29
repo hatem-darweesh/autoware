@@ -59,7 +59,7 @@ ContourTracker::ContourTracker()
 	sub_current_pose 		= nh.subscribe("/current_pose",   1, &ContourTracker::callbackGetCurrentPose, 	this);
 
 	if(m_VelocitySource == 0)
-		sub_robot_odom = nh.subscribe("/odom", 1, &ContourTracker::callbackGetRobotOdom, this);
+		sub_robot_odom = nh.subscribe("/carla/ego_vehicle/odometry", 1, &ContourTracker::callbackGetRobotOdom, this);
 	else if(m_VelocitySource == 1)
 		sub_current_velocity = nh.subscribe("/current_velocity", 1, &ContourTracker::callbackGetVehicleStatus, this);
 	else if(m_VelocitySource == 2)
@@ -659,7 +659,8 @@ void ContourTracker::callbackGetCanInfo(const autoware_can_msgs::CANInfoConstPtr
 void ContourTracker::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg)
 {
 	m_VehicleStatus.speed = msg->twist.twist.linear.x;
-	m_VehicleStatus.steer += atan(2.7 * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
+	if(msg->twist.twist.linear.x != 0)
+		m_VehicleStatus.steer += atan(2.7 * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
 	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 }
 

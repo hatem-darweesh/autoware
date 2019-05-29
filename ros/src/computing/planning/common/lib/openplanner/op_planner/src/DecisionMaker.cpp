@@ -197,7 +197,7 @@ void DecisionMaker::InitBehaviorStates()
 
  	double critical_long_front_distance =  m_params.additionalBrakingDistance + m_params.verticalSafetyDistance;
 
- 	pValues->distanceToGoal = PlannerHNS::PlanningHelpers::GetDistanceFromPoseToEnd(state, m_TotalOriginalPath.at(pValues->iCurrSafeLane));
+ 	pValues->distanceToGoal = PlannerHNS::PlanningHelpers::GetDistanceFromPoseToEnd(state, m_TotalPath.at(pValues->iCurrSafeLane));
 	//if(ReachEndOfGlobalPath(pValues->minStoppingDistance + critical_long_front_distance, pValues->iCurrSafeLane)) //deprecated 27-August-2018
  	if(pValues->distanceToGoal < m_params.goalDiscoveryDistance)
  		pValues->currentGoalID = -1;
@@ -250,9 +250,9 @@ void DecisionMaker::InitBehaviorStates()
 		pValues->velocityOfNext = 0;
 	}
 
- 	if(m_RollOuts.size() > 0 && m_TotalOriginalPath.size() > 0)
+ 	if(m_RollOuts.size() > 0 && m_TotalPath.size() > 0)
 	{
-		double d_between_ends = hypot(m_TotalOriginalPath.at(m_iCurrentTotalPathId).back().pos.y - m_RollOuts.at(pValues->iCentralTrajectory).back().pos.y, m_TotalOriginalPath.at(m_iCurrentTotalPathId).back().pos.x - m_RollOuts.at(pValues->iCentralTrajectory).back().pos.x);
+		double d_between_ends = hypot(m_TotalPath.at(m_iCurrentTotalPathId).back().pos.y - m_RollOuts.at(pValues->iCentralTrajectory).back().pos.y, m_TotalPath.at(m_iCurrentTotalPathId).back().pos.x - m_RollOuts.at(pValues->iCentralTrajectory).back().pos.x);
 		if(d_between_ends < m_params.pathDensity)
 		{
 			pValues->bFinalLocalTrajectory = true;
@@ -309,6 +309,8 @@ void DecisionMaker::InitBehaviorStates()
 	 {
 		 m_pCurrentBehaviorState->GetCalcParams()->bNewGlobalPath = true;
 		 m_TotalOriginalPath = globalPath;
+		 for(unsigned int i=0; i < globalPath.size(); i++)
+			 m_prev_index.push_back(0);
 	 }
  }
 
@@ -326,7 +328,7 @@ void DecisionMaker::InitBehaviorStates()
 			|| preCalcPrams->bRePlan
 			|| preCalcPrams->bNewGlobalPath)
 	{
-		//std::cout << "New Local Plan !! " << currIndex << ", "<< preCalcPrams->bRePlan << ", " << preCalcPrams->bNewGlobalPath  << ", " <<  m_TotalOriginalPath.at(0).size() << ", PrevLocal: " << m_Path.size();
+		//std::cout << "New Local Plan !! " << currIndex << ", "<< preCalcPrams->bRePlan << ", " << preCalcPrams->bNewGlobalPath  << ", " <<  m_TotalPath.at(0).size() << ", PrevLocal: " << m_Path.size();
 		m_Path = m_RollOuts.at(preCalcPrams->iCurrSafeTrajectory);
 		//std::cout << ", NewLocal: " << m_Path.size() << std::endl;
 
@@ -376,12 +378,12 @@ void DecisionMaker::InitBehaviorStates()
 
 	 PlannerHNS::PreCalculatedConditions *preCalcPrams = m_pCurrentBehaviorState->GetCalcParams();
 
-	if(!preCalcPrams || m_TotalOriginalPath.size() == 0) return 0;
+	if(!preCalcPrams || m_TotalPath.size() == 0) return 0;
 
 	RelativeInfo info, total_info;
-	PlanningHelpers::GetRelativeInfo(m_TotalOriginalPath.at(m_iCurrentTotalPathId), state, total_info);
+	PlanningHelpers::GetRelativeInfo(m_TotalPath.at(m_iCurrentTotalPathId), state, total_info);
 	PlanningHelpers::GetRelativeInfo(m_Path, state, info);
-	double max_velocity	= PlannerHNS::PlanningHelpers::GetVelocityAhead(m_TotalOriginalPath.at(m_iCurrentTotalPathId), total_info, total_info.iBack, preCalcPrams->minStoppingDistance);
+	double max_velocity	= PlannerHNS::PlanningHelpers::GetVelocityAhead(m_TotalPath.at(m_iCurrentTotalPathId), total_info, total_info.iBack, preCalcPrams->minStoppingDistance);
 	if(max_velocity > m_params.maxSpeed)
 		max_velocity = m_params.maxSpeed;
 
@@ -401,6 +403,8 @@ void DecisionMaker::InitBehaviorStates()
 			deceleration_critical = m_CarInfo.max_deceleration;
 
 		desiredVelocity = deceleration_critical * dt + CurrStatus.speed;
+
+		desiredVelocity = 0; //for CARLA
 
 		//std::cout << "Stopping : V: " << CurrStatus.speed << ", A: " << deceleration_critical << ", dt: " << dt << std::endl;
 		//std::cout << "Stopping (beh, brake): (" << beh.stopDistance << ", " << preCalcPrams->minStoppingDistance << ") , desiredPID=" << desiredVelocity << ", To Goal: " << preCalcPrams->distanceToGoal <<  std::endl;
@@ -425,8 +429,12 @@ void DecisionMaker::InitBehaviorStates()
 //			desiredVelocity  = desiredVelocity * 0.75;
 //		}
 
+
 		if(beh.followVelocity > CurrStatus.speed)
 			desiredVelocity = CurrStatus.speed;
+
+
+		desiredVelocity = 0; // for CARLA
 
 		//std::cout << "Following V: " << CurrStatus.speed << ", Desired V: " << beh.followVelocity << ", A: " << deceleration_critical << ", d_to_stop: " << distance_to_stop << ", sudden_stop_d" << sudden_stop_distance << std::endl;
 		//std::cout << "Desired Vel: " << desiredVelocity << std::endl;
@@ -442,13 +450,16 @@ void DecisionMaker::InitBehaviorStates()
 
 		desiredVelocity = (acceleration_critical * dt) + CurrStatus.speed;
 
-		if(desiredVelocity > 0 && desiredVelocity < 1.0)
-			desiredVelocity = 1.0;
-
-		desiredVelocity  = max_velocity;
+		//For CARLA
+		if(m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeTrajectory != m_pCurrentBehaviorState->GetCalcParams()->iCentralTrajectory)
+		{
+			desiredVelocity  = max_velocity * 0.5;
+		}
+		else
+			desiredVelocity  = max_velocity;
 
 		//std::cout << "bEnd : " << preCalcPrams->bFinalLocalTrajectory << ", Min D: " << preCalcPrams->minStoppingDistance << ", D To Goal: " << preCalcPrams->distanceToGoal << std::endl;
-		std::cout << "Forward: dt" << dt << " ,Target vel: " << desiredVelocity << ", Acc: " << acceleration_critical << ", Max Vel: " << max_velocity << ", Curr Vel: " << CurrStatus.speed << ", break_d: " << m_params.additionalBrakingDistance  << std::endl;
+		//std::cout << "Forward: dt" << dt << " ,Target vel: " << desiredVelocity << ", Acc: " << acceleration_critical << ", Max Vel: " << max_velocity << ", Curr Vel: " << CurrStatus.speed << ", break_d: " << m_params.additionalBrakingDistance  << std::endl;
 		//std::cout << "Forward Target Acc: " << acceleration_critical  << ", PID Velocity: " << desiredVelocity << ", Max Velocity : " << max_velocity  << std::endl;
 	}
 	else if(beh.state == STOP_SIGN_WAIT_STATE || beh.state == TRAFFIC_LIGHT_WAIT_STATE)
@@ -487,8 +498,18 @@ void DecisionMaker::InitBehaviorStates()
 	 m_TotalPath.clear();
 	for(unsigned int i = 0; i < m_TotalOriginalPath.size(); i++)
 	{
+//		PlannerHNS::RelativeInfo info;
+//		PlannerHNS::PlanningHelpers::GetRelativeInfoLimited(m_TotalOriginalPath.at(i), state, info, m_prev_index.at(i));
+//
+//		m_prev_index.at(i) = info.iBack - 1;
+//		if(m_prev_index.at(i) < 0)
+//			m_prev_index.at(i) = 0;
+
 		t_centerTrajectorySmoothed.clear();
-		PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_TotalOriginalPath.at(i), state, m_params.horizonDistance ,	m_params.pathDensity , t_centerTrajectorySmoothed);
+		m_prev_index.at(i) = PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_TotalOriginalPath.at(i), state, m_params.horizonDistance ,	m_params.pathDensity , t_centerTrajectorySmoothed, m_prev_index.at(i));
+
+		if(m_prev_index.at(i) > 0 ) m_prev_index.at(i) = m_prev_index.at(i) -1;
+
 		m_TotalPath.push_back(t_centerTrajectorySmoothed);
 	}
 

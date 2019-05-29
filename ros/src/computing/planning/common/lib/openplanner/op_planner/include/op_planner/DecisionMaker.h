@@ -25,6 +25,7 @@ public:
 	PlannerHNS::RoadNetwork m_Map;
 	int m_iCurrentTotalPathId;
 	std::vector<std::vector<WayPoint> > m_RollOuts;
+	std::vector<int> m_prev_index;
 	Lane* pLane;
 
 	BehaviorStateMachine* 		m_pCurrentBehaviorState;

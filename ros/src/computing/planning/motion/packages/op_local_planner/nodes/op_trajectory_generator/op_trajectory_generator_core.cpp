@@ -47,11 +47,11 @@ TrajectoryGen::TrajectoryGen()
 	int bVelSource = 1;
 	_nh.getParam("/op_common_params/velocitySource", bVelSource);
 	if(bVelSource == 0)
-		sub_robot_odom = nh.subscribe("/odom", 10,	&TrajectoryGen::callbackGetRobotOdom, this);
+		sub_robot_odom = nh.subscribe("/carla/ego_vehicle/odometry", 11,	&TrajectoryGen::callbackGetRobotOdom, this);
 	else if(bVelSource == 1)
-		sub_current_velocity = nh.subscribe("/current_velocity", 10, &TrajectoryGen::callbackGetVehicleStatus, this);
+		sub_current_velocity = nh.subscribe("/current_velocity", 11, &TrajectoryGen::callbackGetVehicleStatus, this);
 	else if(bVelSource == 2)
-		sub_can_info = nh.subscribe("/can_info", 10, &TrajectoryGen::callbackGetCANInfo, this);
+		sub_can_info = nh.subscribe("/can_info", 11, &TrajectoryGen::callbackGetCANInfo, this);
 
 	sub_GlobalPlannerPaths = nh.subscribe("/lane_waypoints_array", 1, &TrajectoryGen::callbackGetGlobalPlannerPath, this);
 }
@@ -156,7 +156,9 @@ void TrajectoryGen::callbackGetCANInfo(const autoware_can_msgs::CANInfoConstPtr 
 void TrajectoryGen::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg)
 {
 	m_VehicleStatus.speed = msg->twist.twist.linear.x;
-	m_VehicleStatus.steer += atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
+
+	if(msg->twist.twist.linear.x != 0)
+		m_VehicleStatus.steer += atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
 	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;
 }
@@ -189,6 +191,12 @@ void TrajectoryGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayC
 			{
 				PlannerHNS::PlanningHelpers::FixPathDensity(m_GlobalPaths.at(i), m_PlanningParams.pathDensity);
 				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_GlobalPaths.at(i));
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
+				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_GlobalPaths.at(i));
+				m_prev_index.push_back(0);
 			}
 
 			std::cout << "Received New Global Path Generator ! " << std::endl;
@@ -236,11 +244,22 @@ void TrajectoryGen::MainLoop()
 
 			for(unsigned int i = 0; i < m_GlobalPaths.size(); i++)
 			{
+//				PlannerHNS::RelativeInfo info;
+//				PlannerHNS::PlanningHelpers::GetRelativeInfoLimited(m_GlobalPaths.at(i), m_CurrentPos, info, m_prev_index.at(i));
+//
+//				m_prev_index.at(i) = info.iBack - 1;
+//				if(m_prev_index.at(i) < 0)
+//					m_prev_index.at(i) = 0;
+
 				t_centerTrajectorySmoothed.clear();
-				PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_GlobalPaths.at(i), m_CurrentPos, m_PlanningParams.horizonDistance ,
-						m_PlanningParams.pathDensity ,t_centerTrajectorySmoothed);
+
+				m_prev_index.at(i) = PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_GlobalPaths.at(i), m_CurrentPos, m_PlanningParams.horizonDistance ,
+						m_PlanningParams.pathDensity ,t_centerTrajectorySmoothed, m_prev_index.at(i));
+
+				if(m_prev_index.at(i) > 0 ) m_prev_index.at(i) = m_prev_index.at(i) -1;
 
 				m_GlobalPathSections.push_back(t_centerTrajectorySmoothed);
+
 			}
 
 			std::vector<PlannerHNS::WayPoint> sampledPoints_debug;

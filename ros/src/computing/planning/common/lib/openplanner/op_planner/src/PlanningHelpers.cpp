@@ -604,6 +604,26 @@ int PlanningHelpers::GetClosestNextPointIndexFastV2(const vector<WayPoint>& traj
 
 }
 
+//std::vector<int> PlanningHelpers::GetClosestNextPoints(const std::vector<WayPoint>& trajectory, const WayPoint& p, const double& distance_range, const int& prevIndex = 0)
+//{
+//	if(prevIndex < 0)
+//		prevIndex = 0;
+//
+//	std::vector<int> closest_points;
+//	double d = 0;
+//	int close_point = trajectory.size();
+//	for(unsigned int i=prevIndex; i< trajectory.size(); i++)
+//	{
+//		d = hypot(trajectory.at(i).pos.y - p.pos.y, trajectory.at(i).pos.x - p.pos.x);
+//		if(d < distance_range && )
+//		{
+//			closest_points.push_back(i);
+//		}
+//	}
+//
+//	return closest_points;
+//}
+
 int PlanningHelpers::GetClosestNextPointIndexFast(const vector<WayPoint>& trajectory, const WayPoint& p,const int& prevIndex )
 {
 	int size = (int)trajectory.size();
@@ -698,10 +718,11 @@ int PlanningHelpers::GetClosestNextPointIndexDirectionFast(const vector<WayPoint
 
 	for(unsigned int i=prevIndex; i< size; i++)
 	{
-		d  = distance2pointsSqr(trajectory[i].pos, p.pos);
-		double angle_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(trajectory[i].pos.a, p.pos.a)*RAD2DEG;
-
-		if(d < minD && angle_diff < 45)
+		d  = distance2pointsSqr(trajectory.at(i).pos, p.pos);
+		double angle_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(trajectory.at(i).pos.a, p.pos.a)*RAD2DEG;
+		double index_diff = (int)i - prevIndex; //just for carla
+		//if(d < minD && angle_diff < 45)
+		if(d < minD && angle_diff < 45 && index_diff < 100) //just for carla
 		{
 			min_index = i;
 			minD = d;
@@ -1419,14 +1440,14 @@ void PlanningHelpers::ExtractPartFromPointToDistance(const vector<WayPoint>& ori
 	//TestQuadraticSpline(extractedPath, tempPath);
 }
 
-void PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(const vector<WayPoint>& originalPath, const WayPoint& pos, const double& minDistance,
-		const double& pathDensity, vector<WayPoint>& extractedPath)
+int PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(const vector<WayPoint>& originalPath, const WayPoint& pos, const double& minDistance,
+		const double& pathDensity, vector<WayPoint>& extractedPath, int prev_index)
 {
-	if(originalPath.size() < 2 ) return;
+	if(originalPath.size() < 2 ) return 0;
 
 	extractedPath.clear();
 
-	int close_index = GetClosestNextPointIndexDirectionFast(originalPath, pos);
+	int close_index = GetClosestNextPointIndexDirectionFast(originalPath, pos, prev_index);
 	double d = 0;
 
 	if(close_index + 1 >= originalPath.size())
@@ -1455,11 +1476,13 @@ void PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(const vector<W
 	if(extractedPath.size() < 2)
 	{
 		cout << endl << "### Planner Z . Extracted Rollout Path is too Small, Size = " << extractedPath.size() << endl;
-		return;
+		return close_index;
 	}
 
 	FixPathDensity(extractedPath, pathDensity);
 	CalcAngleAndCost(extractedPath);
+
+	return close_index;
 }
 
 void PlanningHelpers::ExtractPartFromPointToDistanceFast(const vector<WayPoint>& originalPath, const WayPoint& pos, const double& minDistance,

@@ -255,11 +255,19 @@ void Yolo3DetectorNode::image_callback(const sensor_msgs::ImageConstPtr& in_imag
 
     detections = yolo_detector_.detect(darknet_image_);
 
+
+
     //Prepare Output message
     autoware_msgs::DetectedObjectArray output_message;
     output_message.header = in_image_message->header;
 
     convert_rect_to_image_obj(detections, output_message);
+
+    std::cout << "After Detection  !!!!! " << detections.size() << std::endl;
+    for(unsigned int i = 0; i < output_message.objects.size(); i++)
+    {
+    	std::cout << output_message.objects.at(i).label << std::endl;
+    }
 
     publisher_objects_.publish(output_message);
 

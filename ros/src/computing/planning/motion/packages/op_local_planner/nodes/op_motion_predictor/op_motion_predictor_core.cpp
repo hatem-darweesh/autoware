@@ -56,7 +56,7 @@ MotionPrediction::MotionPrediction()
 	int bVelSource = 1;
 	_nh.getParam("/op_common_params/velocitySource", bVelSource);
 	if(bVelSource == 0)
-		sub_robot_odom = nh.subscribe("/odom", 10, &MotionPrediction::callbackGetRobotOdom, this);
+		sub_robot_odom = nh.subscribe("/carla/ego_vehicle/odometry", 10, &MotionPrediction::callbackGetRobotOdom, this);
 	else if(bVelSource == 1)
 		sub_current_velocity = nh.subscribe("/current_velocity", 10, &MotionPrediction::callbackGetVehicleStatus, this);
 	else if(bVelSource == 2)
@@ -226,7 +226,8 @@ void MotionPrediction::callbackGetCANInfo(const autoware_can_msgs::CANInfoConstP
 void MotionPrediction::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg)
 {
 	m_VehicleStatus.speed = msg->twist.twist.linear.x;
-	m_VehicleStatus.steer += atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
+	if(msg->twist.twist.linear.x != 0)
+		m_VehicleStatus.steer += atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
 	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;
 }

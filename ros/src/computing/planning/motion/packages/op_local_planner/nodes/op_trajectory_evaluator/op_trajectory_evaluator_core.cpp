@@ -44,16 +44,16 @@ TrajectoryEvalCore::TrajectoryEvalCore()
 	pub_TrajectoryCost = nh.advertise<autoware_msgs::Lane>("local_trajectory_cost", 1);
 	pub_SafetyBorderRviz = nh.advertise<visualization_msgs::Marker>("safety_border", 1);
 
-	sub_current_pose = nh.subscribe("/current_pose", 10, &TrajectoryEvalCore::callbackGetCurrentPose, this);
+	sub_current_pose = nh.subscribe("/current_pose", 1, &TrajectoryEvalCore::callbackGetCurrentPose, this);
 
 	int bVelSource = 1;
 	_nh.getParam("/op_common_params/velocitySource", bVelSource);
 	if(bVelSource == 0)
-		sub_robot_odom = nh.subscribe("/odom", 10, &TrajectoryEvalCore::callbackGetRobotOdom, this);
+		sub_robot_odom = nh.subscribe("/carla/ego_vehicle/odometry", 1, &TrajectoryEvalCore::callbackGetRobotOdom, this);
 	else if(bVelSource == 1)
-		sub_current_velocity = nh.subscribe("/current_velocity", 10, &TrajectoryEvalCore::callbackGetVehicleStatus, this);
+		sub_current_velocity = nh.subscribe("/current_velocity", 1, &TrajectoryEvalCore::callbackGetVehicleStatus, this);
 	else if(bVelSource == 2)
-		sub_can_info = nh.subscribe("/can_info", 10, &TrajectoryEvalCore::callbackGetCANInfo, this);
+		sub_can_info = nh.subscribe("/can_info", 1, &TrajectoryEvalCore::callbackGetCANInfo, this);
 
 	sub_GlobalPlannerPaths = nh.subscribe("/lane_waypoints_array", 1, &TrajectoryEvalCore::callbackGetGlobalPlannerPath, this);
 	sub_LocalPlannerPaths = nh.subscribe("/local_trajectories", 1, &TrajectoryEvalCore::callbackGetLocalPlannerPath, this);
@@ -154,7 +154,7 @@ void TrajectoryEvalCore::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& 
 {
 	m_VehicleStatus.speed = msg->twist.twist.linear.x;
 	m_CurrentPos.v = m_VehicleStatus.speed;
-	if(fabs(msg->twist.twist.linear.x) > 0.25)
+	if(fabs(msg->twist.twist.linear.x) > 0.1)
 		m_VehicleStatus.steer = atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
 	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;

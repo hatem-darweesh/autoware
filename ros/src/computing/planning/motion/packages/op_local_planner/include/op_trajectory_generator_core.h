@@ -50,6 +50,7 @@ protected:
 	std::vector<PlannerHNS::WayPoint> m_temp_path;
 	std::vector<std::vector<PlannerHNS::WayPoint> > m_GlobalPaths;
 	std::vector<std::vector<PlannerHNS::WayPoint> > m_GlobalPathSections;
+	std::vector<int> m_prev_index;
 	std::vector<PlannerHNS::WayPoint> t_centerTrajectorySmoothed;
 	std::vector<std::vector<std::vector<PlannerHNS::WayPoint> > > m_RollOuts;
 	bool bWayGlobalPath;

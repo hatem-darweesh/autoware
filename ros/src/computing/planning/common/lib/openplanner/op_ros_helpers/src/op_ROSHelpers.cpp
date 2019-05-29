@@ -1580,7 +1580,8 @@ void ROSHelpers::createGlobalLaneArrayVelocityMarker(const autoware_msgs::LaneAr
 
       // double to string
       std::ostringstream str_out;
-      str_out << lane_waypoints_array.lanes.at(i).waypoints.at(j).twist.twist.linear.x;
+      //str_out << lane_waypoints_array.lanes.at(i).waypoints.at(j).twist.twist.linear.x;
+      str_out << j;
       //std::string vel = str_out.str();
       velocity_marker.text = str_out.str();//vel.erase(vel.find_first_of(".") + 2);
 

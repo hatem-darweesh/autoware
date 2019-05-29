@@ -48,6 +48,8 @@ public:
 
 	static int GetClosestNextPointIndex_obsolete(const std::vector<WayPoint>& trajectory, const WayPoint& p, const int& prevIndex = 0);
 
+	static std::vector<int> GetClosestNextPoints(const std::vector<WayPoint>& trajectory, const WayPoint& p, const double& distance_range = 2, const int& prevIndex = 0);
+
 	static int GetClosestNextPointIndexFast(const std::vector<WayPoint>& trajectory, const WayPoint& p, const int& prevIndex = 0);
 
 	static int GetClosestNextPointIndexFastV2(const std::vector<WayPoint>& trajectory, const WayPoint& p, const int& prevIndex = 0);
@@ -94,8 +96,8 @@ public:
 	static void ExtractPartFromPointToDistanceFast(const std::vector<WayPoint>& originalPath, const WayPoint& pos, const double& minDistance,
 				const double& pathDensity, std::vector<WayPoint>& extractedPath, const double& SmoothDataWeight, const double& SmoothWeight, const double& SmoothTolerance);
 
-	static void ExtractPartFromPointToDistanceDirectionFast(const std::vector<WayPoint>& originalPath, const WayPoint& pos, const double& minDistance,
-			const double& pathDensity, std::vector<WayPoint>& extractedPath);
+	static int ExtractPartFromPointToDistanceDirectionFast(const std::vector<WayPoint>& originalPath, const WayPoint& pos, const double& minDistance,
+			const double& pathDensity, std::vector<WayPoint>& extractedPath, int prev_index = 0);
 
 	static void CalculateRollInTrajectories(const WayPoint& carPos, const double& speed, const std::vector<WayPoint>& originalCenter, int& start_index,
 			int& end_index, std::vector<double>& end_laterals ,

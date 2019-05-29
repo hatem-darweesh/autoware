@@ -88,6 +88,23 @@ void PurePursuitNode::run()
       continue;
     }
 
+    if(pp_.getTrajectorySize() < 3)
+    {
+	geometry_msgs::TwistStamped ts;
+    	  ts.header.stamp = ros::Time::now();
+    	  ts.twist.linear.x = 0;
+    	  ts.twist.angular.z = 0;
+    	  pub1_.publish(ts);
+    	publishControlCommandStamped(0,0);
+
+    	  autoware_msgs::ControlCommandStamped ccs;
+    	  ccs.header.stamp = ros::Time::now();
+    	  ccs.cmd.linear_velocity = 0;
+    	  ccs.cmd.steering_angle = 0;
+    	  pub2_.publish(ccs);
+}
+else
+{
     pp_.setLookaheadDistance(computeLookaheadDistance());
     pp_.setMinimumLookaheadDistance(minimum_lookahead_distance_);
 
@@ -109,7 +126,7 @@ void PurePursuitNode::run()
     pub16_.publish(angular_gravity_msg);
 
     publishDeviationCurrentPosition(pp_.getCurrentPose().position, pp_.getCurrentWaypoints());
-
+}
     is_pose_set_ = false;
     is_velocity_set_ = false;
     is_waypoint_set_ = false;
@@ -227,6 +244,9 @@ void PurePursuitNode::callbackFromCurrentVelocity(const geometry_msgs::TwistStam
 
 void PurePursuitNode::callbackFromWayPoints(const autoware_msgs::LaneConstPtr &msg)
 {
+	if(!msg) return;
+	if(msg->waypoints.size() == 0 ) return;
+
   if (!msg->waypoints.empty())
     command_linear_velocity_ = msg->waypoints.at(0).twist.twist.linear.x;
   else
