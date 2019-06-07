@@ -211,6 +211,31 @@ void DataRW::WriteKMLFile(const string& fileName, const vector<vector<string> >&
 	  	kmldoc.SaveFile(fileName);
   }
 
+void DataRW::writeCSVFile(const std::string& folder, const std::string& title, const std::string& header,
+		const std::vector<std::string>& data_list)
+{
+
+	if(data_list.size() < 2)
+			return;
+
+	std::ostringstream file_name;
+	file_name << folder;
+	file_name << title;
+	file_name << ".csv";
+
+	std::ofstream f(file_name.str().c_str());
+
+	if(f.is_open())
+	{
+		if(header.size() > 0)
+			f << header << "\r\n";
+		for(unsigned int i = 0 ; i < data_list.size(); i++)
+			f << data_list.at(i) << "\r\n";
+	}
+
+	f.close();
+}
+
 SimpleReaderBase::SimpleReaderBase(const string& fileName, const int& nHeaders,const char& separator,
 		  const int& iDataTitles, const int& nVariablesForOneObject ,
 		  const int& nLineHeaders, const string& headerRepeatKey)

@@ -1381,6 +1381,74 @@ double PlanningHelpers::CalcCircle(const GPSPoint& pt1, const GPSPoint& pt2, con
 	return  distance2points(center,pt1);
 }
 
+void PlanningHelpers::CalcDtLaneInfo(vector<WayPoint>& path)
+{
+	if(path.size() < 2) return;
+
+	double r_limit = 90000.0;
+	double max_slope = 999999;
+
+	path.at(0).rot.z = UtilityHNS::UtilityH::FixNegativeAngle(atan2(path.at(1).pos.y - path.at(0).pos.y, path.at(1).pos.x - path.at(0).pos.x));
+	path.at(0).rot.w = r_limit;
+	path.at(0).cost = 0;
+	path.at(0).rot.y = 0;
+
+	for(int j = 1; j < path.size()-1; j++)
+	{
+		GPSPoint center;
+		double r =  CalcCircle(path.at(j+1).pos,path.at(j).pos, path.at(j-1).pos, center);
+		if(r > r_limit || std::isnan(r))
+			path.at(j).rot.w = r_limit;
+		else
+			path.at(j).rot.w = r;
+
+		path.at(j).rot.z = UtilityHNS::UtilityH::FixNegativeAngle(atan2(path.at(j+1).pos.y - path.at(j).pos.y, path.at(j+1).pos.x - path.at(j).pos.x ));
+		double d = hypot(path.at(j).pos.y - path.at(j-1).pos.y, path.at(j).pos.x - path.at(j-1).pos.x);
+		double z_diff = path.at(j).pos.z - path.at(j-1).pos.z;
+		double a = sqrt((d*d) - (z_diff*z_diff));
+
+		path.at(j).cost = path.at(j-1).cost + d;
+		if(a != 0)
+		{
+			path.at(j).rot.y = (z_diff/a) * 100.0; // percentile road slope calculation
+		}
+
+//		double m1 = (path.at(j).pos.y-path.at(j-1).pos.y)/(path.at(j).pos.x-path.at(j-1).pos.x);
+//		if(isnan(m1) || isinf(m1) || fabs(m1) > max_slope)
+//			m1 = max_slope;
+//
+//		double m2 = (path.at(j+1).pos.y-path.at(j).pos.y)/(path.at(j+1).pos.x-path.at(j).pos.x);
+//		if(isnan(m2) || isinf(m2) || fabs(m2) > max_slope)
+//			m2 = max_slope;
+//
+//		if(fabs(m2-m1) < 1)
+//			path.at(j).rot.w = 0;
+//		else
+//			path.at(j).rot.w = m2 - m1;
+	}
+
+	int j = path.size()-1;
+
+	if(path.size() > 2)
+		path.at(0).rot.w = path.at(1).rot.w;
+
+	path.at(0).rot.y = path.at(1).rot.y;
+
+	path.at(j).rot.z = path.at(j-1).rot.z;
+	path.at(j).rot.w = path.at(j-1).rot.w;
+
+	double d = hypot(path.at(j).pos.y - path.at(j-1).pos.y, path.at(j).pos.x - path.at(j-1).pos.x);
+	double z_diff = path.at(j).pos.z - path.at(j-1).pos.z;
+	double a = sqrt(d*d - z_diff*z_diff);
+
+	path.at(j).cost = path.at(j-1).cost + d;
+
+	if(a != 0)
+	{
+		path.at(j).rot.y = (z_diff/a) * 100.0;
+	}
+}
+
 void PlanningHelpers::ExtractPartFromPointToDistance(const vector<WayPoint>& originalPath, const WayPoint& pos, const double& minDistance,
 		const double& pathDensity, vector<WayPoint>& extractedPath, const double& SmoothDataWeight, const double& SmoothWeight, const double& SmoothTolerance)
 {

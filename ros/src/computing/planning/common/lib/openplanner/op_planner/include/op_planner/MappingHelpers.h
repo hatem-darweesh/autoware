@@ -24,6 +24,11 @@ public:
 	MappingHelpers();
 	virtual ~MappingHelpers();
 
+	static void GenerateDtLaneAndFixLaneForVectorMap(UtilityHNS::AisanLanesFileReader* pLaneData,
+			UtilityHNS::AisanPointsFileReader* pPointsData,
+			UtilityHNS::AisanNodesFileReader* pNodesData,
+			PlannerHNS::RoadNetwork& map, std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtlane_data);
+
 	static void ConstructRoadNetworkFromROSMessage(const std::vector<UtilityHNS::AisanLanesFileReader::AisanLane>& lanes_data,
 			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 			const std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dt_data,
@@ -212,6 +217,8 @@ public:
 	static void LinkLanesPointers(PlannerHNS::RoadNetwork& map);
 
 	static void GetMapMaxIds(PlannerHNS::RoadNetwork& map);
+
+	static bool IsPointExist(const WayPoint& p, const std::vector<PlannerHNS::WayPoint>& points);
 
 	static double m_USING_VER_ZERO;
 

@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
         sensor_msgs
         pcl_ros
         pcl_conversions
+        op_planner
         )
 
 catkin_package(
@@ -17,6 +18,7 @@ catkin_package(
         sensor_msgs
         pcl_ros
         pcl_conversions
+        op_planner
 )
 
 SET(CMAKE_CXX_FLAGS "-O2 -g -Wall ${CMAKE_CXX_FLAGS}")
@@ -38,6 +40,12 @@ target_link_libraries(csv2pcd ${catkin_LIBRARIES})
 target_link_libraries(pcd2csv ${catkin_LIBRARIES})
 target_link_libraries(map_extender ${catkin_LIBRARIES})
 target_link_libraries(pcd_grid_divider ${catkin_LIBRARIES})
+
+add_executable( add_dt_lane
+                nodes/map_dt_lane_fix/add_dt_lane.cpp )
+                
+add_dependencies( add_dt_lane ${catkin_EXPORTED_TARGETS})
+target_link_libraries( add_dt_lane ${catkin_LIBRARIES})
 
 
 install(TARGETS pcd_filter pcd_binarizer pcd_arealist csv2pcd pcd2csv map_extender pcd_grid_divider

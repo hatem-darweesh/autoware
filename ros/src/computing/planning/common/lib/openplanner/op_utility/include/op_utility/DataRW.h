@@ -56,6 +56,10 @@ public:
 	static void WriteKMLFile(const std::string& fileName, const std::vector<std::vector<std::string> >& gps_list);
 	static void WriteLogData(const std::string& logFolder, const std::string& logTitle, const std::string& header, const std::vector<std::string>& logData);
 	static void CreateLoggingFolder();
+
+	static void writeCSVFile(const std::string& folder, const std::string& title,
+			const std::string& header,
+			const std::vector<std::string>& data_list);
 };
 
 class SimpleReaderBase
@@ -195,6 +199,21 @@ public:
 	AisanPoints* GetDataRowById(int _pid);
 	std::vector<AisanPoints> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanPoints& obj)
+	{
+	    os << obj.PID << ","
+	    << obj.B << ","
+	    << obj.L << ","
+	    << obj.H << ","
+	    << obj.Bx << ","
+	    << obj.Ly << ","
+	    << obj.Ref << ","
+	    << obj.MCODE1 << ","
+	    << obj.MCODE2 << ","
+	    << obj.MCODE3;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanPoints*> m_data_map;
@@ -223,6 +242,13 @@ public:
 	void ParseNextLine(const vector_map_msgs::Node& _rec, AisanNode& data);
 	AisanNode* GetDataRowById(int _nid);
 	std::vector<AisanNode> m_data_list;
+
+	friend std::ostream& operator<<(std::ostream& os, const AisanNode& obj)
+	{
+	    os << obj.NID << ","
+	    << obj.PID;
+	    return os;
+	}
 
 private:
 	int m_min_id;
@@ -255,6 +281,16 @@ public:
 	AisanLine* GetDataRowById(int _lid);
 	std::vector<AisanLine> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanLine& obj)
+	{
+	    os << obj.LID << ","
+	    << obj.BPID << ","
+	    << obj.FPID << ","
+	    << obj.BLID << ","
+	    << obj.FLID;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanLine*> m_data_map;
@@ -278,6 +314,8 @@ public:
 		double 	RW;
 	};
 
+	std::string header_ = "DID,Dist,PID,Dir,Apara,r,slope,cant,LW,RW";
+
 	AisanCenterLinesFileReader(const std::string& fileName) : SimpleReaderBase(fileName, 1)
 	{
 		m_min_id = std::numeric_limits<int>::max();
@@ -290,6 +328,21 @@ public:
 	void ParseNextLine(const vector_map_msgs::DTLane& _rec, AisanCenterLine& data);
 	AisanCenterLine* GetDataRowById(int _lnid);
 	std::vector<AisanCenterLine> m_data_list;
+
+	friend std::ostream& operator<<(std::ostream& os, const AisanCenterLine& obj)
+	{
+	    os << obj.DID << ","
+	    << obj.Dist << ","
+	    << obj.PID << ","
+	    << obj.Dir << ","
+	    << obj.Apara << ","
+	    << obj.r << ","
+	    << obj.slope << ","
+	    << obj.cant << ","
+	    << obj.LW << ","
+	    << obj.RW;
+	    return os;
+	}
 
 private:
 	int m_min_id;
@@ -320,6 +373,14 @@ public:
 	AisanArea* GetDataRowById(int _lnid);
 	std::vector<AisanArea> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanArea& obj)
+	{
+	    os << obj.AID << ","
+	    << obj.SLID << ","
+	    << obj.ELID;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanArea*> m_data_map;
@@ -348,6 +409,14 @@ public:
 	void ParseNextLine(const vector_map_msgs::CrossRoad& _rec, AisanIntersection& data);
 	AisanIntersection* GetDataRowById(int _lnid);
 	std::vector<AisanIntersection> m_data_list;
+
+	friend std::ostream& operator<<(std::ostream& os, const AisanIntersection& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.AID << ","
+	    << obj.LinkID;
+	    return os;
+	}
 
 private:
 	int m_min_id;
@@ -390,6 +459,9 @@ public:
 		int originalMapID;
 	};
 
+	std::string header_ = "LnID,DID,BLID,FLID,BNID,FNID,JCT,BLID2,BLID3,BLID4,FLID2,FLID3,"
+			"FLID4,ClossID,Span,LCnt,Lno,LaneType,LimitVel,RefVel,RoadSecID,LaneChgFG,LinkWAID";
+
 	AisanLanesFileReader(const std::string& fileName) : SimpleReaderBase(fileName, 1)
 	{
 		m_min_id = std::numeric_limits<int>::max();
@@ -402,6 +474,37 @@ public:
 	void ParseNextLine(const vector_map_msgs::Lane& _rec, AisanLane& data);
 	AisanLane* GetDataRowById(int _lnid);
 	std::vector<AisanLane> m_data_list;
+
+	friend std::ostream& operator<<(std::ostream& os, const AisanLane& obj)
+	{
+	    os << obj.LnID				<< ","
+	       << obj.DID					<< ","
+	       << obj.BLID				<< ","
+	       << obj.FLID	 			<< ","
+	       << obj.BNID	 			<< ","
+	       << obj.FNID	 			<< ","
+	       << obj.JCT		 			<< ","
+	       << obj.BLID2	 			<< ","
+	       << obj.BLID3	 			<< ","
+	       << obj.BLID4	 			<< ","
+	       << obj.FLID2	 			<< ","
+	       << obj.FLID3	 			<< ","
+	       << obj.FLID4	 			<< ","
+	       << obj.ClossID	 			<< ","
+	       << obj.Span	 			<< ","
+	       << obj.LCnt	 			<< ","
+	       << obj.Lno		 			<< ","
+	       << obj.LaneType 			<< ","
+	       << obj.LimitVel 			<< ","
+	       << obj.RefVel	 			<< ","
+	       << obj.RoadSecID 			<< ","
+	       << obj.LaneChgFG 			<< ","
+	       << obj.LinkWAID 			<< ","
+	       << obj.LaneDir 			<< ","
+	       << obj.LeftLaneId 			<< ","
+	       << obj.RightLaneId;
+	    return os;
+	}
 
 private:
 	int m_min_id;
@@ -434,6 +537,16 @@ public:
 	AisanStopLine* GetDataRowById(int _lnid);
 	std::vector<AisanStopLine> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanStopLine& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.LID << ","
+	    << obj.TLID << ","
+	    << obj.SignID << ","
+	    << obj.LinkID;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanStopLine*> m_data_map;
@@ -464,6 +577,16 @@ public:
 	void ParseNextLine(const vector_map_msgs::RoadSign& _rec, AisanRoadSign& data);
 	AisanRoadSign* GetDataRowById(int _lnid);
 	std::vector<AisanRoadSign> m_data_list;
+
+	friend std::ostream& operator<<(std::ostream& os, const AisanRoadSign& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.VID << ","
+	    << obj.PLID << ","
+	    << obj.Type << ","
+	    << obj.LinkID;
+	    return os;
+	}
 
 private:
 	int m_min_id;
@@ -496,6 +619,16 @@ public:
 	AisanSignal* GetDataRowById(int _lnid);
 	std::vector<AisanSignal> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanSignal& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.VID << ","
+	    << obj.PLID << ","
+	    << obj.Type << ","
+	    << obj.LinkID;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanSignal*> m_data_map;
@@ -525,6 +658,15 @@ public:
 	void ParseNextLine(const vector_map_msgs::Vector& _rec, AisanVector& data);
 	AisanVector* GetDataRowById(int _lnid);
 	std::vector<AisanVector> m_data_list;
+
+	friend std::ostream& operator<<(std::ostream& os, const AisanVector& obj)
+	{
+	    os << obj.VID << ","
+	    << obj.PID << ","
+	    << obj.Hang << ","
+	    << obj.Vang;
+	    return os;
+	}
 
 private:
 	int m_min_id;
@@ -558,6 +700,17 @@ public:
 	AisanCurb* GetDataRowById(int _lnid);
 	std::vector<AisanCurb> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanCurb& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.LID << ","
+	    << obj.Height << ","
+	    << obj.Width << ","
+	    << obj.dir << ","
+	    << obj.LinkID;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanCurb*> m_data_map;
@@ -586,6 +739,14 @@ public:
 	void ParseNextLine(const vector_map_msgs::RoadEdge& _rec, AisanRoadEdge& data);
 	AisanRoadEdge* GetDataRowById(int _lnid);
 	std::vector<AisanRoadEdge> m_data_list;
+
+	friend std::ostream& operator<<(std::ostream& os, const AisanRoadEdge& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.LID << ","
+	    << obj.LinkID;
+	    return os;
+	}
 
 private:
 	int m_min_id;
@@ -618,6 +779,16 @@ public:
 	AisanCrossWalk* GetDataRowById(int _lnid);
 	std::vector<AisanCrossWalk> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanCrossWalk& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.AID << ","
+	    << obj.Type << ","
+	    << obj.BdID << ","
+	    << obj.LinkID;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanCrossWalk*> m_data_map;
@@ -647,6 +818,14 @@ public:
 	AisanWayarea* GetDataRowById(int _lnid);
 	std::vector<AisanWayarea> m_data_list;
 
+	friend std::ostream& operator<<(std::ostream& os, const AisanWayarea& obj)
+	{
+	    os << obj.ID << ","
+	    << obj.AID << ","
+	    << obj.LinkID;
+	    return os;
+	}
+
 private:
 	int m_min_id;
 	std::vector<AisanWayarea*> m_data_map;
@@ -669,6 +848,15 @@ public:
 
 	bool ReadNextLine(DataConn& data);
 	int ReadAllData(std::vector<DataConn>& data_list);
+
+	friend std::ostream& operator<<(std::ostream& os, const DataConn& obj)
+	{
+	    os << obj.LID << ","
+	    << obj.SLID << ","
+	    << obj.SID << ","
+	    << obj.SSID;
+	    return os;
+	}
 };
 
 class MapRaw

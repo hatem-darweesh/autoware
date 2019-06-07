@@ -2546,6 +2546,56 @@ void MappingHelpers::CreateLanes(UtilityHNS::AisanLanesFileReader* pLaneData,
 	}
 }
 
+void MappingHelpers::GenerateDtLaneAndFixLaneForVectorMap(UtilityHNS::AisanLanesFileReader* pLaneData,
+		UtilityHNS::AisanPointsFileReader* pPointsData,
+		UtilityHNS::AisanNodesFileReader* pNodesData, PlannerHNS::RoadNetwork& map,
+		std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtlane_data)
+{
+	int iDID = 0;
+
+	vector<Lane> roadLanes;
+	CreateLanes(pLaneData, pPointsData, pNodesData, roadLanes);
+	FixTwoPointsLanes(roadLanes);
+	FixRedundantPointsLanes(roadLanes);
+
+	for(unsigned int il =0; il < roadLanes.size(); il++)
+	{
+		Lane* pL = &roadLanes.at(il);
+		PlanningHelpers::SmoothPath(pL->points, 0.45, 0.3, 0.05);
+		PlanningHelpers::SmoothPath(pL->points, 0.45, 0.3, 0.05);
+		PlanningHelpers::CalcDtLaneInfo(pL->points);
+
+
+		for(unsigned int ip =0; ip < pL->points.size(); ip++)
+		{
+			UtilityHNS::AisanLanesFileReader::AisanLane* pAL = nullptr;
+			UtilityHNS::AisanNodesFileReader::AisanNode* pN = nullptr;
+
+			pAL = pLaneData->GetDataRowById(pL->points.at(ip).originalMapID);
+			if(pAL != nullptr)
+			{
+				pN = pNodesData->GetDataRowById(pAL->BNID);
+				if(pN != nullptr)
+				{
+					UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine dt_wp;
+					dt_wp.DID = iDID++;
+					dt_wp.PID = pN->PID;
+					dt_wp.Dir = pL->points.at(ip).rot.z;
+					dt_wp.Dist = pL->points.at(ip).cost;
+					dt_wp.Apara = 0;
+					dt_wp.LW = 0;
+					dt_wp.RW = 0;
+					dt_wp.cant = 0;
+					dt_wp.r = pL->points.at(ip).rot.w;
+					dt_wp.slope = pL->points.at(ip).rot.y;
+					pAL->DID = dt_wp.DID;
+					dtlane_data.push_back(dt_wp);
+				}
+			}
+		}
+	}
+}
+
 void MappingHelpers::GetLanePoints(UtilityHNS::AisanLanesFileReader* pLaneData,
 			UtilityHNS::AisanPointsFileReader* pPointsData,
 			UtilityHNS::AisanNodesFileReader* pNodesData, int lnID,
@@ -2719,7 +2769,10 @@ void MappingHelpers::GetLanePoints(UtilityHNS::AisanLanesFileReader* pLaneData,
 			wp.originalMapID = pL->LnID;
 			wp.laneId = lnID;
 
-			out_lane.points.push_back(wp);
+			if(IsPointExist(wp, out_lane.points))
+				bStart = true;
+			else
+				out_lane.points.push_back(wp);
 		}
 
 //		if(next_lnid == 0)
@@ -2866,6 +2919,11 @@ void MappingHelpers::InsertWayPointToFrontOfLane(const WayPoint& wp, Lane& lane,
 
 void MappingHelpers::FixUnconnectedLanes(std::vector<Lane>& lanes)
 {
+	for(unsigned int il=0; il < lanes.size(); il ++)
+	{
+		PlanningHelpers::CalcAngleAndCost(lanes.at(il).points);
+	}
+
 	std::vector<Lane> sp_lanes = lanes;
 	bool bAtleastOneChange = false;
 	//Find before lanes
@@ -3437,6 +3495,18 @@ void MappingHelpers::GetMapMaxIds(PlannerHNS::RoadNetwork& map)
 		if(map.trafficLights.at(i).id > g_max_traffic_light_id)
 			g_max_traffic_light_id = map.trafficLights.at(i).id;
 	}
+}
+
+bool MappingHelpers::IsPointExist(const WayPoint& p, const std::vector<PlannerHNS::WayPoint>& points)
+{
+	for(unsigned int ip = 0; ip < points.size(); ip++)
+	{
+		if(points.at(ip).id == p.id)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
