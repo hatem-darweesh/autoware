@@ -1385,8 +1385,7 @@ void PlanningHelpers::CalcDtLaneInfo(vector<WayPoint>& path)
 {
 	if(path.size() < 2) return;
 
-	double r_limit = 90000.0;
-	double max_slope = 999999;
+	double r_limit = 900000000.0;
 
 	path.at(0).rot.z = UtilityHNS::UtilityH::FixNegativeAngle(atan2(path.at(1).pos.y - path.at(0).pos.y, path.at(1).pos.x - path.at(0).pos.x));
 	path.at(0).rot.w = r_limit;
@@ -1397,7 +1396,7 @@ void PlanningHelpers::CalcDtLaneInfo(vector<WayPoint>& path)
 	{
 		GPSPoint center;
 		double r =  CalcCircle(path.at(j+1).pos,path.at(j).pos, path.at(j-1).pos, center);
-		if(r > r_limit || std::isnan(r))
+		if(r > r_limit || std::isnan(r) || std::isinf(fabs(r)))
 			path.at(j).rot.w = r_limit;
 		else
 			path.at(j).rot.w = r;
@@ -1412,19 +1411,6 @@ void PlanningHelpers::CalcDtLaneInfo(vector<WayPoint>& path)
 		{
 			path.at(j).rot.y = (z_diff/a) * 100.0; // percentile road slope calculation
 		}
-
-//		double m1 = (path.at(j).pos.y-path.at(j-1).pos.y)/(path.at(j).pos.x-path.at(j-1).pos.x);
-//		if(isnan(m1) || isinf(m1) || fabs(m1) > max_slope)
-//			m1 = max_slope;
-//
-//		double m2 = (path.at(j+1).pos.y-path.at(j).pos.y)/(path.at(j+1).pos.x-path.at(j).pos.x);
-//		if(isnan(m2) || isinf(m2) || fabs(m2) > max_slope)
-//			m2 = max_slope;
-//
-//		if(fabs(m2-m1) < 1)
-//			path.at(j).rot.w = 0;
-//		else
-//			path.at(j).rot.w = m2 - m1;
 	}
 
 	int j = path.size()-1;
