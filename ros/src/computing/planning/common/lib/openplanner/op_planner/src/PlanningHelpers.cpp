@@ -1361,7 +1361,7 @@ double PlanningHelpers::CalcCircle(const GPSPoint& pt1, const GPSPoint& pt2, con
 	double yDelta_b= pt3.y - pt2.y;
 	double xDelta_b= pt3.x - pt2.x;
 
-	if (fabs(xDelta_a) <= 0.000000000001 && fabs(yDelta_b) <= 0.000000000001)
+	if (fabs(xDelta_a) <= 1.0/90000000000.0 && fabs(yDelta_b) <= 1.0/90000000000.0)
 	{
 		center.x= 0.5*(pt2.x + pt3.x);
 		center.y= 0.5*(pt1.y + pt2.y);
@@ -1370,9 +1370,9 @@ double PlanningHelpers::CalcCircle(const GPSPoint& pt1, const GPSPoint& pt2, con
 
 	double aSlope=yDelta_a/xDelta_a;
 	double bSlope=yDelta_b/xDelta_b;
-	if (fabs(aSlope-bSlope) <= 0.000000000001)
+	if (fabs(aSlope-bSlope) <= 1.0/90000000000.0)
 	{
-		return 100000;
+		return 90000000000;
 	}
 
 	center.x= (aSlope*bSlope*(pt1.y - pt3.y) + bSlope*(pt1.x + pt2 .x) - aSlope*(pt2.x+pt3.x) )/(2.0* (bSlope-aSlope) );
@@ -1385,7 +1385,9 @@ void PlanningHelpers::CalcDtLaneInfo(vector<WayPoint>& path)
 {
 	if(path.size() < 2) return;
 
-	double r_limit = 900000000.0;
+	double r_limit = 90000000000;
+
+	CalcAngleAndCost(path);
 
 	path.at(0).rot.z = UtilityHNS::UtilityH::FixNegativeAngle(atan2(path.at(1).pos.y - path.at(0).pos.y, path.at(1).pos.x - path.at(0).pos.x));
 	path.at(0).rot.w = r_limit;
@@ -1394,13 +1396,6 @@ void PlanningHelpers::CalcDtLaneInfo(vector<WayPoint>& path)
 
 	for(int j = 1; j < path.size()-1; j++)
 	{
-		GPSPoint center;
-		double r =  CalcCircle(path.at(j+1).pos,path.at(j).pos, path.at(j-1).pos, center);
-		if(r > r_limit || std::isnan(r) || std::isinf(fabs(r)))
-			path.at(j).rot.w = r_limit;
-		else
-			path.at(j).rot.w = r;
-
 		path.at(j).rot.z = UtilityHNS::UtilityH::FixNegativeAngle(atan2(path.at(j+1).pos.y - path.at(j).pos.y, path.at(j+1).pos.x - path.at(j).pos.x ));
 		double d = hypot(path.at(j).pos.y - path.at(j-1).pos.y, path.at(j).pos.x - path.at(j-1).pos.x);
 		double z_diff = path.at(j).pos.z - path.at(j-1).pos.z;
@@ -1410,6 +1405,24 @@ void PlanningHelpers::CalcDtLaneInfo(vector<WayPoint>& path)
 		if(a != 0)
 		{
 			path.at(j).rot.y = (z_diff/a) * 100.0; // percentile road slope calculation
+		}
+
+		WayPoint center;
+		double r =  CalcCircle(path.at(j+1).pos,path.at(j).pos, path.at(j-1).pos, center.pos);
+		if(r >= r_limit || std::isnan(r))
+		{
+			path.at(j).rot.w = r_limit;
+		}
+		else
+		{
+			vector<WayPoint> path_temp;
+			path_temp.push_back(path.at(j-1));
+			path_temp.push_back(path.at(j));
+			path_temp.push_back(path.at(j+1));
+
+			RelativeInfo info;
+			GetRelativeInfoLimited(path_temp, center, info);
+			path.at(j).rot.w = info.perp_distance;
 		}
 	}
 
