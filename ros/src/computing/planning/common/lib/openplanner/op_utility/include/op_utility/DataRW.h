@@ -185,6 +185,8 @@ public:
 		int MCODE3;
 	};
 
+	std::string header_ = "PID,B,L,H,Bx,Ly,Ref,MCODE1,MCODE2,MCODE3";
+
 	AisanPointsFileReader(const std::string& fileName) : SimpleReaderBase(fileName, 1)
 	{
 		m_min_id = std::numeric_limits<int>::max();

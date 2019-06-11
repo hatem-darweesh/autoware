@@ -34,12 +34,14 @@ void FixDtLaneProblem(const std::string vectoMapPath)
 
 	std::vector<std::string> dt_data_str;
 	std::vector<std::string> lane_data_str;
+	std::vector<std::string> point_data_str;
 
 	std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine> n_dt_data;
+	std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints> fix_points_data;
 
 	PlannerHNS::RoadNetwork map;
 	std::cout << " >> Extract dt_lane from Lane, Node and Points data ... " << std::endl;
-	PlannerHNS::MappingHelpers::GenerateDtLaneAndFixLaneForVectorMap(&lanes, &points, &nodes, map, n_dt_data);
+	PlannerHNS::MappingHelpers::GenerateDtLaneAndFixLaneForVectorMap(&lanes, &points, &nodes, map, n_dt_data, fix_points_data);
 
 	std::cout << " >> Write dt_lane data to file dt_lane_fix.csv ... " << std::endl;
 	for(auto x : n_dt_data)
@@ -50,6 +52,7 @@ void FixDtLaneProblem(const std::string vectoMapPath)
 	}
 	UtilityHNS::DataRW::writeCSVFile(vectoMapPath, "dtlane_fix", center_lanes.header_, dt_data_str);
 
+
 	std::cout << " >> Write updated lane data to file lane_fix.csv ... " << std::endl;
 	for(auto y : lanes.m_data_list)
 	{
@@ -58,6 +61,15 @@ void FixDtLaneProblem(const std::string vectoMapPath)
 		lane_data_str.push_back(str.str());
 	}
 	UtilityHNS::DataRW::writeCSVFile(vectoMapPath, "lane_fix", lanes.header_, lane_data_str);
+
+	std::cout << " >> Write updated points data to file point_fix.csv ... " << std::endl;
+	for(auto p : fix_points_data)
+	{
+		std::ostringstream str;
+		str << p;
+		point_data_str.push_back(str.str());
+	}
+	UtilityHNS::DataRW::writeCSVFile(vectoMapPath, "point_fix", points.header_, point_data_str);
 
 }
 

@@ -27,7 +27,8 @@ public:
 	static void GenerateDtLaneAndFixLaneForVectorMap(UtilityHNS::AisanLanesFileReader* pLaneData,
 			UtilityHNS::AisanPointsFileReader* pPointsData,
 			UtilityHNS::AisanNodesFileReader* pNodesData,
-			PlannerHNS::RoadNetwork& map, std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtlane_data);
+			PlannerHNS::RoadNetwork& map, std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtlane_data,
+			std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& fix_points_data);
 
 	static void ConstructRoadNetworkFromROSMessage(const std::vector<UtilityHNS::AisanLanesFileReader::AisanLane>& lanes_data,
 			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,

@@ -2549,9 +2549,19 @@ void MappingHelpers::CreateLanes(UtilityHNS::AisanLanesFileReader* pLaneData,
 void MappingHelpers::GenerateDtLaneAndFixLaneForVectorMap(UtilityHNS::AisanLanesFileReader* pLaneData,
 		UtilityHNS::AisanPointsFileReader* pPointsData,
 		UtilityHNS::AisanNodesFileReader* pNodesData, PlannerHNS::RoadNetwork& map,
-		std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtlane_data)
+		std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtlane_data,
+		std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& fix_points_data)
 {
 	int iDID = 0;
+
+	int latest_point_id = 0;
+	for(auto x : pPointsData->m_data_list)
+	{
+		if(x.PID > latest_point_id)
+			latest_point_id = x.PID + 1;
+	}
+
+	fix_points_data = pPointsData->m_data_list;
 
 	vector<Lane> roadLanes;
 	CreateLanes(pLaneData, pPointsData, pNodesData, roadLanes);
@@ -2579,17 +2589,25 @@ void MappingHelpers::GenerateDtLaneAndFixLaneForVectorMap(UtilityHNS::AisanLanes
 				{
 					UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine dt_wp;
 					dt_wp.DID = iDID++;
-					dt_wp.PID = pN->PID;
+					dt_wp.PID = latest_point_id++;
 					dt_wp.Dir = pL->points.at(ip).rot.z;
 					dt_wp.Dist = pL->points.at(ip).cost;
 					dt_wp.Apara = 0;
-					dt_wp.LW = 0;
-					dt_wp.RW = 0;
+					dt_wp.LW = 1.6;
+					dt_wp.RW = 1.6;
 					dt_wp.cant = 0;
 					dt_wp.r = pL->points.at(ip).rot.w;
 					dt_wp.slope = pL->points.at(ip).rot.y;
 					pAL->DID = dt_wp.DID;
 					dtlane_data.push_back(dt_wp);
+					UtilityHNS::AisanPointsFileReader::AisanPoints* p = pPointsData->GetDataRowById(pN->PID);
+					if(p != nullptr)
+					{
+						UtilityHNS::AisanPointsFileReader::AisanPoints p_red = *p;
+						p_red.PID = dt_wp.PID;
+						fix_points_data.push_back(p_red);
+
+					}
 				}
 			}
 		}
