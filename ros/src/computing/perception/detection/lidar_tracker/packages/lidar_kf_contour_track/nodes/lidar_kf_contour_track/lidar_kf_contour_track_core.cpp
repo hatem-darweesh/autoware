@@ -705,9 +705,18 @@ void ContourTracker::VisualizeLocalTracking()
 	jsk_recognition_msgs::BoundingBoxArray boxes_array;
 	boxes_array.header.frame_id = "map";
 	boxes_array.header.stamp  = ros::Time();
-
+//	std::cout << "------------------------------------- " << std::endl;
 	for(unsigned int i = 0 ; i < m_ObstacleTracking.m_DetectedObjects.size(); i++)
 	{
+//		std::cout << "ID: " << m_ObstacleTracking.m_DetectedObjects.at(i).id <<  ", Pose: ("
+//				<< m_ObstacleTracking.m_DetectedObjects.at(i).center.pos.x <<" ,"
+//				<< m_ObstacleTracking.m_DetectedObjects.at(i).center.pos.y <<" ,"
+//				<< m_ObstacleTracking.m_DetectedObjects.at(i).center.pos.z <<") Size: ("
+//				<< m_ObstacleTracking.m_DetectedObjects.at(i).w <<" ,"
+//				<< m_ObstacleTracking.m_DetectedObjects.at(i).l <<" ,"
+//				<< m_ObstacleTracking.m_DetectedObjects.at(i).h <<") "
+//				<< std::endl;
+
 		jsk_recognition_msgs::BoundingBox box;
 		box.header.frame_id = "map";
 		box.header.stamp = ros::Time().now();
@@ -723,6 +732,8 @@ void ContourTracker::VisualizeLocalTracking()
 		box.dimensions.z = m_ObstacleTracking.m_DetectedObjects.at(i).h;
 		boxes_array.boxes.push_back(box);
 	}
+
+	//std::cout << "------------------------------------- " << std::endl;
 
 	pub_TrackedObstaclesRviz.publish(boxes_array);
 }

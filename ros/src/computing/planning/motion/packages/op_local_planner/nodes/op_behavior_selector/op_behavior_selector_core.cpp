@@ -358,6 +358,17 @@ void BehaviorGen::callbackGetLocalPlannerPath(const autoware_msgs::LaneArrayCons
 				globalPathId_roll_outs = path.at(0).gid;
 		}
 
+		if(m_RollOuts.size() > 1)
+		{
+			m_PlanningParams.enableSwerving = true;
+			m_PlanningParams.rollOutNumber = m_RollOuts.size() - 1;
+		}
+		else
+		{
+			m_PlanningParams.enableSwerving = false;
+			m_PlanningParams.rollOutNumber = 0;
+		}
+
 		if(bWayGlobalPath && m_GlobalPaths.size() > 0)
 		{
 			if(m_GlobalPaths.at(0).size() > 0)
@@ -673,6 +684,7 @@ void BehaviorGen::MainLoop()
 					m_PrevTrafficLight.at(itls).lightState = m_CurrLightStatus;
 			}
 
+			m_BehaviorGenerator.UpdateAvoidanceParams(m_PlanningParams.enableSwerving, m_PlanningParams.rollOutNumber);
 			m_CurrentBehavior = m_BehaviorGenerator.DoOneStep(dt, m_CurrentPos, m_VehicleStatus, 1, m_CurrTrafficLight, m_TrajectoryBestCost, 0 );
 
 			SendLocalPlanningTopics();

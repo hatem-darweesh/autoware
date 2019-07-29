@@ -75,6 +75,18 @@ void DecisionMaker::Init(const ControllerParams& ctrlParams, const PlannerHNS::P
 			m_pCurrentBehaviorState->SetBehaviorsParams(&m_params);
  	}
 
+void DecisionMaker::UpdateAvoidanceParams(bool enable_swerve, int roll_out_numbers)
+{
+	if(enable_swerve == false && enable_swerve != m_params.enableSwerving)
+	{
+		m_pCurrentBehaviorState->GetCalcParams()->bRePlan = true;
+	}
+
+	m_params.enableSwerving = enable_swerve;
+	m_params.rollOutNumber = roll_out_numbers;
+
+}
+
 void DecisionMaker::InitBehaviorStates()
 {
 
@@ -215,7 +227,6 @@ void DecisionMaker::InitBehaviorStates()
 
   	distanceToClosestStopLine = PlanningHelpers::GetDistanceToClosestStopLineAndCheck(m_TotalPath.at(pValues->iCurrSafeLane), state, m_params.giveUpDistance, stopLineID, stopSignID, trafficLightID) - critical_long_front_distance;
 
-  	//std::cout << "StopLineID" << stopLineID << ", StopSignID: " << stopSignID << ", TrafficLightID: " << trafficLightID << ", Distance: " << distanceToClosestStopLine << ", MinStopDistance: " << pValues->minStoppingDistance << std::endl;
 
  	if(distanceToClosestStopLine > m_params.giveUpDistance && distanceToClosestStopLine < (pValues->minStoppingDistance + 1.0))
  	{
@@ -451,11 +462,11 @@ void DecisionMaker::InitBehaviorStates()
 		desiredVelocity = (acceleration_critical * dt) + CurrStatus.speed;
 
 		//For CARLA
-		if(m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeTrajectory != m_pCurrentBehaviorState->GetCalcParams()->iCentralTrajectory)
-		{
-			desiredVelocity  = max_velocity * 0.5;
-		}
-		else
+//		if(m_pCurrentBehaviorState->GetCalcParams()->iCurrSafeTrajectory != m_pCurrentBehaviorState->GetCalcParams()->iCentralTrajectory)
+//		{
+//			desiredVelocity  = max_velocity * 0.75;
+//		}
+//		else
 			desiredVelocity  = max_velocity;
 
 		//std::cout << "bEnd : " << preCalcPrams->bFinalLocalTrajectory << ", Min D: " << preCalcPrams->minStoppingDistance << ", D To Goal: " << preCalcPrams->distanceToGoal << std::endl;

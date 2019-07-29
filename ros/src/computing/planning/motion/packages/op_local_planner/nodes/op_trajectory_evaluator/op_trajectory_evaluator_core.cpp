@@ -187,6 +187,11 @@ void TrajectoryEvalCore::callbackGetGlobalPlannerPath(const autoware_msgs::LaneA
 			{
 				PlannerHNS::PlanningHelpers::FixPathDensity(m_GlobalPaths.at(i), m_PlanningParams.pathDensity);
 				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_GlobalPaths.at(i));
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.48, 0.2, 0.05); // this line could slow things , if new global path is generated frequently. only for carla
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.48, 0.2, 0.05); // this line could slow things , if new global path is generated frequently. only for carla
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.48, 0.2, 0.05); // this line could slow things , if new global path is generated frequently. only for carla
+				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_GlobalPaths.at(i));
+				m_prev_index.push_back(0);
 			}
 			std::cout << "Received New Global Path Evaluator! " << std::endl;
 		}
@@ -273,7 +278,10 @@ void TrajectoryEvalCore::MainLoop()
 			for(unsigned int i = 0; i < m_GlobalPathsToUse.size(); i++)
 			{
 				t_centerTrajectorySmoothed.clear();
-				PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_GlobalPathsToUse.at(i), m_CurrentPos, m_PlanningParams.horizonDistance , m_PlanningParams.pathDensity ,t_centerTrajectorySmoothed);
+				m_prev_index.at(i) = PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_GlobalPathsToUse.at(i), m_CurrentPos, m_PlanningParams.horizonDistance ,
+						m_PlanningParams.pathDensity ,t_centerTrajectorySmoothed, m_prev_index.at(i));
+
+				if(m_prev_index.at(i) > 0 ) m_prev_index.at(i) = m_prev_index.at(i) -1;
 				m_GlobalPathSections.push_back(t_centerTrajectorySmoothed);
 			}
 

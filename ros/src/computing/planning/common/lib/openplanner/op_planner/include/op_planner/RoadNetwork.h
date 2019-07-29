@@ -900,6 +900,8 @@ public:
 	bool 	enableHeadingSmoothing;
 	bool 	enableTrafficLightBehavior;
 	bool 	enableStopSignBehavior;
+	bool 	enableTimeOutAvoidance;
+	double 	avoidanceTimeOut;
 
 	bool 	enabTrajectoryVelocities;
 	double minIndicationDistance;
@@ -944,8 +946,10 @@ public:
 		enableLaneChange 				= false;
 		enableStopSignBehavior			= false;
 		enabTrajectoryVelocities 		= false;
+		enableTimeOutAvoidance			= false;
 		minIndicationDistance			= 15;
 
+		avoidanceTimeOut = 250; //seconds
 		maxLaneSearchDistance = 3.0;
 		goalDiscoveryDistance = 2.5;
 	}

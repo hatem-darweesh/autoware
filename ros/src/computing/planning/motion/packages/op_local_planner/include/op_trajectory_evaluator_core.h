@@ -55,6 +55,7 @@ protected:
 	std::vector<std::vector<PlannerHNS::WayPoint> > m_GlobalPaths;
 	std::vector<std::vector<PlannerHNS::WayPoint> > m_GlobalPathsToUse;
 	std::vector<std::vector<PlannerHNS::WayPoint> > m_GlobalPathSections;
+	std::vector<int> m_prev_index;
 	std::vector<PlannerHNS::WayPoint> t_centerTrajectorySmoothed;
 	bool bWayGlobalPath;
 	bool bWayGlobalPathToUse;
@@ -65,7 +66,6 @@ protected:
 	bool bPredictedObjects;
 
 
-	struct timespec m_PlanningTimer;
   	std::vector<std::string>    m_LogData;
 
   	PlannerHNS::PlanningParams m_PlanningParams;

@@ -54,11 +54,17 @@ protected:
 	std::vector<PlannerHNS::WayPoint> t_centerTrajectorySmoothed;
 	std::vector<std::vector<std::vector<PlannerHNS::WayPoint> > > m_RollOuts;
 	bool bWayGlobalPath;
-	struct timespec m_PlanningTimer;
+
   	std::vector<std::string>    m_LogData;
   	PlannerHNS::PlanningParams m_PlanningParams;
   	PlannerHNS::CAR_BASIC_INFO m_CarInfo;
 
+  	const double m_DistanceLimitInTimeOut = 25; //meters
+  	struct timespec m_PlanningTimer;
+  	double m_distance_moved_since_stuck;
+  	double m_distance_moved;
+  	bool m_bStuckState;
+  	int m_nOriginalRollOuts;
 
   	//ROS messages (topics)
 	ros::NodeHandle nh;

@@ -54,6 +54,11 @@ TrajectoryGen::TrajectoryGen()
 		sub_can_info = nh.subscribe("/can_info", 11, &TrajectoryGen::callbackGetCANInfo, this);
 
 	sub_GlobalPlannerPaths = nh.subscribe("/lane_waypoints_array", 1, &TrajectoryGen::callbackGetGlobalPlannerPath, this);
+
+	UtilityHNS::UtilityH::GetTickCount(m_PlanningTimer);
+	m_distance_moved_since_stuck = 0;
+	m_distance_moved = 0;
+	m_bStuckState = false;
 }
 
 TrajectoryGen::~TrajectoryGen()
@@ -82,10 +87,13 @@ void TrajectoryGen::UpdatePlanningParams(ros::NodeHandle& _nh)
 
 	_nh.getParam("/op_common_params/pathDensity", m_PlanningParams.pathDensity);
 	_nh.getParam("/op_common_params/rollOutDensity", m_PlanningParams.rollOutDensity);
-	if(m_PlanningParams.enableSwerving)
-		_nh.getParam("/op_common_params/rollOutsNumber", m_PlanningParams.rollOutNumber);
-	else
+	_nh.getParam("/op_common_params/rollOutsNumber", m_PlanningParams.rollOutNumber);
+	m_nOriginalRollOuts = m_PlanningParams.rollOutNumber;
+
+	if(!m_PlanningParams.enableSwerving)
+	{
 		m_PlanningParams.rollOutNumber = 0;
+	}
 
 	_nh.getParam("/op_common_params/horizonDistance", m_PlanningParams.horizonDistance);
 	_nh.getParam("/op_common_params/minFollowingDistance", m_PlanningParams.minFollowingDistance);
@@ -129,10 +137,49 @@ void TrajectoryGen::callbackGetInitPose(const geometry_msgs::PoseWithCovarianceS
 
 void TrajectoryGen::callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr& msg)
 {
+	PlannerHNS::GPSPoint prev_pos = m_CurrentPos.pos;
 	m_CurrentPos.pos = PlannerHNS::GPSPoint(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z, tf::getYaw(msg->pose.orientation));
 	m_InitPos = m_CurrentPos;
 	bNewCurrentPos = true;
 	bInitPos = true;
+
+	if(m_PlanningParams.enableTimeOutAvoidance)
+	{
+		if(m_bStuckState)
+		{
+			m_distance_moved_since_stuck += hypot(prev_pos.y-m_CurrentPos.pos.y, prev_pos.x-m_CurrentPos.pos.x);;
+			if(m_distance_moved_since_stuck > m_PlanningParams.microPlanDistance)
+			{
+				UtilityHNS::UtilityH::GetTickCount(m_PlanningTimer);
+				m_distance_moved_since_stuck = 0;
+				m_distance_moved = 0;
+				m_bStuckState = false;
+				m_PlanningParams.enableSwerving = false;
+				m_PlanningParams.rollOutNumber = 0;
+			}
+		}
+		else
+		{
+			if(m_VehicleStatus.speed < 0.1) //start monitor stuck
+			{
+				m_distance_moved += hypot(prev_pos.y-m_CurrentPos.pos.y, prev_pos.x-m_CurrentPos.pos.x);
+
+				double time_since_stop = UtilityHNS::UtilityH::GetTimeDiffNow(m_PlanningTimer);
+				if(m_distance_moved < m_DistanceLimitInTimeOut && time_since_stop  > m_PlanningParams.avoidanceTimeOut)
+				{
+					m_bStuckState = true;
+					m_distance_moved_since_stuck = 0;
+					m_PlanningParams.enableSwerving = true;
+					m_PlanningParams.rollOutNumber = m_nOriginalRollOuts;
+				}
+			}
+			else //vehicle is moving , nothing to worry about
+			{
+				UtilityHNS::UtilityH::GetTickCount(m_PlanningTimer);
+				m_distance_moved = 0;
+			}
+		}
+	}
 }
 
 void TrajectoryGen::callbackGetVehicleStatus(const geometry_msgs::TwistStampedConstPtr& msg)
@@ -191,10 +238,9 @@ void TrajectoryGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayC
 			{
 				PlannerHNS::PlanningHelpers::FixPathDensity(m_GlobalPaths.at(i), m_PlanningParams.pathDensity);
 				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_GlobalPaths.at(i));
-				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
-				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
-				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
-				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.45, 0.3, 0.01); // this line could slow things , if new global path is generated frequently.
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.48, 0.2, 0.05); // this line could slow things , if new global path is generated frequently. only for carla
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.48, 0.2, 0.05); // this line could slow things , if new global path is generated frequently. only for carla
+				PlannerHNS::PlanningHelpers::SmoothPath(m_GlobalPaths.at(i), 0.48, 0.2, 0.05); // this line could slow things , if new global path is generated frequently. only for carla
 				PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_GlobalPaths.at(i));
 				m_prev_index.push_back(0);
 			}
@@ -244,12 +290,6 @@ void TrajectoryGen::MainLoop()
 
 			for(unsigned int i = 0; i < m_GlobalPaths.size(); i++)
 			{
-//				PlannerHNS::RelativeInfo info;
-//				PlannerHNS::PlanningHelpers::GetRelativeInfoLimited(m_GlobalPaths.at(i), m_CurrentPos, info, m_prev_index.at(i));
-//
-//				m_prev_index.at(i) = info.iBack - 1;
-//				if(m_prev_index.at(i) < 0)
-//					m_prev_index.at(i) = 0;
 
 				t_centerTrajectorySmoothed.clear();
 
