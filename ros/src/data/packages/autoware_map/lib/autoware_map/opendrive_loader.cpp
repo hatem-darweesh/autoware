@@ -7,16 +7,14 @@
 
 #include "opendrive2autoware_converter/opendrive_loader.h"
 #include <fstream>
-#include <ros/ros.h>
 
 namespace autoware_map
 {
 
 
-
-OpenDriveLoader::OpenDriveLoader():
-keep_right_(true)
+OpenDriveLoader::OpenDriveLoader(bool keep_right)
 {
+	keep_right_ = keep_right;
 }
 
 OpenDriveLoader::~OpenDriveLoader()
@@ -111,8 +109,6 @@ void OpenDriveLoader::loadOpenDRIVE(const std::string& xodr_file, const std::str
 	XmlHelpers::findElements("road", doc.FirstChildElement(), elements);
 	std::cout << "Final Results Roads, Num:" << elements.size() << std::endl;
 
-	ros::NodeHandle pnh("~");
-	pnh.param("keep_right", keep_right_, true);
 	roads_list_.clear();
 	for(unsigned int i=0; i < elements.size(); i++)
 	{

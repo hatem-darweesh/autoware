@@ -13,6 +13,8 @@ int main(int argc, char **argv)
 	std::string src_path;
 	std::string dst_path;
 	std::string country_codes_path;
+	bool keep_right;
+
 	double wp_res = 0.5;
 
 	if(argc < 3)
@@ -32,7 +34,10 @@ int main(int argc, char **argv)
 		if(argc > 4)
 			wp_res = atof(argv[4]);
 
-		autoware_map::OpenDriveLoader map_loader;
+		ros::NodeHandle pnh("~");
+		pnh.param("keep_right", keep_right, true);
+
+		autoware_map::OpenDriveLoader map_loader(keep_right);
 		PlannerHNS::RoadNetwork map;
 		map_loader.loadOpenDRIVE(src_path, country_codes_path, map, wp_res);
 		autoware_map::MapWriter map_save;

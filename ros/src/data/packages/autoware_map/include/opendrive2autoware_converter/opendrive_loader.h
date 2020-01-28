@@ -40,7 +40,7 @@ class OpenDriveLoader
 {
 
 public:
-	OpenDriveLoader();
+	OpenDriveLoader(bool keep_right = true);
     ~OpenDriveLoader();
     void getFileNameInFolder(const std::string& path, std::vector<std::string>& out_list);
     void loadCountryCods(const std::string& codes_csv_folder);
