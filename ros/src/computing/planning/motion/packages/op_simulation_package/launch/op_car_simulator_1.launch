@@ -1,12 +1,12 @@
 <!-- -->
 <launch>
 	<arg name="id" 							default="1" />		
-	<arg name="enableRvizPoseSelect"		default="true"   />	
+	<arg name="enableRvizPoseSelect"		default="false"   />	
 	<arg name="enableLooper"				default="true"   />	
 	<arg name="meshPath" 					default="package://vehicle_description/mesh/default.dae" />
-	<arg name="baseColorR"					default="0" />
+	<arg name="baseColorR"					default="1" />
 	<arg name="baseColorG"					default="0" />
-	<arg name="baseColorB"					default="0.8" />
+	<arg name="baseColorB"					default="0" />
 	<arg name="logFolder" 					default="/home/hatem/SimuLogs/SimulatedCar1/" />	
 	
 	<arg name="maxVelocity" 				default="5" />
@@ -29,8 +29,8 @@
 	<arg name="maxDistanceToAvoid" 			default="5.0"  /> <!-- should be smaller than minDistanceToAvoid -->
 	<arg name="speedProfileFactor"			default="1.3"  />
 	
-	<arg name="horizontalSafetyDistance"	default="1"  />
-	<arg name="verticalSafetyDistance"		default="1"  />
+	<arg name="horizontalSafetyDistance"	default="0.2"  />
+	<arg name="verticalSafetyDistance"		default="0.2"  />
 		
 	<arg name="enableTrafficLightBehavior" 	default="true" />
 	<arg name="enableStopSignBehavior" 		default="true" />	
@@ -40,7 +40,7 @@
 	<arg name="length" 						default="4.2"  />
 	<arg name="wheelBaseLength" 			default="2.7"  />
 	<arg name="turningRadius"				default="5.2"  />
-	<arg name="maxSteerAngle" 				default="0.35" />
+	<arg name="maxSteerAngle" 				default="0.5" />
 	
 	<arg name="steeringDelay" 				default="1.2" />
 	<arg name="minPursuiteDistance" 		default="2.5"  />
@@ -51,10 +51,10 @@
 	<arg name="enableObjectTracking" 		default="true" /> <!-- use internal kalman filter for track obstacles " -->
 	<arg name="enableOutsideControl" 		default="false" /> <!-- use internal kalman filter for track obstacles " -->		
 	
-	<arg name="enableStepByStepSignal" 		default="false" />
+	<arg name="enableStepByStepSignal" 		default="true" />
 	<arg name="enableSimulatedVelodyne" 	default="false" />  
 	
-	<arg name="mapSource" 					default="0" /> <!-- Autoware=0, Vector Map Folder=1, kml=2 -->
+	<arg name="mapSource" 					default="1" /> <!-- Autoware=0, Vector Map Folder=1, kml=2 -->
 	<arg name="mapFileName" 				default="/media/hatem/8ac0c5d5-8793-4b98-8728-55f8d67ec0f4/data/ToyotaCity2/map/vector_map/" /> 
 	
 	<arg name="enableUsingJoyStick" 	default="false" /> 
