@@ -1152,6 +1152,7 @@ void PlanningHelpers::FixPathDensity(vector<WayPoint>& path, const double& dista
 	{
 		d += hypot(path.at(ei).pos.x- path.at(ei-1).pos.x, path.at(ei).pos.y- path.at(ei-1).pos.y) + remaining;
 		a = atan2(path.at(ei).pos.y - path.at(si).pos.y, path.at(ei).pos.x - path.at(si).pos.x);
+		double z = path.at(ei).pos.z;
 
 		if(d < distanceDensity - margin ) // skip
 		{
@@ -1166,6 +1167,7 @@ void PlanningHelpers::FixPathDensity(vector<WayPoint>& path, const double& dista
 			{
 				pm.pos.x = pm.pos.x + distanceDensity * cos(a);
 				pm.pos.y = pm.pos.y + distanceDensity * sin(a);
+				pm.pos.z = z;
 				fixedPath.push_back(pm);
 			}
 			remaining = d - nPoints*distanceDensity;
