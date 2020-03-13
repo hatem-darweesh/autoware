@@ -23,6 +23,11 @@ public:
 	MappingHelpers();
 	virtual ~MappingHelpers();
 
+	static void GenerateDtLaneAndFixLaneForVectorMap(UtilityHNS::AisanLanesFileReader* pLaneData,
+			UtilityHNS::AisanPointsFileReader* pPointsData,
+			UtilityHNS::AisanNodesFileReader* pNodesData,
+			PlannerHNS::RoadNetwork& map, std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtlane_data);
+
 	static void ConstructRoadNetworkFromROSMessage(const std::vector<UtilityHNS::AisanLanesFileReader::AisanLane>& lanes_data,
 			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 			const std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dt_data,
@@ -38,6 +43,8 @@ public:
 			const std::vector<UtilityHNS::AisanCrossWalkFileReader::AisanCrossWalk>& crosswalk_data,
 			const std::vector<UtilityHNS::AisanNodesFileReader::AisanNode>& nodes_data,
 			const std::vector<UtilityHNS::AisanDataConnFileReader::DataConn>& conn_data,
+			UtilityHNS::AisanPointsFileReader* pPointsData,
+			UtilityHNS::AisanCenterLinesFileReader* pDTData,
 			const GPSPoint& origin, RoadNetwork& map, const bool& bSpecialFlag = false,
 			const bool& bFindLaneChangeLanes = false,
 			const bool& bFindCurbsAndWayArea = false);
@@ -61,13 +68,20 @@ public:
 				UtilityHNS::AisanPointsFileReader* pPointsData,
 				UtilityHNS::AisanNodesFileReader* pNodesData,
 				UtilityHNS::AisanLinesFileReader* pLinedata,
+				UtilityHNS::AisanWhitelinesFileReader* pWhitelinesData,
 				const GPSPoint& origin, RoadNetwork& map, const bool& bSpecialFlag = false,
 				const bool& bFindLaneChangeLanes = false,
 				const bool& bFindCurbsAndWayArea = false);
 
-	static void ConstructRoadNetworkFromDataFiles(const std::string vectoMapPath, RoadNetwork& map, const bool& bZeroOrigin = false);
+	static void ConstructRoadNetworkFromDataFiles(const std::string vectoMapPath, RoadNetwork& map, int bSpecialMap = 0);
 
 	static void UpdateMapWithOccupancyGrid(OccupancyToGridMap& map_info, const std::vector<int>& data, RoadNetwork& map, std::vector<WayPoint*>& updated_list);
+
+	static bool GetWayPoint(const int& id, const int& laneID,const double& refVel, const int& did,
+			UtilityHNS::AisanPointsFileReader* pPointsData,
+			UtilityHNS::AisanCenterLinesFileReader* pDtData,
+			const GPSPoint& origin, WayPoint& way_point);
+
 
 	static bool GetWayPoint(const int& id, const int& laneID,const double& refVel, const int& did,
 			const std::vector<UtilityHNS::AisanCenterLinesFileReader::AisanCenterLine>& dtpoints,
@@ -75,6 +89,8 @@ public:
 			const GPSPoint& origin, WayPoint& way_point);
 
 	static void LoadKML(const std::string& kmlMap, RoadNetwork& map);
+
+	static void LinkTrafficLightsIntoGroups(RoadNetwork& map);
 
 	static TiXmlElement* GetHeadElement(TiXmlElement* pMainElem);
 	static TiXmlElement* GetDataFolder(const std::string& folderName, TiXmlElement* pMainElem);
@@ -127,6 +143,11 @@ public:
 			const std::vector<UtilityHNS::AisanPointsFileReader::AisanPoints>& points_data,
 			const GPSPoint& origin, RoadNetwork& map);
 
+	static void ExtractLines(UtilityHNS::AisanLinesFileReader* pLineData,
+			UtilityHNS::AisanWhitelinesFileReader* pWhitelineData,
+			UtilityHNS::AisanPointsFileReader* pPointsData,
+			const GPSPoint& origin, RoadNetwork& map);
+
 	static void ConnectBoundariesToWayPoints(RoadNetwork& map);
 
 	static void LinkBoundariesToWayPoints(RoadNetwork& map);
@@ -151,6 +172,7 @@ public:
 	static WayPoint* FindWaypoint(const int& id, RoadNetwork& map);
 	static WayPoint* FindWaypointV2(const int& id, const int& l_id, RoadNetwork& map);
 
+	static std::vector<Line> GetLinesList(TiXmlElement* pElem);
 	static std::vector<Curb> GetCurbsList(TiXmlElement* pElem);
 	static std::vector<Boundary> GetBoundariesList(TiXmlElement* pElem);
 	static std::vector<Marking> GetMarkingsList(TiXmlElement* pElem);
@@ -160,12 +182,13 @@ public:
 	static std::vector<StopLine> GetStopLinesList(TiXmlElement* pElem);
 	static std::vector<Lane> GetLanesList(TiXmlElement* pElem);
 	static std::vector<RoadSegment> GetRoadSegmentsList(TiXmlElement* pElem);
+	static std::vector<std::string> GetStringsFromPrefix(const std::string& str, const std::string& prefix, const std::string& postfix);
 	static std::vector<int> GetIDsFromPrefix(const std::string& str, const std::string& prefix, const std::string& postfix);
 	static std::vector<double> GetDoubleFromPrefix(const std::string& str, const std::string& prefix, const std::string& postfix);
 	static std::pair<ACTION_TYPE, double> GetActionPairFromPrefix(const std::string& str, const std::string& prefix, const std::string& postfix);
 	static std::vector<WayPoint> GetCenterLaneData(TiXmlElement* pElem, const int& currLaneID);
 	static std::vector<WayPoint> GetCenterLaneDataVer0(TiXmlElement* pElem, const int& currLaneID);
-	static std::vector<GPSPoint> GetPointsData(TiXmlElement* pElem);
+	static std::vector<WayPoint> GetWaypointsData(TiXmlElement* pElem);
 	static std::vector<std::string> SplitString(const std::string& str, const std::string& token);
 
 	//static void CreateKmlFromLocalizationPathFile(const std::string& pathFileName,const double& maxLaneDistance, const double& density,const std::vector<TrafficLight>& trafficLights, const std::vector<GPSPoint>& stopLines);
@@ -190,6 +213,10 @@ public:
 	static void ConnectLanes(UtilityHNS::AisanLanesFileReader* pLaneData,
 			std::vector<PlannerHNS::Lane>& lanes);
 
+	static void ConnectLanes(PlannerHNS::RoadNetwork& map);
+	static void ConnectTrafficLightsAndStopLines(PlannerHNS::RoadNetwork& map);
+	static void ConnectTrafficSignsAndStopLines(PlannerHNS::RoadNetwork& map);
+
 	static bool GetPointFromDataList(UtilityHNS::AisanPointsFileReader* pPointsData,const int& pid, WayPoint& out_wp);
 
 	static int GetBeginPointIdFromLaneNo(UtilityHNS::AisanLanesFileReader* pLaneData,
@@ -206,6 +233,7 @@ public:
 	static void FixTwoPointsLanes(std::vector<Lane>& lanes);
 	static void FixTwoPointsLane(Lane& lanes);
 	static void FixUnconnectedLanes(std::vector<Lane>& lanes, const int& max_angle_diff = 90);
+	static void TrimPath(std::vector<PlannerHNS::WayPoint>& points, double trim_angle);
 
 	static void InsertWayPointToBackOfLane(const WayPoint& wp, Lane& lane, int& global_id);
 	static void InsertWayPointToFrontOfLane(const WayPoint& wp, Lane& lane, int& global_id);
@@ -214,13 +242,43 @@ public:
 
 	static void GetMapMaxIds(PlannerHNS::RoadNetwork& map);
 
-	static double m_USING_VER_ZERO;
+	static bool IsPointExist(const WayPoint& p, const std::vector<PlannerHNS::WayPoint>& points);
 
+	static void InsertUniqueStopLine(std::vector<PlannerHNS::StopLine>& stop_lines, const PlannerHNS::StopLine& sl);
+	static void InsertUniqueTrafficLight(std::vector<PlannerHNS::TrafficLight>& traffic_lights, const PlannerHNS::TrafficLight& tl);
+	static void InsertUniqueTrafficSign(std::vector<PlannerHNS::TrafficSign>& traffic_signs, const PlannerHNS::TrafficSign& ts);
+
+	static void correct_gps_coor(double& lat,double& lon);
+	static void correct_nmea_coor(double& lat,double& lon);
+
+	static std::string FromMarkColorToText(MARKING_COLOR mark_color);
+	static std::string FromLineTypeToText(LINE_TYPE type);
+	static std::string FromLightTypeToText(TRAFFIC_LIGHT_TYPE type);
+	static std::string FromSignTypeToText(TRAFFIC_SIGN_TYPE type);
+
+	static LINE_TYPE FromTextToLineType(std::string type);
+	static MARKING_COLOR FromTextToMarkColor(std::string mark_color);
+	static TRAFFIC_LIGHT_TYPE FromTextToLightType(std::string light_type);
+	static TRAFFIC_SIGN_TYPE FromTextToSignType(std::string sign_type);
+
+	static LINE_TYPE FromNumberToLineType(int type);
+	static MARKING_COLOR FromNumberToMarkColor(int color);
+	static TRAFFIC_LIGHT_TYPE FromNumberToLightType(int type);
+	static TRAFFIC_SIGN_TYPE FromNumberToSignType(int type);
+
+	static double m_USING_VER_ZERO;
 	static int g_max_point_id;
 	static int g_max_lane_id;
+	static int g_max_line_id;
 	static int g_max_stop_line_id;
 	static int g_max_traffic_light_id ;
+	static int g_max_traffic_sign_id ;
 	static int g_max_boundary_area_id ;
+	static int g_max_marking_id ;
+	static int g_max_curb_id ;
+	static int g_max_crossing_id ;
+
+	static std::vector<Lane*> GetClosestMultipleLanesFromMap(const WayPoint& pos, RoadNetwork& map, const double& distance = 5.0);
 
 };
 

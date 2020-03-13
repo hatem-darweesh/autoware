@@ -259,10 +259,10 @@ void LocalPlannerH::ReInitializePlanner(const WayPoint& start_pose)
  {
 	 for(unsigned int i = 0; i < trafficLights.size(); i++)
 	 {
-		 double d = hypot(trafficLights.at(i).pos.y - state.pos.y, trafficLights.at(i).pos.x - state.pos.x);
+		 double d = hypot(trafficLights.at(i).pose.pos.y - state.pos.y, trafficLights.at(i).pose.pos.x - state.pos.x);
 		 if(d <= trafficLights.at(i).stoppingDistance)
 		 {
-			 double a_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(UtilityHNS::UtilityH::FixNegativeAngle(trafficLights.at(i).pos.a) , UtilityHNS::UtilityH::FixNegativeAngle(state.pos.a));
+			 double a_diff = UtilityHNS::UtilityH::AngleBetweenTwoAnglesPositive(UtilityHNS::UtilityH::FixNegativeAngle(trafficLights.at(i).pose.pos.a) , UtilityHNS::UtilityH::FixNegativeAngle(state.pos.a));
 
 			 if(a_diff < M_PI_2 && trafficLights.at(i).id != prevTrafficLightId)
 			 {
@@ -348,7 +348,7 @@ void LocalPlannerH::ReInitializePlanner(const WayPoint& start_pose)
  			for(unsigned int i=0; i< detectedLights.size(); i++)
  			{
  				if(detectedLights.at(i).id == trafficLightID)
- 					bGreenTrafficLight = (detectedLights.at(i).lightState == GREEN_LIGHT);
+ 					bGreenTrafficLight = (detectedLights.at(i).lightType == GREEN_LIGHT);
  			}
  		}
 

@@ -48,8 +48,6 @@ public:
 
 	static int GetClosestNextPointIndex_obsolete(const std::vector<WayPoint>& trajectory, const WayPoint& p, const int& prevIndex = 0);
 
-	static std::vector<int> GetClosestNextPoints(const std::vector<WayPoint>& trajectory, const WayPoint& p, const double& distance_range = 2, const int& prevIndex = 0);
-
 	static int GetClosestNextPointIndexFast(const std::vector<WayPoint>& trajectory, const WayPoint& p, const int& prevIndex = 0);
 
 	static int GetClosestNextPointIndexFastV2(const std::vector<WayPoint>& trajectory, const WayPoint& p, const int& prevIndex = 0);
@@ -76,7 +74,11 @@ public:
 
 	static void SmoothPath(std::vector<WayPoint>& path, double weight_data =0.25,double weight_smooth = 0.25,double tolerance = 0.01);
 
+	static void SmoothPath(std::vector<GPSPoint>& path, double weight_data =0.25,double weight_smooth = 0.25,double tolerance = 0.01);
+
 	static double CalcCircle(const GPSPoint& pt1, const GPSPoint& pt2, const GPSPoint& pt3, GPSPoint& center);
+
+	static double CalcCircleV2(const WayPoint& pt1, const WayPoint& pt2, const WayPoint& pt3, WayPoint& center);
 
 	static void FixAngleOnly(std::vector<WayPoint>& path);
 
@@ -85,6 +87,8 @@ public:
 	//static double CalcAngleAndCostSimple(std::vector<WayPoint>& path, const double& lastCost = 0);
 
 	static double CalcAngleAndCostAndCurvatureAnd2D(std::vector<WayPoint>& path, const double& lastCost = 0);
+
+	static void CalcDtLaneInfo(std::vector<WayPoint>& path);
 
 	static void PredictConstantTimeCostForTrajectory(std::vector<PlannerHNS::WayPoint>& path, const PlannerHNS::WayPoint& currPose, const double& minVelocity, const double& minDist);
 
@@ -111,6 +115,8 @@ public:
 	static void SmoothSpeedProfiles(std::vector<WayPoint>& path_in, double weight_data, double weight_smooth, double tolerance	= 0.1);
 
 	static void SmoothCurvatureProfiles(std::vector<WayPoint>& path_in, double weight_data, double weight_smooth, double tolerance = 0.1);
+
+	static void SmoothZ(std::vector<WayPoint>& path_in, double weight_data, double weight_smooth, double tolerance = 0.1);
 
 	static void SmoothWayPointsDirections(std::vector<WayPoint>& path_in, double weight_data, double weight_smooth, double tolerance	= 0.1);
 
@@ -183,12 +189,17 @@ public:
 
 	static WayPoint GetRealCenter(const PlannerHNS::WayPoint& currState, const double& wheel_base);
 
+	static void GetCubeAndCenterofTwoPoints(const PlannerHNS::WayPoint& p1, const PlannerHNS::WayPoint& p2, double width, double depth,
+			PlannerHNS::WayPoint& center_p, PlannerHNS::WayPoint& min_p, PlannerHNS::WayPoint& max_p);
+
 	static std::string MakePathID(const std::vector<PlannerHNS::WayPoint>& _path);
 	static std::string MakePathDirectionID(const std::vector<PlannerHNS::WayPoint>& _path);
 
 	static double GetDistanceFromPoseToEnd(const PlannerHNS::WayPoint& pose, const std::vector<WayPoint>& path);
 
 	static int PointInsidePolygon(const std::vector<GPSPoint>& points,const GPSPoint& p);
+
+	static int PointInsidePolygon(const std::vector<WayPoint>& points,const WayPoint& p);
 
 	static void TestQuadraticSpline(const std::vector<WayPoint>& center_line, std::vector<WayPoint>& path);
 

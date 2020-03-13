@@ -44,6 +44,35 @@ public:
 		m[2][0] = 0; m[2][1] =  0; m[2][2] =  1;
 	}
 
+	/**
+	 * x axis -> 0
+	 * y axis -> 1
+	 * z axis -> 2
+	 */
+	Mat3(double rotation_angle, int rot_axis)
+	{
+		double c = cos(rotation_angle);
+		double s = sin(rotation_angle);
+		if(rot_axis == 0)
+		{
+			m[0][0] = 1; m[0][1] = 0; m[0][2] =  0;
+			m[1][0] = 0; m[1][1] = c; m[1][2] = -s;
+			m[2][0] = 0; m[2][1] = s; m[2][2] =  c;
+		}
+		else if(rot_axis == 1)
+		{
+			m[0][0] =  c; m[0][1] = 0; m[0][2] =  s;
+			m[1][0] =  0; m[1][1] = 1; m[1][2] =  0;
+			m[2][0] = -s; m[2][1] = 0; m[2][2] =  c;
+		}
+		else if(rot_axis == 2)
+		{
+			m[0][0] = c; m[0][1] = -s; m[0][2] =  0;
+			m[1][0] = s; m[1][1] =  c; m[1][2] =  0;
+			m[2][0] = 0; m[2][1] =  0; m[2][2] =  1;
+		}
+	}
+
 	Mat3(double rotation_angle)
 	{
 		double c = cos(rotation_angle);
@@ -70,6 +99,15 @@ public:
 		GPSPoint _v = v;
 		v.x = m[0][0]*_v.x + m[0][1]*_v.y + m[0][2]*1;
 		v.y = m[1][0]*_v.x + m[1][1]*_v.y + m[1][2]*1;
+		return v;
+	}
+
+	GPSPoint Mul3D (GPSPoint v)
+	{
+		GPSPoint _v = v;
+		v.x = m[0][0]*_v.x + m[0][1]*_v.y + m[0][2]*_v.z;
+		v.y = m[1][0]*_v.x + m[1][1]*_v.y + m[1][2]*_v.z;
+		v.z = m[2][0]*_v.x + m[2][1]*_v.y + m[2][2]*_v.z;
 		return v;
 	}
 };

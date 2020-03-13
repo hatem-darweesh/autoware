@@ -19,6 +19,26 @@
 namespace PlannerHNS
 {
 
+enum MAP_SOURCE_TYPE
+{
+	MAP_AUTOWARE,
+	MAP_FOLDER,
+	MAP_KML_FILE,
+	MAP_ONE_CSV_FILE,
+	MAP_LANES_CSV_FILES,
+	MAP_NEW,
+	MAP_OPEN_DRIVE_FILE,
+	MAP_FOLDER_V2,
+	MAP_LANELET_2
+};
+
+enum MAP_SOURCE_FORMAT
+{
+	MAP_VECTOR,
+	MAP_KML,
+	MAP_OPEN_DRIVE,
+	MAP_LANELET2
+};
 
 enum DIRECTION_TYPE {	FORWARD_DIR, FORWARD_LEFT_DIR, FORWARD_RIGHT_DIR,
 	BACKWARD_DIR, BACKWARD_LEFT_DIR, BACKWARD_RIGHT_DIR, STANDSTILL_DIR};
@@ -58,11 +78,25 @@ enum ACTION_TYPE {FORWARD_ACTION, BACKWARD_ACTION, STOP_ACTION, LEFT_TURN_ACTION
 enum BEH_STATE_TYPE {BEH_FORWARD_STATE=0,BEH_STOPPING_STATE=1, BEH_BRANCH_LEFT_STATE=2, BEH_BRANCH_RIGHT_STATE=3, BEH_YIELDING_STATE=4, BEH_ACCELERATING_STATE=5, BEH_PARKING_STATE=6, BEH_UNKNOWN_STATE = 7};
 
 enum SEGMENT_TYPE {NORMAL_ROAD_SEG, INTERSECTION_ROAD_SEG, UTURN_ROAD_SEG, EXIT_ROAD_SEG, MERGE_ROAD_SEG, HIGHWAY_ROAD_SEG};
+
 enum RoadSegmentType {NORMAL_ROAD, INTERSECTION_ROAD, UTURN_ROAD, EXIT_ROAD, MERGE_ROAD, HIGHWAY_ROAD};
 
-enum MARKING_TYPE {UNKNOWN_MARK, TEXT_MARK, AF_MARK, AL_MARK, AR_MARK, AFL_MARK, AFR_MARK, ALR_MARK, UTURN_MARK, NOUTURN_MARK};
+enum BOUNDARY_TYPE {NORMAL_ROAD_BOUNDARY, INTERSECTION_BOUNDARY, CROSSING_BOUNDARY, UTURN__BOUNDARY,
+	EXIT_ROAD_BOUNDARY, MERGE_ROAD_BOUNDARY, HIGHWAY_BOUNDARY, PARKING_BOUNDARY, FREE_SPACE_BOUNDARY,
+	VEGETATION_BOUNDARY, KEEP_OUT_BOUNDARY, BUILDING_BOUNDARY, TRAFFIC_ISLAN_BOUNDARY, WALK_WAY_BOUNDARY,
+	SHARED_WALK_WAY_BOUNDARY, EXIT_BOUNDARY};
 
-enum TrafficSignTypes {UNKNOWN_SIGN, STOP_SIGN, MAX_SPEED_SIGN, MIN_SPEED_SIGN};
+enum MARKING_TYPE {UNKNOWN_MARK, TEXT_MARK, AF_MARK, AL_MARK, AR_MARK, AFL_MARK, AFR_MARK, ALR_MARK, UTURN_MARK, NOUTURN_MARK, POLYGON_MARK};
+
+enum LaneType{NORMAL_LANE, MERGE_LANE, EXIT_LANE, BUS_LANE, BUS_STOP_LANE, EMERGENCY_LANE};
+
+enum MARKING_COLOR{MARK_COLOR_WHITE, MARK_COLOR_YELLOW, MARK_COLOR_RED, MARK_COLOR_ORANG, MARK_COLOR_BLUE};
+
+enum LINE_TYPE{DEFAULT_WHITE_LINE, CONTINUOUS_LINE, SEPARATION_LINE, SUPPORT_LINE, GENERAL_LINE};
+
+enum TRAFFIC_SIGN_TYPE {UNKNOWN_SIGN, STOP_SIGN, MAX_SPEED_SIGN, MIN_SPEED_SIGN, NO_PARKING_SIGN, SCHOOL_CROSSING_SIGN};
+
+enum TRAFFIC_LIGHT_TYPE {UNKNOWN_LIGHT=0, RED_LIGHT=1, GREEN_LIGHT=2, YELLOW_LIGHT=3, CROSS_GREEN=4, CROSS_RED=5, LEFT_GREEN=6, FORWARD_GREEN=7, RIGHT_GREEN=8, FLASH_YELLOW=9, FLASH_RED=10};
 
 class Lane;
 class TrafficLight;
@@ -503,12 +537,14 @@ class Boundary //represent wayarea in vector map
 public:
 	int id;
 	int roadId;
-	std::vector<GPSPoint> points;
-	GPSPoint center;
+	BOUNDARY_TYPE type;
+	std::vector<WayPoint> points;
+	WayPoint center;
 	RoadSegment* pSegment;
 
 	Boundary()
 	{
+		type = NORMAL_ROAD_BOUNDARY;
 		id    = 0;
 		roadId =0;
 		pSegment = nullptr;
@@ -521,11 +557,15 @@ public:
 	int id;
 	int laneId;
 	int roadId;
-	std::vector<GPSPoint> points;
+	double height;
+	double width;
+	std::vector<WayPoint> points;
 	Lane* pLane;
 
 	Curb()
 	{
+		width = 0;
+		height = 0;
 		id    = 0;
 		laneId =0;
 		roadId =0;
@@ -538,11 +578,14 @@ class Crossing
 public:
 	int id;
 	int roadId;
-	std::vector<GPSPoint> points;
+	int boundaryId;
+	std::vector<WayPoint> points; // the crossing boundary
+	std::vector<int> markings;
 	RoadSegment* pSegment;
 
 	Crossing()
 	{
+		boundaryId = 0;
 		id    = 0;
 		roadId =0;
 		pSegment = nullptr;
@@ -554,12 +597,15 @@ class StopLine
 public:
 	int id;
 	int laneId;
+	std::vector<int> laneIds;
 	int roadId;
-	int trafficLightID;
+//	int trafficLightID;
 	int stopSignID;
-	std::vector<GPSPoint> points;
+	std::vector<WayPoint> points;
 	Lane* pLane;
 	int linkID;
+
+	std::vector<int> lightIds;
 
 	StopLine()
 	{
@@ -567,7 +613,7 @@ public:
 		laneId =0;
 		roadId =0;
 		pLane = 0;
-		trafficLightID = -1;
+//		trafficLightID = -1;
 		stopSignID = -1;
 		linkID = 0;
 	}
@@ -579,7 +625,7 @@ public:
 	int id;
 	int laneId;
 	int roadId;
-	std::vector<GPSPoint> points;
+	std::vector<WayPoint> points;
 	Lane* pLane;
 
 	WaitingLine()
@@ -595,11 +641,14 @@ class TrafficSign
 {
 public:
 	int id;
-	int laneId;
+	//int laneId;
 	int roadId;
-
-	GPSPoint pos;
-	TrafficSignTypes signType;
+	int groupID;
+	int stopLineID;
+	double horizontal_angle;
+	double vertical_angle;
+	WayPoint pose;
+	TRAFFIC_SIGN_TYPE signType;
 	double value;
 	double fromValue;
 	double toValue;
@@ -608,13 +657,19 @@ public:
 	timespec fromTimeValue;
 	timespec toTimeValue;
 
+	std::vector<int> laneIds;
+	std::vector<Lane*> pLanes;
 	Lane* pLane;
+
+	std::vector<PlannerHNS::WayPoint> points; // make up the shape
 
 	TrafficSign()
 	{
 		id    		= 0;
-		laneId 		= 0;
+//		laneId 		= 0;
 		roadId		= 0;
+		groupID     = 0;
+		stopLineID  = 0;
 		signType  	= UNKNOWN_SIGN;
 		value		= 0;
 		fromValue	= 0;
@@ -623,28 +678,36 @@ public:
 //		fromTimeValue = 0;
 //		toTimeValue	= 0;
 		pLane 		= 0;
+		horizontal_angle = 0;
+		vertical_angle = 0;
 	}
 };
-
-enum TrafficLightState {UNKNOWN_LIGHT, RED_LIGHT, GREEN_LIGHT, YELLOW_LIGHT, LEFT_GREEN, FORWARD_GREEN, RIGHT_GREEN, FLASH_YELLOW, FLASH_RED};
 
 class TrafficLight
 {
 public:
 	int id;
-	GPSPoint pos;
-	TrafficLightState lightState;
+	WayPoint pose;
+	TRAFFIC_LIGHT_TYPE lightType;
 	double stoppingDistance;
 	std::vector<int> laneIds;
 	std::vector<Lane*> pLanes;
 	int linkID;
+	int stopLineID; // for lanelet2 matching
+	int groupID;
+	double horizontal_angle;
+	double vertical_angle;
 
 	TrafficLight()
 	{
+		groupID = 0;
+		horizontal_angle = 0;
+		vertical_angle = 0;
 		stoppingDistance = 2;
 		id 			= 0;
-		lightState	= GREEN_LIGHT;
+		lightType	= GREEN_LIGHT;
 		linkID 		= 0;
+		stopLineID  = 0;
 	}
 
 	bool CheckLane(const int& laneId)
@@ -665,8 +728,9 @@ public:
 	int laneId;
 	int roadId;
 	MARKING_TYPE  mark_type;
-	GPSPoint center;
-	std::vector<GPSPoint> points;
+	MARKING_COLOR mark_color;
+	WayPoint center;
+	std::vector<WayPoint> points;
 	Lane* pLane;
 
 	Marking()
@@ -675,6 +739,7 @@ public:
 		laneId = 0;
 		roadId = 0;
 		mark_type = UNKNOWN_MARK;
+		mark_color = MARK_COLOR_WHITE;
 		pLane = nullptr;
 	}
 };
@@ -707,8 +772,6 @@ public:
 
 };
 
-enum LaneType{NORMAL_LANE, MERGE_LANE, EXIT_LANE, BUS_LANE, BUS_STOP_LANE, EMERGENCY_LANE};
-
 class Lane
 {
 public:
@@ -725,6 +788,7 @@ public:
 	double dir;
 	LaneType type;
 	double width;
+	int lane_change;
 	std::vector<WayPoint> points;
 	std::vector<TrafficLight> trafficlights;
 	std::vector<StopLine> stopLines;
@@ -739,6 +803,7 @@ public:
 
 	Lane()
 	{
+		lane_change = 0;
 		id 		= 0;
 		num		= 0;
 		speed 	= 0;
@@ -757,6 +822,33 @@ public:
 
 };
 
+class Line
+{
+public:
+	int id;
+	double width;
+	MARKING_COLOR color;
+	LINE_TYPE type;
+	int original_type;
+	int roadID;
+	std::vector<WayPoint> points;
+	std::vector<int> left_lane_ids;
+	std::vector<int> right_lane_ids;
+
+	std::vector<Lane*> left_lanes;
+	std::vector<Lane*> right_lanes;
+
+	Line()
+	{
+		id = 0;
+		width = 0;
+		roadID = 0;
+		color = MARK_COLOR_WHITE;
+		type = GENERAL_LINE;
+		original_type = 0;
+	}
+};
+
 class RoadNetwork
 {
 public:
@@ -768,6 +860,29 @@ public:
 	std::vector<Crossing> crossings;
 	std::vector<Marking> markings;
 	std::vector<TrafficSign> signs;
+	std::vector<Line> lines;
+
+	MAP_SOURCE_FORMAT original_map_format;
+	std::string str_proj;
+	WayPoint origin;
+
+	RoadNetwork()
+	{
+		original_map_format = MAP_KML;
+	}
+
+	void Clear()
+	{
+		roadSegments.clear();
+		trafficLights.clear();
+		stopLines.clear();
+		curbs.clear();
+		boundaries.clear();
+		crossings.clear();
+		markings.clear();
+		signs.clear();
+		lines.clear();
+	}
 };
 
 class VehicleState : public ObjTimeStamp
@@ -1362,6 +1477,106 @@ public:
 	}
 };
 
+template<class T>
+class EnumString
+{
+private:
+	std::vector<std::pair<T, std::string> > _enum_str_list;
+	T _default;
+public:
+	EnumString(const T& _default, const std::vector<std::pair<T, std::string> >& list) :
+		_default(_default), _enum_str_list(list){}
+
+	int GetIndex(const T& _enum)
+	{
+		for(unsigned int i = 0; i < _enum_str_list.size(); i++)
+		{
+			if(_enum_str_list.at(i).first == _enum)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	int GetIndex(const std::string& _enum_str)
+	{
+		for(unsigned int i = 0; i < _enum_str_list.size(); i++)
+		{
+			if(_enum_str_list.at(i).second.compare(_enum_str) == 0)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	std::string GetString(const T& _enum)
+	{
+		for(unsigned int i = 0; i < _enum_str_list.size(); i++)
+		{
+			if(_enum_str_list.at(i).first == _enum)
+			{
+				return _enum_str_list.at(i).second;
+			}
+		}
+		return "";
+	}
+
+	std::string GetString(const int& _enum_index)
+	{
+		if(_enum_index >= 0 && _enum_index < _enum_str_list.size())
+		{
+			return _enum_str_list.at(_enum_index).second;
+		}
+
+		return "";
+	}
+
+	T GetEnum(const int& _enum_index)
+	{
+		if(_enum_index >= 0 && _enum_index < _enum_str_list.size())
+		{
+			return _enum_str_list.at(_enum_index).first;
+		}
+
+		return _default;
+	}
+
+	T GetEnum(const std::string& _enum_str)
+	{
+		for(unsigned int i = 0; i < _enum_str_list.size(); i++)
+		{
+			if(_enum_str_list.at(i).second.compare(_enum_str) == 0)
+			{
+				return _enum_str_list.at(i).first;
+			}
+		}
+
+		return _default;
+	}
+
+};
+
+static EnumString<BOUNDARY_TYPE> BOUNDARY_TYPE_STR(NORMAL_ROAD_BOUNDARY,
+		{
+				{NORMAL_ROAD_BOUNDARY, "Road"},
+				{INTERSECTION_BOUNDARY, "Intersection"},
+				{CROSSING_BOUNDARY, "Crossing"},
+				{UTURN__BOUNDARY, "U turn"},
+				{EXIT_ROAD_BOUNDARY, "Road exit"},
+				{MERGE_ROAD_BOUNDARY, "Merge"},
+				{HIGHWAY_BOUNDARY, "Highway"},
+				{PARKING_BOUNDARY, "Parking"},
+				{FREE_SPACE_BOUNDARY, "Free space"},
+				{VEGETATION_BOUNDARY, "Vegetation"},
+				{KEEP_OUT_BOUNDARY, "Keep out"},
+				{BUILDING_BOUNDARY, "Building"},
+				{TRAFFIC_ISLAN_BOUNDARY, "Island"},
+				{WALK_WAY_BOUNDARY, "Walkway"},
+				{SHARED_WALK_WAY_BOUNDARY, "Sharedway"},
+				{EXIT_BOUNDARY, "Exit"},
+		});
 }
 
 

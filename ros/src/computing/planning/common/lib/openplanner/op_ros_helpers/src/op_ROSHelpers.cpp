@@ -507,9 +507,9 @@ void ROSHelpers::ConvertFromRoadNetworkToAutowareVisualizeMapFormat(const Planne
                       for(unsigned int p = 0; p < map.roadSegments.at(i).Lanes.at(j).stopLines.at(sl).points.size(); p++)
                       {
                         geometry_msgs::Point point;
-                        point.x = map.roadSegments.at(i).Lanes.at(j).stopLines.at(sl).points.at(p).x;
-                        point.y = map.roadSegments.at(i).Lanes.at(j).stopLines.at(sl).points.at(p).y;
-                        point.z = map.roadSegments.at(i).Lanes.at(j).stopLines.at(sl).points.at(p).z;
+                        point.x = map.roadSegments.at(i).Lanes.at(j).stopLines.at(sl).points.at(p).pos.x;
+                        point.y = map.roadSegments.at(i).Lanes.at(j).stopLines.at(sl).points.at(p).pos.y;
+                        point.z = map.roadSegments.at(i).Lanes.at(j).stopLines.at(sl).points.at(p).pos.z;
                         stop_line_marker.points.push_back(point);
                       }
 
@@ -1672,14 +1672,14 @@ void ROSHelpers::GetTrafficLightForVisualization(std::vector<PlannerHNS::Traffic
 	markerArray.markers.clear();
 	for(unsigned int i=0; i<lights.size(); i++)
 	{
-		if(lights.at(i).lightState == RED_LIGHT)
+		if(lights.at(i).lightType == RED_LIGHT)
 		{
-			visualization_msgs::Marker mkr = CreateGenMarker(lights.at(i).pos.x,lights.at(i).pos.y,lights.at(i).pos.z,0,1,0,0,3,i,"traffic_light_visualize", visualization_msgs::Marker::SPHERE);
+			visualization_msgs::Marker mkr = CreateGenMarker(lights.at(i).pose.pos.x,lights.at(i).pose.pos.y,lights.at(i).pose.pos.z,0,1,0,0,3,i,"traffic_light_visualize", visualization_msgs::Marker::SPHERE);
 			markerArray.markers.push_back(mkr);
 		}
-		else if(lights.at(i).lightState == GREEN_LIGHT)
+		else if(lights.at(i).lightType == GREEN_LIGHT)
 		{
-			visualization_msgs::Marker mkr = CreateGenMarker(lights.at(i).pos.x,lights.at(i).pos.y,lights.at(i).pos.z,0,0,1,0,3,i,"traffic_light_visualize", visualization_msgs::Marker::SPHERE);
+			visualization_msgs::Marker mkr = CreateGenMarker(lights.at(i).pose.pos.x,lights.at(i).pose.pos.y,lights.at(i).pose.pos.z,0,0,1,0,3,i,"traffic_light_visualize", visualization_msgs::Marker::SPHERE);
 			markerArray.markers.push_back(mkr);
 		}
 	}
@@ -1888,7 +1888,7 @@ void ROSHelpers::UpdateRoadMap(const AutowareRoadNetwork& src_map, PlannerHNS::R
 	std::vector<UtilityHNS::AisanDataConnFileReader::DataConn> conn_data;
 
 	PlannerHNS::GPSPoint origin;//(m_OriginPos.position.x, m_OriginPos.position.y, m_OriginPos.position.z, 0);
-	PlannerHNS::MappingHelpers::ConstructRoadNetworkFromROSMessage(lanes, points, dts, inters, areas, line_data, stop_line_data, signal_data, vector_data, curb_data, roadedge_data,way_area, crossing, nodes_data,  conn_data, origin, out_map);
+	PlannerHNS::MappingHelpers::ConstructRoadNetworkFromROSMessage(lanes, points, dts, inters, areas, line_data, stop_line_data, signal_data, vector_data, curb_data, roadedge_data,way_area, crossing, nodes_data,  conn_data, nullptr, nullptr, origin, out_map);
 }
 
 void ROSHelpers::GetIndicatorArrows(const PlannerHNS::WayPoint& center, const double& width,const double& length, const PlannerHNS::LIGHT_INDICATOR& indicator, const int& id, visualization_msgs::MarkerArray& markerArray)
