@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/// \file  PolygonGenerator.cpp
+/// \brief Generate convex hull from point cloud cluster of detected object
+/// \author Hatem Darweesh
+/// \date Nov 2, 2016
+
 #include "PolygonGenerator.h"
 #include "op_planner/PlanningHelpers.h"
 

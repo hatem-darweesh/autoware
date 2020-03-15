@@ -1,4 +1,3 @@
-<!-- -->
 <launch>
 	<arg name="vehicle_width" default="1.85" />
 	<arg name="vehicle_length" default="4.2" />	

@@ -94,7 +94,7 @@ protected: //Planning Related variables
   	autoware_msgs::Lane m_CurrentTrajectoryToSend;
   	bool bNewLightStatus;
 	bool bNewLightSignal;
-	PlannerHNS::TrafficLightState  m_CurrLightStatus;
+	PlannerHNS::TRAFFIC_LIGHT_TYPE  m_CurrLightStatus;
 	std::vector<PlannerHNS::TrafficLight> m_CurrTrafficLight;
 	std::vector<PlannerHNS::TrafficLight> m_PrevTrafficLight;
 

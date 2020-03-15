@@ -157,7 +157,6 @@ void BehaviorGen::UpdatePlanningParams(ros::NodeHandle& _nh)
 	nh.getParam("/op_common_params/steeringDelay", controlParams.SteeringDelay);
 	nh.getParam("/op_common_params/minPursuiteDistance", controlParams.minPursuiteDistance );
 	nh.getParam("/op_common_params/additionalBrakingDistance", m_PlanningParams.additionalBrakingDistance );
-	std::cout << "##### Add Brake Distance:" <<  m_PlanningParams.additionalBrakingDistance << std::endl;
 	nh.getParam("/op_common_params/giveUpDistance", m_PlanningParams.giveUpDistance );
 
 	int iSource = 0;
@@ -358,16 +357,17 @@ void BehaviorGen::callbackGetLocalPlannerPath(const autoware_msgs::LaneArrayCons
 				globalPathId_roll_outs = path.at(0).gid;
 		}
 
-		if(m_RollOuts.size() > 1)
-		{
-			m_PlanningParams.enableSwerving = true;
-			m_PlanningParams.rollOutNumber = m_RollOuts.size() - 1;
-		}
-		else
-		{
-			m_PlanningParams.enableSwerving = false;
-			m_PlanningParams.rollOutNumber = 0;
-		}
+// For CARLA challenge 
+//		if(m_RollOuts.size() > 1)
+//		{
+//			m_PlanningParams.enableSwerving = true;
+//			m_PlanningParams.rollOutNumber = m_RollOuts.size() - 1;
+//		}
+//		else
+//		{
+//			m_PlanningParams.enableSwerving = false;
+//			m_PlanningParams.rollOutNumber = 0;
+//		}
 
 		if(bWayGlobalPath && m_GlobalPaths.size() > 0)
 		{
@@ -414,18 +414,18 @@ void BehaviorGen::callbackGetTrafficLightSignals(const autoware_msgs::Signals& m
 		{
 			if(m_Map.trafficLights.at(k).id == tl.id)
 			{
-				tl.pos = m_Map.trafficLights.at(k).pos;
+				tl.pose = m_Map.trafficLights.at(k).pose;
 				break;
 			}
 		}
 
 		if(msg.Signals.at(i).type == 1)
 		{
-			tl.lightState = PlannerHNS::GREEN_LIGHT;
+			tl.lightType = PlannerHNS::GREEN_LIGHT;
 		}
 		else
 		{
-			tl.lightState = PlannerHNS::RED_LIGHT;
+			tl.lightType = PlannerHNS::RED_LIGHT;
 		}
 
 		simulatedLights.push_back(tl);
@@ -585,7 +585,7 @@ void BehaviorGen::LogLocalPlanningInfo(double dt)
 		str_out << "Local_Trajectory_";
 		PlannerHNS::PlanningHelpers::WritePathToFile(str_out.str(), m_BehaviorGenerator.m_Path);
 	}
-//
+// disabled for CARLA 
 //	if(bWayGlobalPathLogs)
 //	{
 //		for(unsigned int i=0; i < m_GlobalPaths.size(); i++)
@@ -619,7 +619,6 @@ void BehaviorGen::MainLoop()
 
 		double dt  = UtilityHNS::UtilityH::GetTimeDiffNow(planningTimer);
 		UtilityHNS::UtilityH::GetTickCount(planningTimer);
-		//std::cout << "Forward: dt" << dt << std::endl;
 
 		ros::spinOnce();
 
@@ -645,7 +644,7 @@ void BehaviorGen::MainLoop()
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
 						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,
-						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, PlannerHNS::GPSPoint(), m_Map, true, m_PlanningParams.enableLaneChange, false);
+						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, m_MapRaw.pWhitelines, PlannerHNS::GPSPoint(), m_Map, true, m_PlanningParams.enableLaneChange, false);
 
 				if(m_Map.roadSegments.size() > 0)
 				{
@@ -659,7 +658,7 @@ void BehaviorGen::MainLoop()
 						m_MapRaw.pCenterLines->m_data_list, m_MapRaw.pIntersections->m_data_list,m_MapRaw.pAreas->m_data_list,
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
-						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,  PlannerHNS::GPSPoint(), m_Map, true, m_PlanningParams.enableLaneChange, false);
+						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data, nullptr, nullptr, PlannerHNS::GPSPoint(), m_Map, true, m_PlanningParams.enableLaneChange, false);
 
 				if(m_Map.roadSegments.size() > 0)
 				{
@@ -681,10 +680,11 @@ void BehaviorGen::MainLoop()
 			{
 				bNewLightStatus = false;
 				for(unsigned int itls = 0 ; itls < m_PrevTrafficLight.size() ; itls++)
-					m_PrevTrafficLight.at(itls).lightState = m_CurrLightStatus;
+					m_PrevTrafficLight.at(itls).lightType = m_CurrLightStatus;
 			}
 
-			m_BehaviorGenerator.UpdateAvoidanceParams(m_PlanningParams.enableSwerving, m_PlanningParams.rollOutNumber);
+			// just for CARLA 
+			//m_BehaviorGenerator.UpdateAvoidanceParams(m_PlanningParams.enableSwerving, m_PlanningParams.rollOutNumber);
 			m_CurrentBehavior = m_BehaviorGenerator.DoOneStep(dt, m_CurrentPos, m_VehicleStatus, 1, m_CurrTrafficLight, m_TrajectoryBestCost, 0 );
 
 			SendLocalPlanningTopics();
@@ -693,9 +693,6 @@ void BehaviorGen::MainLoop()
 		}
 		else
 			sub_GlobalPlannerPaths = nh.subscribe("/lane_waypoints_array", 	1,		&BehaviorGen::callbackGetGlobalPlannerPath, 	this);
-
-
-
 
 		loop_rate.sleep();
 	}

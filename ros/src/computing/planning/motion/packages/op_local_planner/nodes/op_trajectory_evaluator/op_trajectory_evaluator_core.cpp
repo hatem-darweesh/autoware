@@ -172,6 +172,7 @@ void TrajectoryEvalCore::callbackGetGlobalPlannerPath(const autoware_msgs::LaneA
 		for(unsigned int i = 0 ; i < msg->lanes.size(); i++)
 		{
 			PlannerHNS::ROSHelpers::ConvertFromAutowareLaneToLocalLane(msg->lanes.at(i), m_temp_path);
+			
 			m_GlobalPaths.push_back(m_temp_path);
 
 			if(bOldGlobalPath)
@@ -183,6 +184,7 @@ void TrajectoryEvalCore::callbackGetGlobalPlannerPath(const autoware_msgs::LaneA
 		if(!bOldGlobalPath)
 		{
 			bWayGlobalPath = true;
+			// for CARLA challenge 
 			for(unsigned int i = 0; i < m_GlobalPaths.size(); i++)
 			{
 				PlannerHNS::PlanningHelpers::FixPathDensity(m_GlobalPaths.at(i), m_PlanningParams.pathDensity);

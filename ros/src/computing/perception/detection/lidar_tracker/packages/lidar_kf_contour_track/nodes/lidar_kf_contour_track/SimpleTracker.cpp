@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/// \file SimpleTracker.cpp
+/// \brief Kalman Filter based object tracker
+/// \author Hatem Darweesh
+/// \date Aug 11, 2016
+
 #include "SimpleTracker.h"
 #include "op_planner/MatrixOperations.h"
 

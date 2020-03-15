@@ -570,12 +570,12 @@ bool ContourTracker::FilterByMap(const PlannerHNS::DetectedObject& obj, const Pl
 	{
 		for(unsigned int ib = 0; ib < map.boundaries.size(); ib++)
 		{
-			double d_to_center = hypot(map.boundaries.at(ib).center.y - currState.pos.y, map.boundaries.at(ib).center.x - currState.pos.x);
+			double d_to_center = hypot(map.boundaries.at(ib).center.pos.y - currState.pos.y, map.boundaries.at(ib).center.pos.x - currState.pos.x);
 			std::cout << "boundary detection ! " << d_to_center <<std::endl;
 			if(d_to_center < m_Params.DetectionRadius*2.0)
 			{
 
-				if(PlannerHNS::PlanningHelpers::PointInsidePolygon(map.boundaries.at(ib).points, obj.center.pos) == 1)
+				if(PlannerHNS::PlanningHelpers::PointInsidePolygon(map.boundaries.at(ib).points, obj.center) == 1)
 					return true;
 			}
 		}
@@ -915,7 +915,7 @@ void ContourTracker::MainLoop()
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
 						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,
-						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, PlannerHNS::GPSPoint(), m_Map, true, m_Params.bEnableLaneChange, false);
+						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, m_MapRaw.pWhitelines, PlannerHNS::GPSPoint(), m_Map, true, m_Params.bEnableLaneChange, false);
 
 				if(m_Map.roadSegments.size() > 0)
 				{
@@ -929,7 +929,7 @@ void ContourTracker::MainLoop()
 						m_MapRaw.pCenterLines->m_data_list, m_MapRaw.pIntersections->m_data_list,m_MapRaw.pAreas->m_data_list,
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
-						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,  PlannerHNS::GPSPoint(), m_Map, true, m_Params.bEnableLaneChange, false);
+						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data, nullptr, nullptr, PlannerHNS::GPSPoint(), m_Map, true, m_Params.bEnableLaneChange, false);
 
 				if(m_Map.roadSegments.size() > 0)
 				{

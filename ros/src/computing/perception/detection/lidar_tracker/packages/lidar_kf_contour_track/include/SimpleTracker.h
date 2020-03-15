@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/// \file SimpleTracker.h
+/// \brief Kalman Filter based object tracker
+/// \author Hatem Darweesh
+/// \date Aug 11, 2016
+
 #ifndef SimpleTracker_H_
 #define SimpleTracker_H_
 

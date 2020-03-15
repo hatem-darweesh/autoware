@@ -143,6 +143,7 @@ void TrajectoryGen::callbackGetCurrentPose(const geometry_msgs::PoseStampedConst
 	bNewCurrentPos = true;
 	bInitPos = true;
 
+	//just For CARLA 
 	if(m_PlanningParams.enableTimeOutAvoidance)
 	{
 		if(m_bStuckState)
@@ -290,7 +291,6 @@ void TrajectoryGen::MainLoop()
 
 			for(unsigned int i = 0; i < m_GlobalPaths.size(); i++)
 			{
-
 				t_centerTrajectorySmoothed.clear();
 
 				m_prev_index.at(i) = PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_GlobalPaths.at(i), m_CurrentPos, m_PlanningParams.horizonDistance ,
@@ -299,7 +299,6 @@ void TrajectoryGen::MainLoop()
 				if(m_prev_index.at(i) > 0 ) m_prev_index.at(i) = m_prev_index.at(i) -1;
 
 				m_GlobalPathSections.push_back(t_centerTrajectorySmoothed);
-
 			}
 
 			std::vector<PlannerHNS::WayPoint> sampledPoints_debug;

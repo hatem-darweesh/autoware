@@ -174,7 +174,7 @@ void ROSHelpers::ConvertFromRoadNetworkToAutowareVisualizeMapFormat(const Planne
 			  stop_waypoint_marker.ns =ns_id.str();
 
 			  autoware_msgs::LaneArray lane_array_2;
-			  ROSHelpers::ConvertFromPlannerHPointsToAutowarePathFormat(map.stopLines.at(i).points, lane_array_2);
+			  ROSHelpers::ConvertFromPlannerHToAutowarePathFormat(map.stopLines.at(i).points, lane_array_2);
 
 			  stop_waypoint_marker.points.clear();
 			  stop_waypoint_marker.id = count;

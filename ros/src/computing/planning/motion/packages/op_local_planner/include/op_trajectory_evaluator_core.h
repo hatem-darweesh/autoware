@@ -66,6 +66,7 @@ protected:
 	bool bPredictedObjects;
 
 
+	struct timespec m_PlanningTimer;
   	std::vector<std::string>    m_LogData;
 
   	PlannerHNS::PlanningParams m_PlanningParams;

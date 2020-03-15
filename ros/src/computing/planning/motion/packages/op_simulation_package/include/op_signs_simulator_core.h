@@ -104,7 +104,7 @@ public:
 protected:
 	ros::NodeHandle nh;
 	timespec m_Timer;
-	PlannerHNS::TrafficLightState m_CurrLightState;
+	PlannerHNS::TRAFFIC_LIGHT_TYPE m_CurrLightState;
 	SignsCommandParams m_Params;
 
 	PlannerHNS::MAP_SOURCE_TYPE m_MapType;

@@ -113,18 +113,18 @@ void OpenPlannerSimulatorSigns::VisualizeTrafficLight(autoware_msgs::Signals& _s
 		{
 			if(m_Map.trafficLights.at(k).id == tl.id)
 			{
-				tl.pos = m_Map.trafficLights.at(k).pos;
+				tl.pose = m_Map.trafficLights.at(k).pose;
 				break;
 			}
 		}
 
 		if(_signals.Signals.at(i).type == 1)
 		{
-			tl.lightState = PlannerHNS::GREEN_LIGHT;
+			tl.lightType = PlannerHNS::GREEN_LIGHT;
 		}
 		else
 		{
-			tl.lightState = PlannerHNS::RED_LIGHT;
+			tl.lightType = PlannerHNS::RED_LIGHT;
 		}
 
 		simulatedLights.push_back(tl);
@@ -166,7 +166,7 @@ void OpenPlannerSimulatorSigns::MainLoop()
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
 						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,
-						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, PlannerHNS::GPSPoint(), m_Map, true);
+						m_MapRaw.pLanes, m_MapRaw.pPoints, m_MapRaw.pNodes, m_MapRaw.pLines, m_MapRaw.pWhitelines, PlannerHNS::GPSPoint(), m_Map, true);
 
 				if(m_Map.roadSegments.size() > 0)
 				{
@@ -180,7 +180,7 @@ void OpenPlannerSimulatorSigns::MainLoop()
 						m_MapRaw.pCenterLines->m_data_list, m_MapRaw.pIntersections->m_data_list,m_MapRaw.pAreas->m_data_list,
 						m_MapRaw.pLines->m_data_list, m_MapRaw.pStopLines->m_data_list,	m_MapRaw.pSignals->m_data_list,
 						m_MapRaw.pVectors->m_data_list, m_MapRaw.pCurbs->m_data_list, m_MapRaw.pRoadedges->m_data_list, m_MapRaw.pWayAreas->m_data_list,
-						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data,  PlannerHNS::GPSPoint(), m_Map, true);
+						m_MapRaw.pCrossWalks->m_data_list, m_MapRaw.pNodes->m_data_list, conn_data, nullptr, nullptr, PlannerHNS::GPSPoint(), m_Map, true);
 
 				if(m_Map.roadSegments.size() > 0)
 				{
