@@ -1,10 +1,3 @@
-
-
-/// \file  PolygonGenerator.cpp
-/// \brief Generate convex hull from point cloud cluster of detected object
-/// \author Hatem Darweesh
-/// \date Nov 2, 2016
-
 /*
  *  Copyright (c) 2016, Nagoya University
  *  All rights reserved.

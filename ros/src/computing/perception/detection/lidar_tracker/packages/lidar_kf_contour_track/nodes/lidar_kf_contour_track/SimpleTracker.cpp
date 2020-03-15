@@ -1,9 +1,3 @@
-
-/// \file SimpleTracker.cpp
-/// \brief Kalman Filter based object tracker
-/// \author Hatem Darweesh
-/// \date Aug 11, 2016
-
 /*
  *  Copyright (c) 2016, Nagoya University
  *  All rights reserved.

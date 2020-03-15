@@ -186,7 +186,6 @@ void TrajectoryEvalCore::callbackGetGlobalPlannerPath(const autoware_msgs::LaneA
 		for(unsigned int i = 0 ; i < msg->lanes.size(); i++)
 		{
 			PlannerHNS::RosHelpers::ConvertFromAutowareLaneToLocalLane(msg->lanes.at(i), m_temp_path);
-
 			PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_temp_path);
 			m_GlobalPaths.push_back(m_temp_path);
 

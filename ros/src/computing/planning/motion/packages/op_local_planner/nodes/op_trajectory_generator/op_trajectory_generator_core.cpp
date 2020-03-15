@@ -95,6 +95,7 @@ void TrajectoryGen::UpdatePlanningParams(ros::NodeHandle& _nh)
 
 	_nh.getParam("/op_common_params/pathDensity", m_PlanningParams.pathDensity);
 	_nh.getParam("/op_common_params/rollOutDensity", m_PlanningParams.rollOutDensity);
+	
 	if(m_PlanningParams.enableSwerving)
 		_nh.getParam("/op_common_params/rollOutsNumber", m_PlanningParams.rollOutNumber);
 	else
