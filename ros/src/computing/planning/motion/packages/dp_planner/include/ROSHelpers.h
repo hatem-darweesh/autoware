@@ -37,7 +37,6 @@
 
 #include "autoware_msgs/CloudClusterArray.h"
 
-#include "waypoint_follower/libwaypoint_follower.h"
 #include "autoware_msgs/LaneArray.h"
 
 #include <visualization_msgs/MarkerArray.h>

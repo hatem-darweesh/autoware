@@ -39,7 +39,6 @@ class TrajectoryEvalCore
 {
 protected:
 
-	//PlannerHNS::TrajectoryDynamicCosts m_TrajectoryCostsCalculator;
         PlannerHNS::TrajectoryEvaluator m_TrajectoryCostsCalculator;
 	bool m_bUseMoveingObjectsPrediction;
 

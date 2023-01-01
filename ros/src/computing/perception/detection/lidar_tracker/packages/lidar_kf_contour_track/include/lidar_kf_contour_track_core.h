@@ -41,10 +41,10 @@
 #include <autoware_can_msgs/CANInfo.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <jsk_recognition_msgs/BoundingBoxArray.h>
 #include <autoware_msgs/CloudClusterArray.h>
 #include <autoware_msgs/DetectedObjectArray.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <jsk_recognition_msgs/BoundingBoxArray.h>
 #include <visualization_msgs/MarkerArray.h>
 
 
@@ -125,10 +125,6 @@ protected:
 	bool bMap;
 	double m_MapFilterDistance;
 
-	int frame_count_;
-	  std::string kitti_data_dir_;
-	  std::string result_file_path_;
-
 	std::vector<PlannerHNS::Lane*> m_ClosestLanesList;
 
 	int m_nOriginalPoints;
@@ -138,11 +134,11 @@ protected:
 	double m_tracking_time;
 	double m_dt;
 	struct timespec  m_loop_timer;
-
-
+	int frame_count_;
+	std::string kitti_data_dir_;
+	std::string result_file_path_;
 	std::string pointcloud_frame ;
 	std::string tracking_frame;
-
 	tf::TransformListener tf_listener;
 	tf::StampedTransform local2global;
 
@@ -157,18 +153,18 @@ protected:
 	ros::Publisher pub_TTC_PathRviz;
 
 	// define subscribers.
-	ros::Subscriber sub_detected_objects;
 	ros::Subscriber sub_cloud_clusters;
 	ros::Subscriber sub_current_pose ;
+	ros::Subscriber sub_detected_objects;
 	ros::Subscriber sub_current_velocity;
 	ros::Subscriber sub_robot_odom;
 	ros::Subscriber sub_can_info;
 
 
 	// Callback function for subscriber.
-	void callbackGetDetectedObjects(const autoware_msgs::DetectedObjectArrayConstPtr& msg);
-	void callbackGetCloudClusters(const autoware_msgs::CloudClusterArrayConstPtr& msg);
+	void callbackGetCloudClusters(const autoware_msgs::CloudClusterArrayConstPtr &msg);
 	void callbackGetCurrentPose(const geometry_msgs::PoseStampedConstPtr& msg);
+	void callbackGetDetectedObjects(const autoware_msgs::DetectedObjectArrayConstPtr& msg);
 	void callbackGetVehicleStatus(const geometry_msgs::TwistStampedConstPtr& msg);
 	void callbackGetCanInfo(const autoware_can_msgs::CANInfoConstPtr & msg);
 	void callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg);

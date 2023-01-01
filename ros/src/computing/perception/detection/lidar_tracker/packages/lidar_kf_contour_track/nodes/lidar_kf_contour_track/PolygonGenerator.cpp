@@ -65,7 +65,6 @@ std::vector<PlannerHNS::GPSPoint> PolygonGenerator::EstimateClusterPolygon(const
                         m_Polygon.push_back(wp.pos);
 	}
 
-
 	//Fix Resolution:
 	bool bChange = true;
 	while (bChange && m_Polygon.size()>1)
@@ -89,10 +88,8 @@ std::vector<PlannerHNS::GPSPoint> PolygonGenerator::EstimateClusterPolygon(const
 
                     p1 = p2;
 		}
-
 		m_Polygon = m_PolygonRes;
 	}
-
 	PlannerHNS::GPSPoint sum_p;
 	for(unsigned int i = 0 ; i< m_Polygon.size(); i++)
 	{

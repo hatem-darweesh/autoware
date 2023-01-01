@@ -62,14 +62,14 @@ public:
 	ControllerParams()
 	{
 		SimulationSteeringDelay = 0.0;
-		SteeringDelay 		= 0.8;
-		Acceleration		= 0.5;
-		Deceleration		= -0.8;
-		FollowDistance		= 8.0;
-		LowpassSteerCutoff	= 5.0;
-		maxAccel			= 0.9;
+		SteeringDelay = 0.8;
+		Acceleration = 0.5;
+		Deceleration = -0.8;
+		FollowDistance = 8.0;
+		LowpassSteerCutoff = 5.0;
+		maxAccel = 0.9;
 		minPursuiteDistance = 2.0;
-		maxDecel 			= -1.5;
+		maxDecel = -1.5;
 	}
 };
 
@@ -96,22 +96,22 @@ public:
 
   CAR_BASIC_INFO()
   {
-	  model 				= SimulationCar;
-	  turning_radius 		= 5.2;
-	  wheel_base			= 2.7;
-	  max_speed_forward		= 3.0;
-	  min_speed_forward		= 0.0;
-	  max_speed_backword	= 1.0;
-	  max_steer_value		= 660;
-	  min_steer_value		= -660;
-	  max_brake_value		= 0;
-	  min_brake_value		= 0;
-	  max_steer_angle		= 0.42;
-	  min_steer_angle		= 0.42;
-	  length				= 4.3;
-	  width					= 1.82;
-	  max_acceleration		= 1.5; // m/s2
-	  max_deceleration		= -1.5; // 1/3 G
+	  model	= SimulationCar;
+	  turning_radius = 5.2;
+	  wheel_base = 2.7;
+	  max_speed_forward = 3.0;
+	  min_speed_forward = 0.0;
+	  max_speed_backword = 1.0;
+	  max_steer_value = 660;
+	  min_steer_value = -660;
+	  max_brake_value = 0;
+	  min_brake_value = 0;
+	  max_steer_angle = 0.42;
+	  min_steer_angle = 0.42;
+	  length = 4.3;
+	  width = 1.82;
+	  max_acceleration = 1.5; // m/s2
+	  max_deceleration = -1.5; // 1/3 G
   }
 
   double CalcMaxSteeringAngle()

@@ -1,4 +1,4 @@
-/// \file  RosHelpers.cpp
+/// \file  ROSHelpers.cpp
 /// \brief Helper functions for rviz visualization
 /// \author Hatem Darweesh
 /// \date Jun 30, 2016

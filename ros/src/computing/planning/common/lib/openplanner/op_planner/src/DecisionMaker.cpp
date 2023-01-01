@@ -195,8 +195,6 @@ void DecisionMaker::InitBehaviorStates()
  		pValues->iCurrSafeTrajectory = pValues->iCentralTrajectory;
 
 	pValues->bFullyBlock = bestTrajectory.bBlocked;
-//	if(pValues->distanceToNext <= m_params.maxDistanceToAvoid)
-//		pValues->bFullyBlock = true;
 
  	if(bestTrajectory.lane_index >=0)
  		pValues->iCurrSafeLane = bestTrajectory.lane_index;
@@ -509,13 +507,6 @@ void DecisionMaker::InitBehaviorStates()
 	 m_TotalPath.clear();
 	for(unsigned int i = 0; i < m_TotalOriginalPath.size(); i++)
 	{
-//		PlannerHNS::RelativeInfo info;
-//		PlannerHNS::PlanningHelpers::GetRelativeInfoLimited(m_TotalOriginalPath.at(i), state, info, m_prev_index.at(i));
-//
-//		m_prev_index.at(i) = info.iBack - 1;
-//		if(m_prev_index.at(i) < 0)
-//			m_prev_index.at(i) = 0;
-
 		t_centerTrajectorySmoothed.clear();
 		m_prev_index.at(i) = PlannerHNS::PlanningHelpers::ExtractPartFromPointToDistanceDirectionFast(m_TotalOriginalPath.at(i), state, m_params.horizonDistance ,	m_params.pathDensity , t_centerTrajectorySmoothed, m_prev_index.at(i));
 

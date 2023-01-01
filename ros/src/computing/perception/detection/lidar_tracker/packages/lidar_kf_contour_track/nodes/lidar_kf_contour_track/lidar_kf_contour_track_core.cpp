@@ -38,7 +38,6 @@ ContourTracker::ContourTracker()
 	bNewCurrentPos = false;
 	pointcloud_frame = "velodyne";
 	tracking_frame = "world";
-
 	kitti_data_dir_ = "/media/hatem/ac16c202-4cf2-4584-b6c9-1d85db174f5a/KITTI_Data/2011_09_26/2011_09_26_drive_0005_sync/";
 	result_file_path_ = kitti_data_dir_ + "benchmark_results.txt";
 	frame_count_ = 0;
@@ -51,12 +50,10 @@ ContourTracker::ContourTracker()
 	m_ObstacleTracking.m_bEnableStepByStep = m_Params.bEnableStepByStep;
 	m_ObstacleTracking.InitSimpleTracker();
 
-	//if(m_Params.bEnableSimulation)
-		sub_cloud_clusters 		= nh.subscribe("/detection/lidar_detector/cloud_clusters", 1, &ContourTracker::callbackGetCloudClusters, this);
-//	else
-//		sub_detected_objects 	= nh.subscribe("/detection/lidar_detector/objects", 1, &ContourTracker::callbackGetDetectedObjects, this);
-
-	sub_current_pose 		= nh.subscribe("/current_pose",   1, &ContourTracker::callbackGetCurrentPose, 	this);
+	sub_cloud_clusters = nh.subscribe("/detection/lidar_detector/cloud_clusters", 1, &ContourTracker::callbackGetCloudClusters, this);
+	sub_detected_objects = nh.subscribe("/detection/lidar_detector/objects", 1, &ContourTracker::callbackGetDetectedObjects, this);
+	pub_AllTrackedObjects 	= nh.advertise<autoware_msgs::DetectedObjectArray>("tracked_objects", 1);
+	sub_current_pose = nh.subscribe("/current_pose",   1, &ContourTracker::callbackGetCurrentPose, 	this);
 
 	if(m_VelocitySource == 0)
 		sub_robot_odom = nh.subscribe("/carla/ego_vehicle/odometry", 1, &ContourTracker::callbackGetRobotOdom, this);
@@ -65,10 +62,9 @@ ContourTracker::ContourTracker()
 	else if(m_VelocitySource == 2)
 		sub_can_info = nh.subscribe("/can_info", 1, &ContourTracker::callbackGetCanInfo, this);
 
-	pub_AllTrackedObjects 	= nh.advertise<autoware_msgs::DetectedObjectArray>("tracked_objects", 1);
 	pub_DetectedPolygonsRviz = nh.advertise<visualization_msgs::MarkerArray>("detected_polygons", 1);
 	pub_TrackedObstaclesRviz = nh.advertise<jsk_recognition_msgs::BoundingBoxArray>("op_planner_tracked_boxes", 1);
-	pub_TTC_PathRviz		= nh.advertise<visualization_msgs::MarkerArray>("ttc_direct_path", 1);
+	pub_TTC_PathRviz = nh.advertise<visualization_msgs::MarkerArray>("ttc_direct_path", 1);
 
 	//Mapping Section
 	if(m_MapFilterDistance > 0.25)
@@ -89,7 +85,6 @@ ContourTracker::ContourTracker()
 		sub_nodes = nh.subscribe("/vector_map_info/node", 1, &ContourTracker::callbackGetVMNodes,  this);
 	}
 
-	//Visualization Section
 	m_nDummyObjPerRep = 150;
 	m_nDetectedObjRepresentations = 5;
 	m_DetectedPolygonsDummy.push_back(visualization_msgs::MarkerArray());
@@ -383,11 +378,9 @@ void ContourTracker::callbackGetDetectedObjects(const autoware_msgs::DetectedObj
 
 void ContourTracker::callbackGetCloudClusters(const autoware_msgs::CloudClusterArrayConstPtr &msg)
 {
-
 	if(bNewCurrentPos || m_Params.bEnableSimulation)
 	{
 		autoware_msgs::CloudClusterArray localObjects = *msg;
-
 		if(msg->header.frame_id.compare("velodyne") == 0)
 		{
 			transformPoseToGlobal(*msg, localObjects);
@@ -779,6 +772,7 @@ void ContourTracker::LogAndSend()
 
 	m_OutPutResults.header.frame_id = "map";
 	m_OutPutResults.header.stamp  = ros::Time();
+	
 	pub_AllTrackedObjects.publish(m_OutPutResults);
 
 	if(m_Params.bEnableBenchmark)

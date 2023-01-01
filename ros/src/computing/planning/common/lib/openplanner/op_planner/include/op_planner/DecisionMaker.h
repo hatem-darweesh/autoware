@@ -23,32 +23,33 @@ public:
 	ControllerParams m_ControlParams;
 	std::vector<WayPoint> m_Path;
 	PlannerHNS::RoadNetwork m_Map;
+
 	int m_iCurrentTotalPathId;
 	std::vector<std::vector<WayPoint> > m_RollOuts;
 	std::vector<int> m_prev_index;
 	Lane* pLane;
 
-	BehaviorStateMachine* 		m_pCurrentBehaviorState;
-	WaitState* 					m_pWaitState;
-	SwerveStateII*				m_pAvoidObstacleState;
-	TrafficLightStopStateII*	m_pTrafficLightStopState;
-	TrafficLightWaitStateII*	m_pTrafficLightWaitState;
+	BehaviorStateMachine* m_pCurrentBehaviorState;
+	WaitState* m_pWaitState;
+	SwerveStateII* m_pAvoidObstacleState;
+	TrafficLightStopStateII* m_pTrafficLightStopState;
+	TrafficLightWaitStateII* m_pTrafficLightWaitState;
 
-	ForwardStateII * 			m_pGoToGoalState;;
-	InitStateII* 				m_pInitState;
-	MissionAccomplishedStateII*	m_pMissionCompleteState;
-	GoalStateII*				m_pGoalState;
-	FollowStateII*				m_pFollowState;
-	StopSignStopStateII* 		m_pStopSignStopState;
-	StopSignWaitStateII* 		m_pStopSignWaitState;
-	StopStateII*				m_pStopState;
+	ForwardStateII* m_pGoToGoalState;;
+	InitStateII* m_pInitState;
+	MissionAccomplishedStateII* m_pMissionCompleteState;
+	GoalStateII* m_pGoalState;
+	FollowStateII* m_pFollowState;
+	StopSignStopStateII* m_pStopSignStopState;
+	StopSignWaitStateII* m_pStopSignWaitState;
+	StopStateII* m_pStopState;
 
 	void InitBehaviorStates();
 
 	//For Simulation
-	UtilityHNS::PIDController 	m_pidVelocity;
-	UtilityHNS::PIDController 	m_pidStopping;
-	UtilityHNS::PIDController 	m_pidFollowing;
+	UtilityHNS::PIDController m_pidVelocity;
+	UtilityHNS::PIDController m_pidStopping;
+	UtilityHNS::PIDController m_pidFollowing;
 
 public:
 
@@ -78,10 +79,13 @@ protected:
 	double UpdateVelocityDirectlyToTrajectory(const BehaviorState& beh, const VehicleState& CurrStatus, const double& dt);
 	bool ReachEndOfGlobalPath(const double& min_distance, const int& iGlobalPathIndex);
 
+
+
 	std::vector<PlannerHNS::WayPoint> t_centerTrajectorySmoothed;
 	std::vector<std::vector<WayPoint> > m_TotalOriginalPath;
 	std::vector<std::vector<WayPoint> > m_TotalPath;
 	PlannerHNS::PlanningParams m_params;
+
 };
 
 } /* namespace PlannerHNS */

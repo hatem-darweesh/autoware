@@ -46,7 +46,6 @@
 	<arg name="maxDeceleration" 			default="-3.0" />
 			
 	<arg name="velocitySource"			default="1" /> <!-- read velocities from (0- Odometry, 1- autoware current_velocities, 2- car_info) "" -->
-	
 	<arg name="experimentName" 				default="" />		
 
 

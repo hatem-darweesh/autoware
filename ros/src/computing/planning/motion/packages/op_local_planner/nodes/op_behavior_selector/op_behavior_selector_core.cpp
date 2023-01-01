@@ -225,7 +225,6 @@ void BehaviorGen::callbackGetCANInfo(const autoware_can_msgs::CANInfoConstPtr &m
 {
 	m_VehicleStatus.speed = msg->speed/3.6;
 	m_CurrentPos.v = m_VehicleStatus.speed;
-
 	m_VehicleStatus.steer = msg->angle * m_CarInfo.max_steer_angle / m_CarInfo.max_steer_value;
 	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);
 	bVehicleStatus = true;
@@ -235,7 +234,6 @@ void BehaviorGen::callbackGetRobotOdom(const nav_msgs::OdometryConstPtr& msg)
 {
 	m_VehicleStatus.speed = msg->twist.twist.linear.x;
 	m_CurrentPos.v = m_VehicleStatus.speed ;
-
 	if(msg->twist.twist.linear.x != 0)
 		m_VehicleStatus.steer += atan(m_CarInfo.wheel_base * msg->twist.twist.angular.z/msg->twist.twist.linear.x);
 	UtilityHNS::UtilityH::GetTickCount(m_VehicleStatus.tStamp);

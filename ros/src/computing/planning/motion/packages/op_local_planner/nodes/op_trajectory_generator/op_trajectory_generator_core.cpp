@@ -222,7 +222,6 @@ void TrajectoryGen::callbackGetGlobalPlannerPath(const autoware_msgs::LaneArrayC
 		for(unsigned int i = 0 ; i < msg->lanes.size(); i++)
 		{
 			PlannerHNS::ROSHelpers::ConvertFromAutowareLaneToLocalLane(msg->lanes.at(i), m_temp_path);
-			//PlannerHNS::PlanningHelpers::CalcAngleAndCost(m_temp_path);
 
 			m_GlobalPaths.push_back(m_temp_path);
 

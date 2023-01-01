@@ -99,10 +99,10 @@ protected:
 
 	double m_DistanceBetweenCurbs;
 	double m_VisualizationTime;
+
 	timespec m_SensingTimer;
 
 	std::string m_ExperimentFolderName;
-
 
 	ros::NodeHandle nh;
 	ros::Publisher pub_predicted_objects_trajectories;

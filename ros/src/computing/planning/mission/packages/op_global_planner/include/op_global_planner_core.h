@@ -41,7 +41,6 @@
 #include <tf/tf.h>
 
 #include <std_msgs/Int8.h>
-#include "waypoint_follower/libwaypoint_follower.h"
 #include "autoware_can_msgs/CANInfo.h"
 #include <visualization_msgs/MarkerArray.h>
 

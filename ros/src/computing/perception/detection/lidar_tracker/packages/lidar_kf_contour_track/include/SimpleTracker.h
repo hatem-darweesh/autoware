@@ -91,7 +91,6 @@ private:
 	cv::KalmanFilter m_filter;
 	double prev_x, prev_y, prev_v, prev_a, prev_accel;
 	double prev_big_v;
-	double prev_vel_diff;
 	double prev_big_a;
 	long m_id;
 	int nStates;
@@ -99,7 +98,7 @@ private:
 	int MinAppearanceCount;
 	double time_diff;
 	double total_t;
-
+	double prev_vel_diff;
 
 public:
 	int m_bUpdated;
@@ -115,13 +114,8 @@ public:
 
 	KFTrackV(double x, double y, double a, long id, double _dt, int _MinAppearanceCount = 1)
 	{
-//		errorSmoother.result.MovCov = 0.125;
-//		errorSmoother.result.MeasureCov = 0.1;
-//		errorSmoother.result.p = 1;
-//		errorSmoother.result.x = 0;
 		prev_vel_diff = 0;
 		total_t = 0;
-
 		time_diff = 0;
 		region_id = -1;
 		forget_time = NEVER_GORGET_TIME; // this is very bad , dangerous
@@ -219,9 +213,7 @@ public:
 			double diff_y = predObj.center.pos.y - prev_y;
 			double diff_x = predObj.center.pos.x - prev_x;
 			double d_diff = hypot(diff_y, diff_x);
-
 			total_t += _dt;
-
 			if(d_diff > 0.2)
 			{
 				currA = atan2(diff_y, diff_x);
@@ -237,12 +229,12 @@ public:
 				currV = oldObj.center.v;
 		}
 
+
 		if(m_iLife > MinAppearanceCount)
 		{
 			predObj.center.pos.a = currA;
 			predObj.center.v = currV;
 			predObj.bVelocity = true;
-//			predObj.acceleration_raw = (currV - prev_v)/_dt;
 			if(time_diff > ACCELERATION_CALC_TIME)
 			{
 				prev_vel_diff = (currV - prev_big_v);
@@ -258,16 +250,6 @@ public:
 				predObj.acceleration_desc = -1;
 			else
 				predObj.acceleration_desc = 0;
-
-			//predObj.acceleration_desc = UtilityHNS::UtilityH::GetSign(predObj.acceleration_raw - prev_big_a);
-			//std::cout << "Acceleraaaaaaaaaaaaaaate : " << predObj.acceleration << ", BigV:" << prev_big_v << std::endl;
-//			std::cout << "Motion Status------ " << std::endl;
-//			if(predObj.acceleration_desc == 1)
-//				std::cout << "Acceleration: " << predObj.acceleration_desc << ", V Diff: " << prev_vel_diff << ", DT: " << _dt << ", TD: " << time_diff << ", PrevV: " << prev_big_v  << ", CurrV: " << currV  << std::endl;
-//			else if(predObj.acceleration_desc == -1)
-//				std::cout << "Braking: " << predObj.acceleration_desc << ", V Diff: " << prev_vel_diff << ", DT: " << _dt << ", TD: " << time_diff << ", PrevV: " << prev_big_v  << ", CurrV: " << currV  <<  std::endl;
-//			else
-//				std::cout << "Cruising: " << predObj.acceleration_desc << ", V Diff: " << prev_vel_diff << ", DT: " << _dt << ", TD: " << time_diff << ", PrevV: " << prev_big_v  << ", CurrV: " << currV  <<  std::endl;
 		}
 		else
 		{

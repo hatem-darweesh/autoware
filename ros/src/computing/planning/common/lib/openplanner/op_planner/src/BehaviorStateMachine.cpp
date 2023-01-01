@@ -380,8 +380,6 @@ BehaviorStateMachine* FollowStateII::GetNextState()
 {
 	PreCalculatedConditions* pCParams = GetCalcParams();
 
-	//std::cout << "Follow: " << pCParams->distanceToNext << ", " << pCParams->minStoppingDistance  <<", " << pCParams->bFullyBlock <<std::endl;
-
 	if(pCParams->currentGoalID != pCParams->prevGoalID)
 		return FindBehaviorState(GOAL_STATE);
 
@@ -415,8 +413,6 @@ BehaviorStateMachine* SwerveStateII::GetNextState()
 
 	pCParams->iPrevSafeTrajectory = pCParams->iCurrSafeTrajectory;
 	pCParams->bRePlan = true;
-
-	std::cout << "Swerve : " << pCParams->distanceToNext << ", " << pCParams->minStoppingDistance  <<", " << pCParams->bFullyBlock <<std::endl;
 
 	return FindBehaviorState(FORWARD_STATE);
 }

@@ -124,12 +124,6 @@ public:
 
 	static void GenerateRecommendedSpeed(std::vector<WayPoint>& path, const double& max_speed, const double& speedProfileFactor);
 
-//	static WayPoint* BuildPlanningSearchTree(Lane* l, const WayPoint& prevWayPointIndex,
-//			const WayPoint& startPos, const WayPoint& goalPos,
-//			const std::vector<int>& globalPath, const double& DistanceLimit,
-//			int& nMaxLeftBranches, int& nMaxRightBranches,
-//			std::vector<WayPoint*>& all_cells_to_delete );
-
 	static WayPoint* BuildPlanningSearchTreeV2(WayPoint* pStart,
 			const WayPoint& goalPos,
 			const std::vector<int>& globalPath, const double& DistanceLimit,

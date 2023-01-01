@@ -78,7 +78,6 @@ enum ACTION_TYPE {FORWARD_ACTION, BACKWARD_ACTION, STOP_ACTION, LEFT_TURN_ACTION
 enum BEH_STATE_TYPE {BEH_FORWARD_STATE=0,BEH_STOPPING_STATE=1, BEH_BRANCH_LEFT_STATE=2, BEH_BRANCH_RIGHT_STATE=3, BEH_YIELDING_STATE=4, BEH_ACCELERATING_STATE=5, BEH_PARKING_STATE=6, BEH_UNKNOWN_STATE = 7};
 
 enum SEGMENT_TYPE {NORMAL_ROAD_SEG, INTERSECTION_ROAD_SEG, UTURN_ROAD_SEG, EXIT_ROAD_SEG, MERGE_ROAD_SEG, HIGHWAY_ROAD_SEG};
-
 enum RoadSegmentType {NORMAL_ROAD, INTERSECTION_ROAD, UTURN_ROAD, EXIT_ROAD, MERGE_ROAD, HIGHWAY_ROAD};
 
 enum BOUNDARY_TYPE {NORMAL_ROAD_BOUNDARY, INTERSECTION_BOUNDARY, CROSSING_BOUNDARY, UTURN__BOUNDARY,
@@ -444,7 +443,6 @@ public:
 		v = 0;
 		cost = 0;
 		laneId = -1;
-		boundaryId = -1;
 		pLane  = nullptr;
 		pLeft = nullptr;
 		pRight = nullptr;
@@ -462,9 +460,11 @@ public:
 		state = INITIAL_STATE;
 		beh_state = BEH_STOPPING_STATE;
 		iOriginalIndex = 0;
-		width = 0;
+
 		gid = 0;
 		originalMapID = -1;
+		boundaryId = -1;
+		width = 0;
 	}
 
 	WayPoint(const double& x, const double& y, const double& z, const double& a)
@@ -478,7 +478,6 @@ public:
 		v = 0;
 		cost = 0;
 		laneId = -1;
-		boundaryId = -1;
 		pLane  = nullptr;
 		pLeft = nullptr;
 		pRight = nullptr;
@@ -496,9 +495,11 @@ public:
 		iOriginalIndex = 0;
 		state = INITIAL_STATE;
 		beh_state = BEH_STOPPING_STATE;
-		width = 0;
+
 		gid = 0;
 		originalMapID = -1;
+		boundaryId = -1;
+		width = 0;
 	}
 };
 
@@ -599,13 +600,11 @@ public:
 	int laneId;
 	std::vector<int> laneIds;
 	int roadId;
-//	int trafficLightID;
+	std::vector<int> lightIds;
 	int stopSignID;
 	std::vector<WayPoint> points;
 	Lane* pLane;
 	int linkID;
-
-	std::vector<int> lightIds;
 
 	StopLine()
 	{
@@ -613,7 +612,6 @@ public:
 		laneId =0;
 		roadId =0;
 		pLane = 0;
-//		trafficLightID = -1;
 		stopSignID = -1;
 		linkID = 0;
 	}
@@ -641,7 +639,7 @@ class TrafficSign
 {
 public:
 	int id;
-	//int laneId;
+	std::vector<int> laneIds;
 	int roadId;
 	int groupID;
 	int stopLineID;
@@ -657,16 +655,14 @@ public:
 	timespec fromTimeValue;
 	timespec toTimeValue;
 
-	std::vector<int> laneIds;
 	std::vector<Lane*> pLanes;
 	Lane* pLane;
 
-	std::vector<PlannerHNS::WayPoint> points; // make up the shape
+	std::vector<PlannerHNS::WayPoint> points; // sign shape, for future use 
 
 	TrafficSign()
 	{
 		id    		= 0;
-//		laneId 		= 0;
 		roadId		= 0;
 		groupID     = 0;
 		stopLineID  = 0;
@@ -674,9 +670,6 @@ public:
 		value		= 0;
 		fromValue	= 0;
 		toValue		= 0;
-//		timeValue	= 0;
-//		fromTimeValue = 0;
-//		toTimeValue	= 0;
 		pLane 		= 0;
 		horizontal_angle = 0;
 		vertical_angle = 0;
@@ -1041,44 +1034,44 @@ public:
 
 	PlanningParams()
 	{
-		maxSpeed 						= 3;
-		minSpeed 						= 0;
-		planningDistance 				= 10000;
-		microPlanDistance 				= 30;
-		carTipMargin					= 4.0;
-		rollInMargin					= 12.0;
-		rollInSpeedFactor				= 0.25;
-		pathDensity						= 0.25;
-		rollOutDensity					= 0.5;
-		rollOutNumber					= 4;
-		horizonDistance					= 120;
-		minFollowingDistance			= 35;
-		minDistanceToAvoid				= 15;
-		maxDistanceToAvoid				= 5;
-		speedProfileFactor				= 1.0;
-		smoothingDataWeight				= 0.47;
-		smoothingSmoothWeight			= 0.2;
-		smoothingToleranceError			= 0.05;
+		maxSpeed = 3;
+		minSpeed = 0;
+		planningDistance = 10000;
+		microPlanDistance = 30;
+		carTipMargin = 4.0;
+		rollInMargin = 12.0;
+		rollInSpeedFactor = 0.25;
+		pathDensity = 0.25;
+		rollOutDensity = 0.5;
+		rollOutNumber = 4;
+		horizonDistance = 120;
+		minFollowingDistance = 35;
+		minDistanceToAvoid = 15;
+		maxDistanceToAvoid = 5;
+		speedProfileFactor = 1.0;
+		smoothingDataWeight = 0.47;
+		smoothingSmoothWeight = 0.2;
+		smoothingToleranceError = 0.05;
 
-		stopSignStopTime 				= 2.0;
+		stopSignStopTime = 2.0;
 
-		additionalBrakingDistance		= 10.0;
-		verticalSafetyDistance 			= 0.0;
-		horizontalSafetyDistancel		= 0.0;
+		additionalBrakingDistance = 10.0;
+		verticalSafetyDistance = 0.0;
+		horizontalSafetyDistancel = 0.0;
 
-		giveUpDistance					= -4;
-		nReliableCount					= 2;
+		giveUpDistance = -4;
+		nReliableCount = 2;
 
-		enableHeadingSmoothing			= false;
-		enableSwerving 					= false;
-		enableFollowing					= false;
-		enableTrafficLightBehavior		= false;
-		enableLaneChange 				= false;
-		enableStopSignBehavior			= false;
-		enabTrajectoryVelocities 		= false;
-		enableTimeOutAvoidance			= false;
-		minIndicationDistance			= 15;
+		enableHeadingSmoothing = false;
+		enableSwerving = false;
+		enableFollowing = false;
+		enableTrafficLightBehavior = false;
+		enableLaneChange = false;
+		enableStopSignBehavior = false;
+		enabTrajectoryVelocities = false;
+		minIndicationDistance = 15;
 
+		enableTimeOutAvoidance = false;
 		avoidanceTimeOut = 250; //seconds
 		maxLaneSearchDistance = 3.0;
 		goalDiscoveryDistance = 2.5;
@@ -1164,46 +1157,46 @@ public:
 
 	PreCalculatedConditions()
 	{
-		currentGoalID 			= 0;
-		prevGoalID				= -1;
-		currentVelocity 		= 0;
-		minStoppingDistance		= 1;
-		bOutsideControl			= 0;
-		bGreenOutsideControl	= false;
+		currentGoalID = 0;
+		prevGoalID = -1;
+		currentVelocity	= 0;
+		minStoppingDistance = 1;
+		bOutsideControl	= 0;
+		bGreenOutsideControl = false;
 		//distance to stop
-		distanceToNext			= -1;
-		velocityOfNext			= 0;
-		currentStopSignID		= -1;
-		prevStopSignID			= -1;
-		currentTrafficLightID	= -1;
-		prevTrafficLightID		= -1;
-		bTrafficIsRed			= false;
-		iCurrSafeTrajectory		= -1;
-		bFullyBlock				= false;
+		distanceToNext = -1;
+		velocityOfNext = 0;
+		currentStopSignID  -1;
+		prevStopSignID = -1;
+		currentTrafficLightID = -1;
+		prevTrafficLightID = -1;
+		bTrafficIsRed = false;
+		iCurrSafeTrajectory = -1;
+		bFullyBlock = false;
 
-		iPrevSafeTrajectory		= -1;
-		iCentralTrajectory		= -1;
-		bRePlan					= false;
-		bNewGlobalPath			= false;
+		iPrevSafeTrajectory = -1;
+		iCentralTrajectory = -1;
+		bRePlan	= false;
+		bNewGlobalPath = false;
 
-		bCanChangeLane			= false;
-		distanceToGoBack		= 0;
-		timeToGoBack			= 0;
-		distanceToChangeLane	= 0;
-		timeToChangeLane		= 0;
-		bTargetLaneSafe			= true;
-		bUpcomingLeft			= false;
-		bUpcomingRight			= false;
-		targetLaneID			= -1;
-		currentLaneID			= -1;
-		originalLaneID			= -1;
-		iCurrSafeLane 			= -1;
-		iPrevSafeLane			= -1;
+		bCanChangeLane = false;
+		distanceToGoBack = 0;
+		timeToGoBack = 0;
+		distanceToChangeLane = 0;
+		timeToChangeLane = 0;
+		bTargetLaneSafe = true;
+		bUpcomingLeft = false;
+		bUpcomingRight = false;
+		targetLaneID = -1;
+		currentLaneID = -1;
+		originalLaneID = -1;
+		iCurrSafeLane = -1;
+		iPrevSafeLane = -1;
 
-		indicator 				= INDICATOR_NONE;
+		indicator = INDICATOR_NONE;
 
-		distanceToGoal 			= DBL_MAX;
-		bFinalLocalTrajectory	= false;
+		distanceToGoal = DBL_MAX;
+		bFinalLocalTrajectory = false;
 	}
 
 	virtual ~PreCalculatedConditions(){}
